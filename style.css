@@ -1,0 +1,99 @@
+/* Notification Bell */
+.notification-bell {
+    position: relative;
+    cursor: pointer;
+    margin-right: 1rem;
+    font-size: 1.3rem;
+    color: var(--text-secondary);
+    transition: color 0.3s;
+}
+.notification-bell:hover {
+    color: var(--champagne);
+}
+.notification-bell .badge {
+    position: absolute;
+    top: -6px;
+    right: -10px;
+    background: var(--ruby);
+    color: white;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    font-size: 0.65rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    box-shadow: 0 0 8px rgba(180,30,45,0.6);
+}
+.notif-dropdown {
+    position: absolute;
+    top: 40px;
+    right: 0;
+    width: 320px;
+    max-height: 400px;
+    overflow-y: auto;
+    background: rgba(15, 20, 50, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--gold);
+    border-radius: 16px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+    padding: 1rem;
+    display: none;
+    z-index: 300;
+}
+.notif-dropdown.show {
+    display: block;
+}
+.notif-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.8rem;
+}
+.notif-header h4 {
+    color: var(--gold-light);
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+}
+.notif-header button {
+    background: none;
+    border: 1px solid var(--glass-border);
+    color: var(--text-secondary);
+    padding: 4px 10px;
+    border-radius: 15px;
+    font-size: 0.7rem;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.notif-header button:hover {
+    border-color: var(--gold);
+    color: var(--champagne);
+}
+.notif-item {
+    padding: 0.6rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+.notif-item:last-child {
+    border-bottom: none;
+}
+.notif-item .notif-title {
+    color: var(--champagne);
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+}
+.notif-item .notif-time {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    margin-top: 0.2rem;
+}
+.notif-item .mark-read {
+    background: none;
+    border: none;
+    color: var(--gold-light);
+    cursor: pointer;
+    font-size: 0.7rem;
+    margin-left: 0.5rem;
+}

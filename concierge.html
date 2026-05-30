@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Royal Concierge | Reh</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500&family=Great+Vibes&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="assets/main.css">
+
+        <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyClJ9Mlln04N_7XFSvy1zGHaE6w5E2DQ8I",
+        authDomain: "rehp-c82b8.firebaseapp.com",
+        projectId: "rehp-c82b8",
+        storageBucket: "rehp-c82b8.firebasestorage.app",
+        messagingSenderId: "363083908702",
+        appId: "1:363083908702:web:33e7d66890c9ef79fb96cf",
+        measurementId: "G-KX9ZEBL3E1"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+
+    // Expose to global window
+    window.auth = auth;
+    window.db = db;
+    window.storage = storage;
+    window.onAuthStateChanged = onAuthStateChanged;
+    window.signInWithEmailAndPassword = signInWithEmailAndPassword;
+    window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
+    window.signOut = signOut;
+    window.getDoc = getDoc;
+    window.setDoc = setDoc;
+    window.updateDoc = updateDoc;
+    window.serverTimestamp = serverTimestamp;
+    window.doc = doc;
+    window.getDownloadURL = getDownloadURL;
+    window.uploadBytes = uploadBytes;
+    window.ref = ref;
+</script>
+
+    <style>
+        :root {
+            --deep-navy: #080c24;
+            --sapphire: #0f1b4a;
+            --royal-blue: #162464;
+            --crimson: #8b1a2b;
+            --ruby: #a82035;
+            --rose: #c0394b;
+            --gold: #c9a84c;
+            --gold-light: #dfc278;
+            --champagne: #f0e4c8;
+            --cream: #faf7f0;
+            --pure-white: #ffffff;
+            --glass-bg: rgba(255, 255, 255, 0.04);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-bg-card: rgba(15, 20, 50, 0.55);
+            --card-border-glow: rgba(200, 160, 70, 0.25);
+            --text-primary: #f0ece6;
+            --text-secondary: #c5bfb3;
+            --text-muted: #8a857a;
+            --shadow-gold: 0 0 40px rgba(200, 155, 60, 0.2);
+            --shadow-crimson: 0 0 30px rgba(180, 30, 50, 0.2);
+            --transition-smooth: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --transition-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+            --tropical-sunset: linear-gradient(135deg, #ff6b4a, #c0394b, #8b1a2b);
+            --beach-gold: #f7b84a;
+        }
+
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            font-size: 16px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--deep-navy);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+            letter-spacing: 0.01em;
+            position: relative;
+        }
+
+        ::selection {
+            color: var(--champagne);
+            background: rgba(180, 30, 50, 0.5);
+        }
+
+        /* ── Animated Background ─────────────────── */
+        .bg-orbit {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+        .bg-orbit::before {
+            content: '';
+            position: absolute;
+            top: -30%;
+            left: -20%;
+            width: 140%;
+            height: 160%;
+            background:
+                radial-gradient(ellipse at 30% 30%, rgba(255, 107, 74, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 60%, rgba(200, 160, 60, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 80%, rgba(20, 40, 120, 0.2) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(180, 30, 50, 0.2) 0%, transparent 50%);
+            animation: bgPulse 10s ease-in-out infinite;
+        }
+        @keyframes bgPulse {
+            0%,100%{ opacity:0.9; transform:scale(1); }
+            50%{ opacity:1; transform:scale(1.03); }
+        }
+
+        /* ── Particles ──────────────────────────── */
+        .particles-container {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            animation: floatUp linear infinite;
+            opacity: 0;
+        }
+        .particle.diamond {
+            border-radius: 2px;
+            transform: rotate(45deg);
+        }
+        @keyframes floatUp {
+            0%{ transform:translateY(105vh) scale(0) rotate(0deg); opacity:0; }
+            5%{ opacity:1; }
+            50%{ opacity:0.8; }
+            90%{ opacity:0.1; }
+            100%{ transform:translateY(-15vh) scale(1.4) rotate(180deg); opacity:0; }
+        }
+
+        /* ── Main Wrapper ───────────────────────── */
+        .main-wrapper { position:relative; z-index:2; }
+
+        /* ── Navigation ─────────────────────────── */
+        .nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(8, 12, 36, 0.75);
+            backdrop-filter: blur(28px);
+            -webkit-backdrop-filter: blur(28px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 0 2rem;
+        }
+        .nav-inner {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 70px;
+        }
+        .nav-brand { display:flex; align-items:center; gap:12px; text-decoration:none; color:var(--text-primary); }
+        .nav-brand-icon {
+            width:44px; height:44px; border-radius:50%;
+            background: linear-gradient(135deg, var(--crimson), var(--royal-blue));
+            display:flex; align-items:center; justify-content:center;
+            font-size:1.3rem; color:var(--gold-light);
+            box-shadow:0 0 25px rgba(180,40,55,0.5);
+            animation: iconGlow 3s infinite;
+        }
+        @keyframes iconGlow {
+            0%,100%{ box-shadow:0 0 25px rgba(180,40,55,0.4),0 0 50px rgba(20,40,120,0.2); }
+            50%{ box-shadow:0 0 40px rgba(255,107,74,0.7),0 0 70px rgba(25,50,140,0.4); }
+        }
+        .nav-brand-text {
+            font-family:'Playfair Display', serif; font-size:1.5rem; font-weight:700;
+            background: linear-gradient(135deg, var(--gold-light), var(--champagne), var(--gold));
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+        }
+        .nav-links { display:flex; align-items:center; gap:2rem; list-style:none; }
+        .nav-links a {
+            text-decoration:none; color:var(--text-secondary); font-size:0.9rem; font-weight:500;
+            letter-spacing:0.03em; transition:color 0.3s; position:relative;
+        }
+        .nav-links a::after {
+            content:''; position:absolute; bottom:-6px; left:0; width:0; height:2px;
+            background:var(--gold); transition:width 0.35s var(--transition-smooth);
+        }
+        .nav-links a:hover, .nav-links a.active { color:var(--champagne); }
+        .nav-links a.active::after { width:100%; }
+        .nav-links a:hover::after { width:100%; }
+        .nav-cta {
+            background: var(--tropical-sunset);
+            color:white; border:none; padding:10px 26px; border-radius:50px;
+            font-weight:600; font-size:0.85rem; letter-spacing:0.04em; cursor:pointer;
+            transition:all 0.35s; box-shadow:0 4px 20px rgba(255,107,74,0.4);
+        }
+        .nav-cta:hover {
+            transform:translateY(-2px);
+            box-shadow:0 10px 30px rgba(255,107,74,0.7);
+            background: linear-gradient(135deg, #ff5e3a, #c0394b);
+        }
+        /* ── Logged‑in Avatar & Dropdown ─────────── */
+          .nav-profile {
+              position: relative;
+              cursor: pointer;
+          }
+          .nav-avatar {
+              width: 42px;
+              height: 42px;
+              border-radius: 50%;
+              border: 2px solid var(--gold-light);
+              box-shadow: 0 0 20px rgba(200, 160, 60, 0.4);
+              overflow: hidden;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              transition: 0.3s;
+              background: #1a1e35;
+          }
+    .nav-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .nav-avatar:hover {
+        box-shadow: 0 0 30px rgba(200, 160, 60, 0.8);
+        transform: scale(1.05);
+    }
+    .dropdown-menu {
+        position: absolute;
+        top: 55px;
+        right: 0;
+        background: rgba(15, 20, 50, 0.9);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--gold);
+        border-radius: 16px;
+        padding: 0.8rem;
+        width: 180px;
+        display: none;
+        flex-direction: column;
+        gap: 0.5rem;
+        z-index: 200;
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+    }
+    .dropdown-menu.show {
+        display: flex;
+    }
+      .dropdown-menu a,
+      .dropdown-menu button {
+          background: none;
+          border: none;
+          color: var(--text-secondary);
+          text-decoration: none;
+          font-size: 0.85rem;
+          padding: 8px 12px;
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          cursor: pointer;
+          transition: 0.2s;
+          text-align: left;
+          width: 100%;
+      }
+      .dropdown-menu a:hover,
+      .dropdown-menu button:hover {
+          background: rgba(255, 255, 255, 0.06);
+          color: var(--champagne);
+      }
+        .nav-hamburger { display:none; background:none; border:none; color:var(--text-primary); font-size:1.5rem; cursor:pointer; }
+
+        /* ── Concierge Hero ──────────────────────── */
+        .concierge-hero {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 2rem;
+            animation: fadeInUp 0.8s var(--transition-smooth);
+        }
+        .hero-text {
+            flex: 1 1 400px;
+        }
+        .hero-badge {
+            display: inline-block;
+            background: rgba(247,184,74,0.15);
+            border: 1px solid var(--beach-gold);
+            color: var(--beach-gold);
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 1.2rem;
+            backdrop-filter: blur(10px);
+        }
+        .hero-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2.4rem, 5vw, 3.8rem);
+            font-weight: 700;
+            line-height: 1.15;
+            letter-spacing: 0.02em;
+            margin-bottom: 0.8rem;
+            background: linear-gradient(180deg, #ffffff 0%, #ffd78b 40%, #c9a84c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 2px 6px rgba(255,160,60,0.4));
+        }
+        .hero-subtitle {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.1rem;
+            font-style: italic;
+            color: var(--text-secondary);
+            margin-bottom: 1.8rem;
+            max-width: 500px;
+        }
+        .hero-visual {
+            flex: 1 1 380px;
+            height: 350px;
+            background: linear-gradient(160deg, #ff6b4a22, #c9a84c22, #16246488);
+            border-radius: 28px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.4), 0 0 30px rgba(255,180,60,0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .hero-visual img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 28px;
+            opacity: 0.9;
+        }
+        .hero-visual .overlay-text {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(15px);
+            padding: 8px 18px;
+            border-radius: 30px;
+            color: var(--beach-gold);
+            font-weight: 600;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        /* ── Quick Stats ────────────────────────── */
+        .quick-stats {
+            max-width: 1100px;
+            margin: 0 auto 2rem;
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            padding: 1.5rem 2rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            backdrop-filter: blur(16px);
+            animation: fadeInUp 1s;
+        }
+        .stat-item { text-align:center; }
+        .stat-value { font-family:'Playfair Display', serif; font-size:1.8rem; font-weight:700; color:var(--beach-gold); }
+        .stat-label { font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em; }
+
+        /* ── Concierge Form & Services ──────────── */
+        .concierge-sections {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2.5rem;
+        }
+        @media (max-width: 900px) {
+            .concierge-sections { grid-template-columns: 1fr; }
+        }
+
+        .request-form {
+            background: var(--glass-bg-card);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 2rem;
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 0.6s var(--transition-smooth);
+        }
+        .request-form.card-visible { opacity:1; transform:translateY(0); }
+        .form-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            color: var(--gold-light);
+            margin-bottom: 0.5rem;
+        }
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+        .form-group label {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.3rem;
+            letter-spacing: 0.04em;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            transition: 0.3s;
+            outline: none;
+        }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: var(--beach-gold);
+            box-shadow: 0 0 15px rgba(255,180,60,0.2);
+        }
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            background: var(--tropical-sunset);
+            border: none;
+            border-radius: 14px;
+            color: white;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 8px 25px rgba(255,107,74,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-submit:hover {
+            background: linear-gradient(135deg, #ff5e3a, #a82035);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(255,107,74,0.6);
+        }
+
+        /* Services Grid */
+        .services-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.2rem;
+        }
+        .service-card {
+            background: var(--glass-bg-card);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 1.5rem 1.2rem;
+            text-align: center;
+            transition: 0.4s;
+            cursor: pointer;
+            opacity: 0;
+            transform: translateY(40px);
+        }
+        .service-card.card-visible { opacity:1; transform:translateY(0); }
+        .service-card:hover {
+            border-color: var(--beach-gold);
+            box-shadow: 0 0 30px rgba(255,180,60,0.3);
+            transform: translateY(-5px);
+        }
+        .service-icon {
+            font-size: 2rem;
+            color: var(--beach-gold);
+            margin-bottom: 0.6rem;
+        }
+        .service-name {
+            font-weight: 600;
+            color: var(--pure-white);
+            margin-bottom: 0.4rem;
+        }
+        .service-desc {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        /* ── Testimonials ───────────────────────── */
+        .testimonials {
+            max-width: 1400px;
+            margin: 3rem auto 4rem;
+            padding: 0 2rem;
+        }
+        .section-heading {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.2rem;
+            text-align: center;
+            color: var(--gold-light);
+            margin-bottom: 2rem;
+        }
+        .testimonial-cards {
+            display: flex;
+            gap: 2rem;
+            overflow-x: auto;
+            padding-bottom: 1rem;
+            scroll-snap-type: x mandatory;
+        }
+        .testimonial {
+            flex: 0 0 300px;
+            background: var(--glass-bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 1.8rem;
+            backdrop-filter: blur(15px);
+            scroll-snap-align: start;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        .testimonial.card-visible { opacity:1; transform:translateY(0); }
+        .testimonial i {
+            color: var(--beach-gold);
+            font-size: 1.2rem;
+            margin-bottom: 0.8rem;
+            display: block;
+        }
+        .testimonial-text {
+            font-style: italic;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+        .testimonial-author {
+            font-weight: 600;
+            color: var(--champagne);
+        }
+
+        /* ── Chat Bubble ────────────────────────── */
+        .chat-bubble {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 150;
+            background: var(--tropical-sunset);
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(255,107,74,0.6);
+            animation: pulseChat 2s infinite;
+            transition: 0.3s;
+        }
+        .chat-bubble:hover {
+            animation: none;
+            transform: scale(1.08);
+            box-shadow: 0 15px 40px rgba(255,107,74,0.8);
+        }
+        @keyframes pulseChat {
+            0%,100%{ box-shadow:0 10px 30px rgba(255,107,74,0.6); }
+            50%{ box-shadow:0 0 0 0 rgba(255,107,74,0.9); transform:scale(1.05); }
+        }
+
+        .chat-mini {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            width: 320px;
+            background: rgba(10,15,35,0.9);
+            backdrop-filter: blur(30px);
+            border: 1px solid var(--gold);
+            border-radius: 20px;
+            padding: 1.2rem;
+            z-index: 149;
+            color: white;
+            display: none;
+            flex-direction: column;
+            gap: 0.8rem;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+        }
+        .chat-mini.open { display: flex; }
+        .chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            color: var(--beach-gold);
+        }
+        .chat-messages {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 10px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            height: 120px;
+            overflow-y: auto;
+        }
+        .chat-input-area {
+            display: flex;
+            gap: 8px;
+        }
+        .chat-input-area input {
+            flex:1;
+            padding:10px;
+            border-radius:30px;
+            border:1px solid var(--glass-border);
+            background: rgba(255,255,255,0.05);
+            color:white;
+            outline: none;
+        }
+        .chat-input-area button {
+            background: var(--tropical-sunset);
+            border:none;
+            border-radius:50%;
+            width:38px; height:38px;
+            color:white;
+            cursor:pointer;
+        }
+        .chat-bubble .badge {
+            position: absolute;
+            top: -6px;
+            right: -10px;
+            background: #a82035;
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 0.65rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            box-shadow: 0 0 8px rgba(180,30,45,0.6);
+        }
+
+        /* ── Footer ──────────────────────────────── */
+        .footer {
+            text-align: center;
+            padding: 2.5rem 2rem;
+            border-top: 1px solid var(--glass-border);
+            color: var(--text-muted);
+            font-size: 0.78rem;
+        }
+        .footer span { color: var(--beach-gold); font-weight:600; }
+
+        /* ── Toast ───────────────────────────────── */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(20,30,60,0.9);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--gold);
+            color: var(--champagne);
+            padding: 14px 28px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            z-index: 999;
+            transition: transform 0.4s var(--transition-bounce);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            pointer-events: none;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+
+        @keyframes fadeInUp {
+            from { opacity:0; transform:translateY(40px); }
+            to { opacity:1; transform:translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .nav-hamburger { display: block; }
+            .concierge-hero { flex-direction: column; }
+            .hero-visual { height: 250px; }
+            .services-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-orbit"></div>
+    <div class="particles-container" id="particlesContainer"></div>
+    <div class="toast" id="toast"></div>
+
+    <!-- Floating Chat Bubble -->
+    <div class="chat-bubble" id="chatBubble" title="Chat with Concierge">
+        <i class="fa-solid fa-comment-dots"></i>
+        <span class="badge" id="chatBadge" style="display:none;">0</span>
+    </div>
+     <div class="chat-mini" id="chatMini">
+        <div class="chat-header">
+            <span><i class="fa-solid fa-crown"></i> Live Concierge</span>
+            <i class="fa-solid fa-times" id="closeChat" style="cursor:pointer;"></i>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <p>✨ Welcome to your private concierge. How may I assist you today?</p>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" id="chatInput" placeholder="Plan my beach party..." />
+            <button id="sendChat"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <div class="main-wrapper">
+        <!-- Navigation -->
+        <nav class="nav"></nav>
+
+        <!-- Sidebar -->
+    <aside class="sidebar invisible" id="sidebar"></aside>
+
+        <!-- Hero -->
+        <section class="concierge-hero">
+            <div class="hero-text">
+                <div class="hero-badge"><i class="fa-solid fa-umbrella-beach"></i> 24/7 Royal Concierge</div>
+                <h1 class="hero-title">Your Wish Is Our Command</h1>
+                <p class="hero-subtitle">From private beach parties in Mykonos to last‑minute yacht charters, our concierge team crafts unforgettable moments for the world's most discerning romantics.</p>
+            </div>
+            <div class="hero-visual">
+                <img src="https://picsum.photos/seed/beachparty/600/400" alt="Beach party" onerror="this.style.display='none'; this.parentElement.style.background='linear-gradient(135deg, #ff6b4a, #c9a84c)';">
+                <div class="overlay-text"><i class="fa-solid fa-champagne-glasses"></i> Beachside Romance Awaits</div>
+            </div>
+        </section>
+
+        <!-- Quick Stats -->
+        <div class="quick-stats">
+            <div class="stat-item"><div class="stat-value">500+</div><div class="stat-label">Curated Experiences</div></div>
+            <div class="stat-item"><div class="stat-value">< 10 min</div><div class="stat-label">Average Response</div></div>
+            <div class="stat-item"><div class="stat-value">Global</div><div class="stat-label">Private Network</div></div>
+            <div class="stat-item"><div class="stat-value">100%</div><div class="stat-label">Satisfaction</div></div>
+        </div>
+
+        <!-- Concierge Form + Services -->
+        <div class="concierge-sections">
+            <div class="request-form" id="requestForm">
+                <div class="form-title">Design Your Dream Date</div>
+                <div class="form-group">
+                    <label>Occasion</label>
+                    <select id="occasion">
+                        <option>Beach Party & Fireworks</option>
+                        <option>Private Yacht Dinner</option>
+                        <option>Villa Retreat</option>
+                        <option>Gala Event</option>
+                        <option>Adventure Date</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Preferred Destination</label>
+                    <input type="text" placeholder="Santorini, Monaco, Maldives..." id="destination">
+                </div>
+                <div class="form-group">
+                    <label>Budget Range</label>
+                    <select id="budget">
+                        <option>$5,000 - $15,000</option>
+                        <option>$15,000 - $50,000</option>
+                        <option>$50,000+</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Special Requests</label>
+                    <textarea rows="3" placeholder="Private chef, rose petals, live saxophone..."></textarea>
+                </div>
+                <button class="btn-submit" id="submitRequest">
+                    <i class="fa-solid fa-paper-plane"></i> Send to Concierge
+                </button>
+            </div>
+
+            <div class="services-grid" id="servicesGrid">
+                <div class="service-card"><i class="fa-solid fa-ship service-icon"></i><div class="service-name">Yacht Charter</div><div class="service-desc">Private yacht with crew for sunset cruises.</div></div>
+                <div class="service-card"><i class="fa-solid fa-umbrella-beach service-icon"></i><div class="service-name">Beach Club</div><div class="service-desc">VIP cabana & champagne service.</div></div>
+                <div class="service-card"><i class="fa-solid fa-plane-departure service-icon"></i><div class="service-name">Private Jet</div><div class="service-desc">Last‑minute luxury travel.</div></div>
+                <div class="service-card"><i class="fa-solid fa-vest service-icon"></i><div class="service-name">Personal Stylist</div><div class="service-desc">Wardrobe for the perfect date.</div></div>
+                <div class="service-card"><i class="fa-solid fa-champagne-glasses service-icon"></i><div class="service-name">Gourmet Dining</div><div class="service-desc">Michelin‑star chef at your villa.</div></div>
+                <div class="service-card"><i class="fa-solid fa-guitar service-icon"></i><div class="service-name">Live Entertainment</div><div class="service-desc">Private concert under the stars.</div></div>
+            </div>
+        </div>
+
+        <!-- Testimonials -->
+        <div class="testimonials">
+            <h2 class="section-heading">Members' Whispers</h2>
+            <div class="testimonial-cards" id="testimonialContainer">
+                <div class="testimonial"><i class="fa-solid fa-star"></i><p class="testimonial-text">"They arranged a candlelit beach dinner in Mykonos with fireworks. My date was speechless."</p><div class="testimonial-author">— Alessandro & Chiara</div></div>
+                <div class="testimonial"><i class="fa-solid fa-star"></i><p class="testimonial-text">"I called at 11 PM for a sunrise yacht, and they delivered. Absolute magic."</p><div class="testimonial-author">— Viktor & Natalia</div></div>
+                <div class="testimonial"><i class="fa-solid fa-star"></i><p class="testimonial-text">"The concierge planned our entire anniversary weekend — private jet, villa, and a string quartet."</p><div class="testimonial-author">— Julien & Amélie</div></div>
+            </div>
+        </div>
+
+        <footer class="footer"></footer>
+    </div>
+    <script src="assets/general.js"></script>
+    <script src="assets/auth.js"></script>
+
+    <script>
+        // if toast is not defined globally
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            if (!toast) return;
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        (function() {
+            // ── Toast ────────────────────────────────
+            const toast = document.getElementById('toast');
+            let toastTimer;
+            function showToast(msg) {
+                if (toastTimer) clearTimeout(toastTimer);
+                toast.textContent = msg;
+                toast.classList.add('show');
+                toastTimer = setTimeout(() => toast.classList.remove('show'), 2800);
+            }
+
+            // ── Particles ────────────────────────────
+            function createParticles() {
+                const container = document.getElementById('particlesContainer');
+                const colors = [
+                    'rgba(247,184,74,0.6)', // beach gold
+                    'rgba(255,107,74,0.5)', // sunset
+                    'rgba(200,160,60,0.5)',
+                    'rgba(220,180,70,0.4)',
+                    'rgba(180,35,50,0.4)',
+                    'rgba(30,55,150,0.4)',
+                    'rgba(255,255,255,0.3)'
+                ];
+                const frag = document.createDocumentFragment();
+                for (let i=0; i<40; i++) {
+                    const p = document.createElement('div');
+                    p.className = 'particle' + (Math.random()>0.6?' diamond':'');
+                    const size = Math.random()*7+2;
+                    p.style.width = size+'px';
+                    p.style.height = size+'px';
+                    p.style.left = Math.random()*100+'%';
+                    p.style.backgroundColor = colors[Math.floor(Math.random()*colors.length)];
+                    p.style.animationDuration = (Math.random()*16+9)+'s';
+                    p.style.animationDelay = (Math.random()*14)+'s';
+                    if(p.classList.contains('diamond')) {
+                        p.style.backgroundColor = 'transparent';
+                        p.style.border = '1px solid '+colors[Math.floor(Math.random()*colors.length)];
+                    }
+                    frag.appendChild(p);
+                }
+                container.appendChild(frag);
+            }
+
+            // ── Intersection Observer ────────────────
+            function initObserver() {
+                const elements = document.querySelectorAll('.request-form, .service-card, .testimonial');
+                if (!('IntersectionObserver' in window)) {
+                    elements.forEach(el => el.classList.add('card-visible'));
+                    return;
+                }
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('card-visible');
+                            observer.unobserve(entry.target);
+                        }
+                    });
+                }, { threshold: 0.15, rootMargin: '0px 0px -20px 0px' });
+                elements.forEach(el => observer.observe(el));
+            }
+
+            // ── Form Submission ──────────────────────
+            document.getElementById('submitRequest').addEventListener('click', function() {
+                const occasion = document.getElementById('occasion').value;
+                const destination = document.getElementById('destination').value || 'your dream location';
+                showToast(`✨ Your ${occasion} in ${destination} request has been sent. Concierge will confirm within 10 minutes.`);
+            });
+
+           // ── Persistent Concierge Chat (Reh) ─────────────
+(function() {
+    const CHAT_KEY = 'reh_chat_messages';
+    const SESSION_KEY = 'reh_user';
+    let currentUserEmail = null;
+    let chatLastCount = 0;
+
+    // Get current user's email from session
+    // try {
+    //     const session = JSON.parse(localStorage.getItem(SESSION_KEY));
+    //     currentUserEmail = session.email || 'unknown@reh.com';
+    // } catch(e) { currentUserEmail = null; }
+
+    const session = JSON.parse(localStorage.getItem(SESSION_KEY) || '{}');
+    currentUserEmail = session.email || 'unknown@reh.com';
+    const userName = session.name || currentUserEmail;
+
+    // Initial message count
+    const msgs = JSON.parse(localStorage.getItem(CHAT_KEY) || '[]');
+    chatLastCount = msgs.length;
+
+    // Sound
+    function playChatSound() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(600, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(900, ctx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.3, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + 0.3);
+        } catch(e) {}
+    }
+
+    // Toast (fallback if not defined globally)
+    function showToast(msg) {
+        const toast = document.getElementById('toast');
+        if (!toast) return;
+        toast.textContent = msg;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    function updateChatBadge() {
+        const messages = JSON.parse(localStorage.getItem(CHAT_KEY) || '[]');
+        const unread = messages.filter(m => m.to === currentUserEmail && !m.read).length;
+        const badge = document.getElementById('chatBadge');
+        if (badge) {
+            badge.textContent = unread;
+            badge.style.display = unread > 0 ? 'flex' : 'none';
+        }
+    }
+
+    function renderChatMessages() {
+        const messages = JSON.parse(localStorage.getItem(CHAT_KEY) || '[]');
+        const userMsgs = messages.filter(m =>
+            (m.from === currentUserEmail && m.to === 'admin') ||
+            (m.from === 'admin' && m.to === currentUserEmail)
+        );
+        const container = document.getElementById('chatMessages');
+        if (!container) return;
+        container.innerHTML = userMsgs.map(m => {
+            const isSent = m.from === currentUserEmail;
+            return `
+            <div class="chat-message ${isSent ? 'sent' : 'received'}">
+                <div>${m.text}</div>
+                <div class="chat-time">${new Date(m.timestamp).toLocaleString()}</div>
+            </div>`;
+        }).join('');
+        container.scrollTop = container.scrollHeight;
+
+        // Mark received as read
+        let changed = false;
+        messages.forEach(m => {
+            if (m.to === currentUserEmail && !m.read) {
+                m.read = true;
+                changed = true;
+            }
+        });
+        if (changed) {
+            localStorage.setItem(CHAT_KEY, JSON.stringify(messages));
+            updateChatBadge();
+        }
+    }
+
+    function sendMessage() {
+        const input = document.getElementById('chatInput');
+        const text = input.value.trim();
+        if (!text || !currentUserEmail) return;
+        const messages = JSON.parse(localStorage.getItem(CHAT_KEY) || '[]');
+        const newMsg = {
+            id: Date.now().toString(36) + Math.random().toString(36).substr(2,5),
+            from: currentUserEmail,
+            to: 'admin',
+            text: text,
+            timestamp: Date.now(),
+            read: false
+        };
+        messages.push(newMsg);
+        localStorage.setItem(CHAT_KEY, JSON.stringify(messages));
+        chatLastCount = messages.length;
+        input.value = '';
+        // renderChatMessages();
+    }
+
+    // Event listeners
+    document.getElementById('sendChat').addEventListener('click', sendMessage);
+    document.getElementById('chatInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMessage();
+    });
+
+    document.getElementById('chatBubble').addEventListener('click', () => {
+        const panel = document.getElementById('chatMini');
+        panel.classList.toggle('open');
+        if (panel.classList.contains('open')) {
+            // renderChatMessages();
+            updateChatBadge();
+        }
+    });
+
+    document.getElementById('closeChat').addEventListener('click', () => {
+        document.getElementById('chatMini').classList.remove('open');
+    });
+
+    // Cross‑tab sync
+    window.addEventListener('storage', (e) => {
+        if (e.key === CHAT_KEY) {
+            const messages = JSON.parse(e.newValue || '[]');
+            const newCount = messages.length;
+            if (newCount > chatLastCount) {
+                const newest = messages[messages.length - 1];
+                if (newest && newest.to === currentUserEmail) {
+                    const session = JSON.parse(localStorage.getItem(SESSION_KEY) || '{}');
+                    if (session.notifPopup !== false) {
+                        showToast(`📩 New message from Concierge: ${newest.text.substring(0,50)}`);
+                    }
+                    if (session.notifSound !== false) {
+                        playChatSound();
+                    }
+                }
+            }
+            chatLastCount = newCount;
+            updateChatBadge();
+            if (document.getElementById('chatMini').classList.contains('open')) {
+                renderChatMessages();
+            }
+        }
+    });
+
+    updateChatBadge();
+})();
+
+            // ── Mobile Nav ───────────────────────────
+            const hamburger = document.querySelector('.nav-hamburger');
+            const navLinks = document.querySelector('.nav-links');
+            if (hamburger && navLinks) {
+                hamburger.addEventListener('click', () => {
+                    if (navLinks.style.display === 'flex') {
+                        navLinks.style.display = 'none';
+                    } else {
+                        navLinks.style.display = 'flex';
+                        navLinks.style.flexDirection = 'column';
+                        navLinks.style.position = 'absolute';
+                        navLinks.style.top = '100%';
+                        navLinks.style.left = '0';
+                        navLinks.style.right = '0';
+                        navLinks.style.background = 'rgba(8,12,36,0.95)';
+                        navLinks.style.backdropFilter = 'blur(30px)';
+                        navLinks.style.padding = '1.5rem 2rem';
+                        navLinks.style.gap = '1rem';
+                        navLinks.style.borderBottom = '1px solid var(--glass-border)';
+                    }
+                });
+            }
+
+            // ── Start ────────────────────────────────
+            createParticles();
+            initObserver();
+            // initial visible check
+            window.addEventListener('load', () => {
+                document.querySelectorAll('.request-form, .service-card, .testimonial').forEach(el => {
+                    const rect = el.getBoundingClientRect();
+                    if (rect.top < window.innerHeight && rect.bottom > 0) {
+                        el.classList.add('card-visible');
+                    }
+                });
+            });
+        })();
+
+        const navProfile = document.getElementById('profileArea');
+        const dropdownMenu = document.getElementById('dropdownMenu');
+        if (navProfile && dropdownMenu) {
+            navProfile.addEventListener('click', (e) => {
+                e.stopPropagation();
+                dropdownMenu.classList.toggle('show');
+            });
+            document.addEventListener('click', () => {
+                dropdownMenu.classList.remove('show');
+            });
+        }
+
+        // ── Concierge Request Form ─────────────────────
+document.getElementById('submitRequest').addEventListener('click', () => {
+    // Gather form values
+    const occasion = document.getElementById('occasion').value;
+    const destination = document.getElementById('destination').value.trim();
+    const budget = document.getElementById('budget').value;
+    const special = document.querySelector('#requestForm textarea').value.trim();
+
+    if (!destination) {
+        alert('Please enter a preferred destination.');
+        return;
+    }
+
+    // Get current user info
+    const sessionUser = JSON.parse(localStorage.getItem('reh_user') || '{}');
+    const fromEmail = sessionUser.email || 'unknown@reh.com';
+    const fromName = sessionUser.name;
+
+    // Build request object
+    const request = {
+        id: Date.now().toString(36) + Math.random().toString(36).substr(2,5),
+        fromEmail,
+        fromName,
+        occasion,
+        destination,
+        budget,
+        special,
+        timestamp: Date.now(),
+        status: 'new'          // new → in-progress → completed
+    };
+
+    // Save to local storage
+    const KEY = 'reh_concierge_requests';
+    const requests = JSON.parse(localStorage.getItem(KEY) || '[]');
+    requests.push(request);
+    localStorage.setItem(KEY, JSON.stringify(requests));
+
+    // Feedback
+    showToast('✨ Your dream date request has been sent to our concierge!');
+
+    // Clear form
+    document.getElementById('destination').value = '';
+    document.querySelector('#requestForm textarea').value = '';
+    document.getElementById('occasion').selectedIndex = 0;
+    document.getElementById('budget').selectedIndex = 0;
+});
+    </script>
+
+    <script src="assets/toadmin.js"></script>    
+</body>
+</html>

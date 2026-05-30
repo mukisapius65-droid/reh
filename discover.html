@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discover | Scarlet & Sapphire</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <link rel="stylesheet" href="assets/main.css">
+
+    <!-- <link rel ="stylesheet" href="styles.css"> -->
+</head>
+<body>
+<!-- ── Animated Background ────────────────────── -->
+    <div class="bg-orbit"></div>
+
+    <!-- ── Floating Particles ─────────────────────── -->
+    <div class="particles-container" id="particlesContainer"></div>
+
+    <!-- ── Toast Notification ─────────────────────── -->
+    <div class="toast" id="toast"></div>
+
+    <!-- ── Main Wrapper ───────────────────────────── -->
+    <div class="main-wrapper">
+
+        
+    <div class="main-wrapper">
+        <!-- Navigation -->
+        <nav class="nav"></nav>
+
+          <!-- Sidebar -->
+    <aside class="sidebar invisible" id="sidebar"></aside>
+
+
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-badge">
+                <i class="fa-solid fa-crown"></i>&nbsp; Exclusive Membership
+            </div>
+            <h1 class="hero-title">Where Extraordinary<br>Hearts Find Home</h1>
+            <div class="hero-ornament">
+                <span class="line"></span>
+                <span class="diamond-icon"><i class="fa-solid fa-diamond"></i></span>
+                <span class="line"></span>
+            </div>
+            <p class="hero-subtitle">
+                A curated sanctuary for those who seek genuine connection — where elegance meets authenticity, and every encounter is a masterpiece in the making.
+            </p>
+        </section>
+
+        <!-- Stats Bar -->
+        <div class="stats-bar">
+            <div class="stat-item">
+                <div class="stat-value">2.5M+</div>
+                <div class="stat-label">Distinguished Members</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">157</div>
+                <div class="stat-label">Countries Worldwide</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">99.7%</div>
+                <div class="stat-label">Verified Profiles</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">24/7</div>
+                <div class="stat-label">Royal Concierge</div>
+            </div>
+        </div>
+
+        <!-- Filter Section -->
+        <div class="filter-section">
+            <button class="filter-chip active" data-filter="all">All Profiles</button>
+            <button class="filter-chip" data-filter="online">Online Now</button>
+            <button class="filter-chip" data-filter="nearby">Nearby</button>
+            <button class="filter-chip" data-filter="verified">Verified Only</button>
+            <button class="filter-chip" data-filter="new">New This Week</button>
+            <button class="filter-chip" data-filter="premium">Premium</button>
+        </div>
+
+        <!-- Search Bar -->
+        <div style="max-width:1400px; margin:0 auto 1.5rem; padding:0 2rem;">
+            <input type="text" id="searchInput" placeholder="Search by name, location, interests…" 
+                style="width:100%; max-width:600px; margin:0 auto; display:block; padding:0.9rem 1.5rem; 
+                        background:rgba(255,255,255,0.05); border:1px solid var(--glass-border); 
+                        border-radius:50px; color:white; outline:none; font-size:0.9rem; 
+                        backdrop-filter:blur(8px);">
+        </div>
+
+        <!-- Card Grid -->
+        <div class="card-grid" id="cardGrid">
+            <!-- Cards injected by JavaScript -->
+        </div>
+        <footer class="footer"></footer>
+    </div>
+
+    
+    <script src="assets/general.js"></script>
+    <script src="assets/auth.js"></script>
+
+
+<script>
+    (function () {
+  // ── Audio context (for notification sounds) ──
+  let audioCtx = null;
+  function getAudioContext() {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === "suspended") {
+      audioCtx.resume();
+    }
+    return audioCtx;
+  }
+  // Resume audio on the very first user click anywhere
+  document.addEventListener("click", () => getAudioContext(), { once: true });
+
+  let allProfiles = [];
+  let activeFilter = "all";
+
+  // ── Data keys ────────────────────────────────
+  const USERS_KEY = "reh_users";
+  const AUTH_KEY = "rehw_user"; // old login system
+  const USER_KEY = "reh_user";
+  let searchTerm = "";
+  const PRESENCE_KEY = "reh_presence";
+
+  window.addEventListener("storage", (e) => {
+    if (e.key === PRESENCE_KEY) {
+      // Re‑render cards to update online statuses
+      renderCards(activeFilter);
+    }
+  });
+
+  // ──────────────────────────────────────
+  // DOM REFERENCES
+  // ──────────────────────────────────────
+  const particlesContainer = document.getElementById("particlesContainer");
+  const filterChips = document.querySelectorAll(".filter-chip");
+
+  // ──────────────────────────────────────
+  // FILTER CHIP HANDLERS
+  // ──────────────────────────────────────
+  filterChips.forEach((chip) => {
+    chip.addEventListener("click", function () {
+      filterChips.forEach((c) => c.classList.remove("active"));
+      this.classList.add("active");
+      activeFilter = this.getAttribute("data-filter");
+      renderCards(activeFilter, searchTerm);
+      document
+        .getElementById("cardGrid")
+        .scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  });
+
+  document.getElementById("searchInput").addEventListener("input", function () {
+    searchTerm = this.value.trim();
+    renderCards(activeFilter, searchTerm);
+  });
+
+  // ──────────────────────────────────────
+  // TOAST FUNCTION
+  // ──────────────────────────────────────
+
+  let toastTimer = null;
+
+  function showToast(message) {
+    if (toastTimer) clearTimeout(toastTimer);
+    toast.textContent = message;
+    toast.classList.add("show");
+    toastTimer = setTimeout(() => {
+      toast.classList.remove("show");
+    }, 2200);
+  }
+
+  // ── Auth UI (old localStorage) ───────────────
+  const joinCta = document.getElementById("joinCta");
+  const sidebarJoinCta = document.getElementById("sidebarJoinCta");
+  const profileArea = document.getElementById("profileArea");
+  const navAvatarImg = document.getElementById("navAvatarImg");
+  const logoutBtn = document.getElementById("logoutBtn");
+  const sidebarLogoutBtn = document.getElementById("sidebarLogoutBtn");
+
+
+
+  logoutBtn.addEventListener("click", () => {
+    localStorage.removeItem(USER_KEY);
+    updateNavFromAuth();
+    showToast("🌸 You have been logged out.");
+  });
+
+  window.addEventListener("storage", (e) => {
+    if (e.key === USER_KEY) updateNavFromAuth();
+  });
+
+  // ── Load users from Admin Panel storage ──────
+  function getUsers() {
+    const stored = localStorage.getItem(USERS_KEY);
+    if (stored) return JSON.parse(stored);
+    // Fallback default users if storage is empty
+    const defaults = [
+      {
+        id: "1",
+        firstName: "Isabella",
+        lastName: "Rossi",
+        email: "isabella@example.com",
+        age: 26,
+        location: "Milan, Italy",
+        avatar: "https://randomuser.me/api/portraits/women/44.jpg",
+        plan: "premium-monthly",
+        banned: false,
+        lastActive: Date.now(),
+      },
+      {
+        id: "2",
+        firstName: "Sophia",
+        lastName: "Laurent",
+        email: "sophia@example.com",
+        age: 28,
+        location: "Paris, France",
+        avatar: "https://randomuser.me/api/portraits/women/5.jpg",
+        plan: "elite-annual",
+        banned: false,
+        lastActive: Date.now() - 3600000,
+      },
+      {
+        id: "3",
+        firstName: "Valentina",
+        lastName: "Cruz",
+        email: "valentina@example.com",
+        age: 29,
+        location: "Barcelona, Spain",
+        avatar: "https://randomuser.me/api/portraits/women/12.jpg",
+        plan: "trial",
+        banned: true,
+        lastActive: Date.now() - 86400000,
+      },
+    ];
+    localStorage.setItem(USERS_KEY, JSON.stringify(defaults));
+    return defaults;
+  }
+
+  // ── Relative status helper ──────────────────
+  function getRelativeStatus(lastActive) {
+    if (!lastActive) return "Offline";
+    const diff = Date.now() - lastActive;
+    const minutes = Math.floor(diff / 60000);
+    if (diff < 30000) return "Active now";
+    if (diff < 60000) return "Just now";
+    if (minutes === 1) return "1 min ago";
+    if (minutes < 60) return `${minutes} min ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours === 1) return "1 hour ago";
+    if (hours < 24) return `${hours} hours ago`;
+    const days = Math.floor(hours / 24);
+    if (days === 1) return "Yesterday";
+    if (days < 7) return `${days} days ago`;
+    return "Offline";
+  }
+
+  const ADMIRATIONS_KEY = "reh_admirations";
+
+  function hasAlreadyAdmired(targetEmail) {
+    if (!targetEmail) return false;
+    const session = JSON.parse(localStorage.getItem("reh_user") || "{}");
+    if (!session.email) return false;
+    const admirations = JSON.parse(
+      localStorage.getItem(ADMIRATIONS_KEY) || "[]",
+    );
+    return admirations.some(
+      (a) => a.from === session.email && a.to === targetEmail,
+    );
+  }
+
+  const BOOKMARKS_KEY = "reh_bookmarks";
+
+  function isBookmarked(targetEmail) {
+    if (!targetEmail) return false;
+    const session = JSON.parse(localStorage.getItem("reh_user") || "{}");
+    if (!session.email) return false;
+    const bookmarks = JSON.parse(localStorage.getItem(BOOKMARKS_KEY) || "[]");
+    return bookmarks.some(
+      (b) => b.from === session.email && b.to === targetEmail,
+    );
+  }
+
+  function toggleBookmark(targetEmail) {
+    const session = JSON.parse(localStorage.getItem("reh_user") || "{}");
+    if (!session.email) {
+      window.location.href = "index.html?redirect=login.html";
+      return;
+    }
+    let bookmarks = JSON.parse(localStorage.getItem(BOOKMARKS_KEY) || "[]");
+    const existing = bookmarks.findIndex(
+      (b) => b.from === session.email && b.to === targetEmail,
+    );
+    if (existing !== -1) {
+      bookmarks.splice(existing, 1);
+      showToast("🔖 Bookmark removed.");
+    } else {
+      bookmarks.push({
+        from: session.email,
+        to: targetEmail,
+        timestamp: Date.now(),
+      });
+      showToast("🔖 Profile bookmarked.");
+    }
+    localStorage.setItem(BOOKMARKS_KEY, JSON.stringify(bookmarks));
+    // Re-render cards to update icon
+    renderCards(activeFilter, searchTerm);
+  }
+
+  function getAdmirersCount(targetEmail) {
+    if (!targetEmail) return 0;
+    const admirations = JSON.parse(
+      localStorage.getItem(ADMIRATIONS_KEY) || "[]",
+    );
+    return admirations.filter((a) => a.to === targetEmail).length;
+  }
+
+  function admireUser(targetEmail) {
+    const session = JSON.parse(localStorage.getItem("reh_user") || "{}");
+    if (!session.email) {
+      window.location.href = "index.html?redirect=login.html";
+      return;
+    }
+    if (hasAlreadyAdmired(targetEmail)) return;
+
+    // Save admiration
+    const admirations = JSON.parse(
+      localStorage.getItem(ADMIRATIONS_KEY) || "[]",
+    );
+    admirations.push({
+      from: session.email,
+      fromName:
+        (session.firstName + " " + session.lastName).trim() || session.email,
+      to: targetEmail,
+      timestamp: Date.now(),
+    });
+    localStorage.setItem(ADMIRATIONS_KEY, JSON.stringify(admirations));
+
+    // Send personalized notification
+    const notifications = JSON.parse(localStorage.getItem(NOTIF_KEY) || "[]");
+    const notif = {
+      id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
+      title: "Someone admires you!",
+      body: `${session.firstName || "Someone"} just admired you ❤️`,
+      timestamp: Date.now(),
+      targetEmail: targetEmail,
+    };
+    notifications.push(notif);
+    localStorage.setItem(NOTIF_KEY, JSON.stringify(notifications));
+
+    // Re‑render cards to reflect new state
+    renderCards(activeFilter);
+    showToast("❤️ You admired this profile!");
+  }
+
+  // Attach admire button events after cards are rendered
+  function attachAdmireHandlers() {
+    document.querySelectorAll(".btn-admire").forEach((btn) => {
+      btn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        const targetEmail = this.getAttribute("data-target-email");
+        admireUser(targetEmail);
+        playNotificationSound();
+      });
+    });
+  }
+
+  function renderCards(filter = "all", searchTerm = "") {
+    activeFilter = filter;
+    const allUsers = getUsers();
+    const loggedUser = JSON.parse(localStorage.getItem(AUTH_KEY) || "{}");
+    const currentUid = loggedUser?.email || null;
+
+    // Remove banned users and the logged‑in user
+    // Get current user's blocked list (from session)
+    const sessionUser = JSON.parse(localStorage.getItem(USER_KEY) || "{}");
+    const myBlocked = sessionUser.blocked || [];
+
+    // Build a set of users who have blocked the current user
+    const blockedByOthers = allUsers
+      .filter((u) => u.blocked && u.blocked.includes(currentUid))
+      .map((u) => u.email);
+
+    const displayUsers = allUsers.filter((u) => {
+      if (u.banned || u.ppBanned) return false;
+      if (u.visibility === false) return false;
+      if (currentUid && u.email === currentUid) return false;
+      if (myBlocked.includes(u.email)) return false; // I blocked them
+      if (blockedByOthers.includes(u.email)) return false; // they blocked me
+      return true;
+    });
+
+    allProfiles = displayUsers; // store for later filter changes
+
+    // Apply the active filter
+    let filtered = displayUsers;
+    if (filter === "online") {
+      const now = Date.now();
+      filtered = displayUsers.filter((p) => {
+        const ms = p.lastActive
+          ? p.lastActive?.seconds
+            ? p.lastActive.seconds * 1000
+            : p.lastActive
+          : 0;
+        return now - ms < 120000;
+      });
+    } else if (filter === "premium") {
+      filtered = displayUsers.filter(
+        (p) => p.plan === "premium-monthly" || p.plan === "elite-annual",
+      );
+    } else if (filter === "verified") {
+      filtered = displayUsers.filter((p) => p.plan === "elite-annual");
+    } else if (filter === "new") {
+      const oneWeekAgo = Date.now() - 604800000;
+      filtered = displayUsers.filter((p) => {
+        const joined = p.joined ? new Date(p.joined).getTime() : 0;
+        return joined > oneWeekAgo;
+      });
+    } else if (filter === "nearby") {
+      // For now, show all (you can add real location filtering later)
+      // filtered remains all
+    }
+
+    // Search across multiple fields
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter((p) => {
+        return (
+          (p.firstName && p.firstName.toLowerCase().includes(term)) ||
+          (p.lastName && p.lastName.toLowerCase().includes(term)) ||
+          (p.location && p.location.toLowerCase().includes(term)) ||
+          (p.age && p.age.toString().includes(term)) ||
+          (p.bio && p.bio.toLowerCase().includes(term)) ||
+          (p.interests && p.interests.toLowerCase().includes(term)) ||
+          (p.profession && p.profession.toLowerCase().includes(term))
+        );
+      });
+    }
+
+    const grid = document.getElementById("cardGrid");
+    if (filtered.length === 0) {
+      grid.innerHTML = `<div style="text-align:center; padding:3rem; color:var(--text-muted);"><i class="fa-solid fa-users-slash"></i><p style="margin-top:1rem;">No profiles match this filter.</p></div>`;
+      return;
+    }
+
+    grid.innerHTML = filtered
+      .map((u, i) => {
+        const online = isUserOnline(u.email);
+        const statusText = online ? "Online" : getRelativeStatus(u.lastActive);
+        const statusClass = online ? "online" : "offline";
+        const phone = u.phone || "Private";
+        return `
+        <div class="profile-card" data-index="${i}" style="transition-delay:${i * 0.08}s">
+            <div class="card-image-wrapper">
+                <img class="card-image" src="${u.avatar || "https://randomuser.me/api/portraits/women/44.jpg"}" alt="${u.firstName}" loading="lazy">
+                <div class="status-badge"><span class="status-dot ${statusClass}"></span> ${statusText}</div>
+            </div>
+                <div class="card-body">
+                    <span class="card-age">${u.age || ""}</span>
+                    <div class="card-name">${u.firstName} ${u.lastName}</div>
+                    <div class="card-location"><i class="fa-solid fa-location-dot"></i> ${u.location || "Unknown"}</div>
+                    <!-- NEW distance line -->
+                    ${
+                      u.distance !== false
+                        ? `
+                    <div class="card-distance" data-location="${u.location || ""}">
+                        <i class="fa-solid fa-route"></i> <span class="dist-text">— km</span>
+                    </div>
+                    `
+                        : ""
+                    }
+                    <!-- Admire section -->
+                    <div class="card-admire" data-target-email="${u.email || ""}">
+    <i class="bookmark-icon fa-bookmark ${isBookmarked(u.email) ? "fa-solid" : "fa-regular"}" 
+       data-target-email="${u.email || ""}" 
+       style="cursor:pointer; color:var(--gold-light); font-size:1.2rem; margin-right:0.6rem;" 
+       title="Bookmark"></i>
+    <button class="btn-admire" data-target-email="${u.email || ""}"
+        ${hasAlreadyAdmired(u.email) ? "disabled" : ""}
+        style="${hasAlreadyAdmired(u.email) ? "opacity:0.6; cursor:not-allowed;" : ""}">
+        <i class="fa-heart ${hasAlreadyAdmired(u.email) ? "fa-solid" : "fa-regular"}"></i>
+        ${hasAlreadyAdmired(u.email) ? "Admired" : "Admire"}
+    </button>
+    <span class="admirer-count">${getAdmirersCount(u.email)}</span>
+</div>
+                    <div class="card-phone" data-phone="${phone}"><i class="fa-solid fa-phone"></i> ${phone}</div>
+                    
+                </div>
+            </div>
+        </div>`;
+      })
+      .join("");
+
+    document.querySelectorAll(".bookmark-icon").forEach((icon) => {
+      icon.addEventListener("click", function (e) {
+        e.stopPropagation();
+        const email = this.getAttribute("data-target-email");
+        toggleBookmark(email);
+      });
+    });
+
+    // Re‑attach intersection observer and phone copy
+    const cards = document.querySelectorAll(".profile-card");
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("card-visible");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.1 },
+    );
+    cards.forEach((card) => observer.observe(card));
+
+    document.querySelectorAll(".card-phone").forEach((el) => {
+      el.addEventListener("click", function (e) {
+        e.stopPropagation();
+        const phone = this.getAttribute("data-phone");
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard
+            .writeText(phone)
+            .then(() => showToast("📋 Phone number copied: " + phone));
+        } else {
+          const tempInput = document.createElement("input");
+          tempInput.value = phone;
+          document.body.appendChild(tempInput);
+          tempInput.select();
+          document.execCommand("copy");
+          document.body.removeChild(tempInput);
+          showToast("📋 Phone number copied: " + phone);
+        }
+        this.style.backgroundColor = "rgba(200,155,60,0.25)";
+        setTimeout(() => {
+          this.style.backgroundColor = "";
+        }, 300);
+      });
+    });
+    updateDistances();
+    attachAdmireHandlers();
+
+    document.querySelectorAll(".profile-card").forEach((card) => {
+      card.addEventListener("click", function (e) {
+        // Don't navigate if clicking a button inside
+        if (e.target.closest(".btn-admire") || e.target.closest(".card-phone"))
+          return;
+        const email =
+          this.querySelector(".card-admire")?.getAttribute("data-target-email");
+        if (email) window.location.href = `view-profile.html?email=${email}`;
+      });
+    });
+
+    // Update distances (asynchronously)
+
+    function isUserOnline(email) {
+      if (!email) return false;
+      const presence = JSON.parse(localStorage.getItem("reh_presence") || "{}");
+      const lastBeat = presence[email] || 0;
+      return Date.now() - lastBeat < 20000; // online if heartbeat within 20 seconds
+    }
+  }
+
+  function getUserPosition() {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error("Geolocation not supported"));
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(resolve, reject, {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 300000, // allow cached position up to 5 minutes
+      });
+    });
+  }
+
+  async function geocodeLocation(locationName) {
+    const cacheKey = `geo_${locationName}`;
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) return JSON.parse(cached);
+
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationName)}&limit=1`;
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.length > 0) {
+        const coords = {
+          lat: parseFloat(data[0].lat),
+          lon: parseFloat(data[0].lon),
+        };
+        localStorage.setItem(cacheKey, JSON.stringify(coords));
+        return coords;
+      }
+    } catch (e) {
+      console.warn("Geocoding failed for", locationName);
+    }
+    return null; // return null if not found
+  }
+
+  function computeDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371; // Earth radius in km
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) ** 2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return (R * c).toFixed(1); // return distance string with one decimal
+  }
+  async function updateDistances() {
+    let userPos;
+    try {
+      const pos = await getUserPosition();
+      userPos = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+    } catch (e) {
+      console.warn("Could not get user location – distances unavailable");
+      return;
+    }
+
+    const distanceElements = document.querySelectorAll(".card-distance");
+    distanceElements.forEach(async (el) => {
+      const location = el.getAttribute("data-location");
+      if (!location || location === "Unknown") return;
+
+      const targetCoords = await geocodeLocation(location);
+      if (targetCoords) {
+        const dist = computeDistance(
+          userPos.lat,
+          userPos.lon,
+          targetCoords.lat,
+          targetCoords.lon,
+        );
+        const span = el.querySelector(".dist-text");
+        if (span) span.textContent = `${dist} km`;
+      }
+    });
+  }
+
+  // Particles
+  function createParticles() {
+    const container = document.getElementById("particlesContainer");
+    const colors = [
+      "rgba(200,160,60,0.5)",
+      "rgba(220,180,70,0.4)",
+      "rgba(180,35,50,0.4)",
+      "rgba(30,55,150,0.4)",
+      "rgba(255,255,255,0.3)",
+    ];
+    const frag = document.createDocumentFragment();
+    for (let i = 0; i < 35; i++) {
+      const p = document.createElement("div");
+      p.className = "particle" + (Math.random() > 0.65 ? " diamond" : "");
+      const size = Math.random() * 6 + 2;
+      p.style.width = size + "px";
+      p.style.height = size + "px";
+      p.style.left = Math.random() * 100 + "%";
+      p.style.backgroundColor =
+        colors[Math.floor(Math.random() * colors.length)];
+      p.style.animationDuration = Math.random() * 18 + 10 + "s";
+      p.style.animationDelay = Math.random() * 15 + "s";
+      if (p.classList.contains("diamond")) {
+        p.style.backgroundColor = "transparent";
+        p.style.border =
+          "1px solid " + colors[Math.floor(Math.random() * colors.length)];
+      }
+      frag.appendChild(p);
+    }
+    container.appendChild(frag);
+  }
+
+  // ── Initial render ───────────────────────────
+  renderCards("all", "");
+
+
+  // document.addEventListener('click', (e) => {
+  //     if (sidebar && hamburger) return;
+  //     sidebar.classList.add('invisible');
+  // });
+
+  window.showToast = showToast; // expose for onclick
+  createParticles();
+
+  // avater and logout logic
+  const navProfile = document.getElementById("profileArea");
+  const dropdownMenu = document.getElementById("dropdownMenu");
+  if (navProfile && dropdownMenu) {
+    navProfile.addEventListener("click", (e) => {
+      e.stopPropagation();
+      dropdownMenu.classList.toggle("show");
+    });
+    document.addEventListener("click", () => {
+      dropdownMenu.classList.remove("show");
+    });
+  }
+})();
+</script>
+<script src="assets/toadmin.js"></script>
+</body>
+</html>

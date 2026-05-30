@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invite Friends | Reh</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="assets/main.css">
+</head>
+<body>
+    <div class="bg-orbit"></div>
+    <div class="toast" id="toast"><i class="fa-solid fa-heart"></i> <span id="toastMsg"></span></div>
+
+    <nav class="nav"></nav>
+    <aside class="sidebar invisible" id="sidebar"></aside>
+
+    <div class="main-wrapper">
+        <div class="hero">
+            <div class="hero-badge"><i class="fa-solid fa-gift"></i> Spread the Elegance</div>
+            <h1 class="hero-title">Invite Someone Extraordinary</h1>
+            <p class="hero-subtitle" style="color:var(--text2);">Every great circle grows with a single invitation. Earn Diamond Roses and unlock exclusive rewards.</p>
+        </div>
+
+        <div style="max-width: 800px; margin: 0 auto 4rem; padding: 0 2rem;">
+            <!-- Referral Link -->
+            <div class="settings-card" style="margin-bottom:2rem;">
+                <h2 class="section-title"><i class="fa-solid fa-link"></i> Your Referral Link</h2>
+                <div style="display:flex; gap:1rem; flex-wrap:wrap; align-items:center;">
+                    <input type="text" id="referralLink" readonly style="flex:1; min-width:200px; padding:0.8rem 1.2rem; background:rgba(255,255,255,0.05); border:1px solid var(--glass-border); border-radius:50px; color:white; outline:none;">
+                    <button class="btn-primary" id="copyLinkBtn"><i class="fa-solid fa-copy"></i> Copy</button>
+                </div>
+                <p style="color:var(--text2); margin-top:1rem; font-size:0.85rem;">Share this link with friends. When they join, you'll receive a Diamond Rose 💎 and progress toward rewards.</p>
+            </div>
+
+            <!-- Progress & Rewards -->
+            <div class="settings-card" style="margin-bottom:2rem;">
+                <h2 class="section-title"><i class="fa-solid fa-gem"></i> Your Reward Progress</h2>
+                <div style="text-align:center; margin-bottom:1.5rem;">
+                    <p style="color:var(--text2);">Diamond Roses earned: <strong style="color:var(--gold-light);" id="roseCount">0</strong></p>
+                    <div style="background:rgba(255,255,255,0.1); height:12px; border-radius:6px; overflow:hidden; margin:0.8rem 0;">
+                        <div id="progressBar" style="height:100%; background:linear-gradient(90deg, var(--gold), #f0e4c8); width:0%; transition:width 0.4s;"></div>
+                    </div>
+                    <p style="color:var(--muted); font-size:0.8rem;" id="progressText">0 of 3 roses for Premium status</p>
+                </div>
+                <div class="rewards-grid" id="rewardsGrid"></div>
+            </div>
+
+            <!-- Stats & Referral List -->
+            <div class="settings-card" style="margin-bottom:2rem;">
+                <h2 class="section-title"><i class="fa-solid fa-chart-simple"></i> Your Impact</h2>
+                <div style="display:flex; gap:2rem; flex-wrap:wrap; justify-content:center; margin-bottom:2rem;">
+                    <div class="stat-card" style="background:rgba(255,255,255,0.03); border-radius:20px; padding:1.5rem; text-align:center; min-width:120px;">
+                        <div style="font-size:2rem; color:var(--gold-light);" id="totalReferred">0</div>
+                        <div style="color:var(--text2); font-size:0.8rem;">Total Invites</div>
+                    </div>
+                    <div class="stat-card" style="background:rgba(255,255,255,0.03); border-radius:20px; padding:1.5rem; text-align:center; min-width:120px;">
+                        <div style="font-size:2rem; color:var(--gold-light);" id="joinedCount">0</div>
+                        <div style="color:var(--text2); font-size:0.8rem;">Joined</div>
+                    </div>
+                    <div class="stat-card" style="background:rgba(255,255,255,0.03); border-radius:20px; padding:1.5rem; text-align:center; min-width:120px;">
+                        <div style="font-size:2rem; color:var(--gold-light);" id="rewardsUnlocked">0</div>
+                        <div style="color:var(--text2); font-size:0.8rem;">Rewards Unlocked</div>
+                    </div>
+                </div>
+                <h2 class="section-title"><i class="fa-solid fa-users"></i> Your Referrals</h2>
+                <div id="referralList" style="color:var(--text2);">
+                    <p>Loading...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer"></footer>
+
+    <script src="assets/auth.js"></script>
+    <script src="assets/general.js"></script>
+    <script src="assets/toadmin.js"></script>
+    <script>
+        (function() {
+            const SESSION_KEY = 'reh_user';
+            const REFERRALS_KEY = 'reh_referrals';
+            const GIFTS_KEY = 'reh_gifts';
+            const REWARDS_KEY = 'reh_rewards';
+            const USERS_KEY = 'reh_users';
+
+            // Reward tiers: [roses required, reward name, action function]
+            const rewardTiers = [
+                { required: 3,  name: 'Premium Month', action: () => upgradePlan('premium-monthly') },
+                { required: 5,  name: 'Event Invitation', action: () => grantEventInvite() },
+                { required: 10, name: 'Elite Status', action: () => upgradePlan('elite-annual') },
+            ];
+
+            function getCurrentUser() {
+                return JSON.parse(localStorage.getItem(SESSION_KEY) || '{}');
+            }
+
+            const user = getCurrentUser();
+            if (!user.email) {
+                window.location.href = 'index.html?redirect=login.html';
+                return;
+            }
+
+            // Referral link
+            const refCode = encodeURIComponent(user.email);
+            const referralUrl = `${window.location.origin}/register.html?ref=${refCode}`;
+            document.getElementById('referralLink').value = referralUrl;
+
+            document.getElementById('copyLinkBtn').addEventListener('click', () => {
+                const linkInput = document.getElementById('referralLink');
+                linkInput.select();
+                document.execCommand('copy');
+                navigator.clipboard?.writeText(linkInput.value).catch(() => {});
+                showToast('📋 Referral link copied!');
+            });
+
+            // Core functions
+            function getRoseCount() {
+                const gifts = JSON.parse(localStorage.getItem(GIFTS_KEY) || '[]');
+                return gifts.filter(g => g.to === user.email && g.giftType === 'diamond_rose').length;
+            }
+
+            function getRewardsUnlocked() {
+                return JSON.parse(localStorage.getItem(REWARDS_KEY) || '{}')[user.email] || [];
+            }
+
+            function updateProgress() {
+                const roses = getRoseCount();
+                document.getElementById('roseCount').textContent = roses;
+
+                // Find next unclaimed reward
+                const unlocked = getRewardsUnlocked();
+                const nextTier = rewardTiers.find(t => !unlocked.includes(t.name));
+                const progress = nextTier ? (roses / nextTier.required) * 100 : 100;
+                document.getElementById('progressBar').style.width = Math.min(progress, 100) + '%';
+                document.getElementById('progressText').textContent = nextTier 
+                    ? `${roses} of ${nextTier.required} roses for ${nextTier.name}` 
+                    : 'All rewards unlocked!';
+            }
+
+            function renderRewards() {
+                const grid = document.getElementById('rewardsGrid');
+                const unlocked = getRewardsUnlocked();
+                grid.innerHTML = rewardTiers.map(tier => `
+                    <div class="reward-tier" style="display:flex; align-items:center; justify-content:space-between; padding:0.8rem; margin:0.5rem 0; background:rgba(255,255,255,0.03); border-radius:12px; border:1px solid ${unlocked.includes(tier.name) ? 'var(--gold)' : 'rgba(255,255,255,0.05)'};">
+                        <div style="display:flex; align-items:center; gap:1rem;">
+                            <i class="fa-solid ${tier.required <= 5 ? 'fa-star' : 'fa-crown'}" style="color:var(--gold-light);"></i>
+                            <div>
+                                <div style="color:var(--text); font-weight:600;">${tier.name}</div>
+                                <div style="color:var(--muted); font-size:0.8rem;">Requires ${tier.required} Diamond Roses</div>
+                            </div>
+                        </div>
+                        <div>
+                            ${unlocked.includes(tier.name) 
+                                ? '<span style="color:var(--success);"><i class="fa-solid fa-check-circle"></i> Unlocked</span>'
+                                : '<span style="color:var(--muted);">Locked</span>'}
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            function checkAndApplyRewards() {
+                const roses = getRoseCount();
+                const unlocked = getRewardsUnlocked();
+                let updated = false;
+
+                for (const tier of rewardTiers) {
+                    if (roses >= tier.required && !unlocked.includes(tier.name)) {
+                        unlocked.push(tier.name);
+                        tier.action();
+                        updated = true;
+                        showToast(`🎉 Reward unlocked: ${tier.name}!`);
+                    }
+                }
+
+                if (updated) {
+                    const rewards = JSON.parse(localStorage.getItem(REWARDS_KEY) || '{}');
+                    rewards[user.email] = unlocked;
+                    localStorage.setItem(REWARDS_KEY, JSON.stringify(rewards));
+                    // Also send notification
+                    const notifications = JSON.parse(localStorage.getItem('ss_global_notifications') || '[]');
+                    notifications.push({
+                        id: Date.now().toString(36) + Math.random().toString(36).substr(2,5),
+                        title: '🏆 Reward Unlocked!',
+                        body: `You've earned a new reward: ${unlocked[unlocked.length-1]}.`,
+                        timestamp: Date.now(),
+                        targetEmail: user.email
+                    });
+                    localStorage.setItem('ss_global_notifications', JSON.stringify(notifications));
+                }
+            }
+
+            function upgradePlan(plan) {
+                const session = JSON.parse(localStorage.getItem(SESSION_KEY) || '{}');
+                session.plan = plan;
+                localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+
+                const allUsers = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
+                const idx = allUsers.findIndex(u => u.email === user.email);
+                if (idx !== -1) {
+                    allUsers[idx].plan = plan;
+                    localStorage.setItem(USERS_KEY, JSON.stringify(allUsers));
+                }
+            }
+
+            function grantEventInvite() {
+                // Add a complimentary event invitation
+                const invites = JSON.parse(localStorage.getItem('reh_event_invitations') || '[]');
+                invites.push({
+                    id: Date.now().toString(36),
+                    eventName: 'Exclusive Referral Gala',
+                    eventId: 'referral-gala',
+                    userEmail: user.email,
+                    userName: `${user.firstName} ${user.lastName}`,
+                    timestamp: Date.now(),
+                    status: 'confirmed'
+                });
+                localStorage.setItem('reh_event_invitations', JSON.stringify(invites));
+            }
+
+            function loadReferrals() {
+                const allReferrals = JSON.parse(localStorage.getItem(REFERRALS_KEY) || '[]');
+                const myReferrals = allReferrals.filter(r => r.referrer === user.email);
+                const joined = myReferrals.filter(r => r.status === 'joined').length;
+
+                document.getElementById('totalReferred').textContent = myReferrals.length;
+                document.getElementById('joinedCount').textContent = joined;
+                document.getElementById('rewardsUnlocked').textContent = getRewardsUnlocked().length;
+
+                const list = document.getElementById('referralList');
+                if (myReferrals.length === 0) {
+                    list.innerHTML = '<p style="color:var(--muted); text-align:center;">No referrals yet. Share your link to start growing your circle.</p>';
+                } else {
+                    list.innerHTML = myReferrals.map(r => `
+                        <div style="display:flex; justify-content:space-between; align-items:center; padding:0.6rem 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+                            <div>
+                                <span style="color:var(--text);">${r.referredName || r.referred}</span>
+                                <span style="font-size:0.75rem; color:var(--muted); margin-left:1rem;">${new Date(r.timestamp).toLocaleDateString()}</span>
+                            </div>
+                            <span style="color:${r.status === 'joined' ? 'var(--success)' : 'var(--warning)'};">${r.status === 'joined' ? 'Joined' : 'Pending'}</span>
+                        </div>
+                    `).join('');
+                }
+            }
+
+            // Initialize
+            updateProgress();
+            renderRewards();
+            loadReferrals();
+            checkAndApplyRewards();
+
+            // Listen for changes
+            window.addEventListener('storage', (e) => {
+                if (e.key === REFERRALS_KEY || e.key === GIFTS_KEY) {
+                    loadReferrals();
+                    updateProgress();
+                    renderRewards();
+                    checkAndApplyRewards();
+                }
+            });
+        })();
+    </script>
+</body>
+</html>

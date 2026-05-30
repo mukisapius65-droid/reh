@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>View Profile | Reh</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+    <style>
+      :root {
+        --deep-navy: #080c24;
+        --gold: #c9a84c;
+        --gold-light: #dfc278;
+        --champagne: #f0e4c8;
+        --crimson: #8b1a2b;
+        --ruby: #a82035;
+        --rose: #c0394b;
+        --royal-blue: #162464;
+        --glass-bg: rgba(255, 255, 255, 0.04);
+        --glass-border: rgba(255, 255, 255, 0.08);
+        --glass-card: rgba(15, 20, 50, 0.55);
+        --text: #f0ece6;
+        --text2: #c5bfb3;
+        --muted: #8a857a;
+        --love-pink: #ff6b8a;
+        --danger: #e74c3c;
+        --success: #2ecc71;
+        --shadow-gold: 0 0 40px rgba(200, 155, 60, 0.2);
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Inter", sans-serif;
+        background: var(--deep-navy);
+        color: var(--text);
+        min-height: 100vh;
+        overflow-x: hidden;
+        line-height: 1.6;
+      }
+      .bg-orbit {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 0;
+        background:
+          radial-gradient(
+            ellipse at 30% 30%,
+            rgba(255, 107, 138, 0.15) 0%,
+            transparent 50%
+          ),
+          radial-gradient(
+            ellipse at 70% 60%,
+            rgba(200, 160, 60, 0.1) 0%,
+            transparent 50%
+          );
+        animation: bgPulse 10s infinite;
+      }
+      @keyframes bgPulse {
+        0%,
+        100% {
+          opacity: 0.9;
+        }
+        50% {
+          opacity: 1;
+        }
+      }
+      .main-wrapper {
+        position: relative;
+        z-index: 2;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+      .profile-card {
+        background: var(--glass-card);
+        border: 1px solid var(--glass-border);
+        border-radius: 24px;
+        padding: 2rem;
+        backdrop-filter: blur(20px);
+        text-align: center;
+      }
+      .avatar {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid var(--gold);
+        margin: 0 auto 1.5rem;
+        box-shadow: 0 0 35px rgba(200, 160, 60, 0.5);
+      }
+      .name {
+        font-family: "Playfair Display", serif;
+        font-size: 2rem;
+        color: var(--text);
+      }
+      .age {
+        background: rgba(200, 155, 60, 0.2);
+        color: var(--gold-light);
+        padding: 4px 12px;
+        border-radius: 50px;
+        display: inline-block;
+        margin: 0.5rem 0;
+      }
+      .info-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        justify-content: center;
+        margin: 1rem 0;
+        color: var(--text2);
+      }
+      .info-row span {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+      .bio {
+        margin: 1rem 0;
+        color: var(--text2);
+      }
+      .interests {
+        margin: 0.5rem 0;
+        color: var(--gold-light);
+      }
+      .btn-gift {
+  background: linear-gradient(135deg, #c9a84c, #f0e4c8);
+  color: #080c24;
+  border: none;
+  padding: 0.8rem 2rem;
+  border-radius: 50px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.3s;
+  box-shadow: 0 4px 15px rgba(200,160,60,0.4);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.btn-gift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(200,160,60,0.6);
+}
+.btn-gift:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+      .btn-block {
+        background: var(--danger);
+        color: white;
+        border: none;
+        padding: 0.8rem 2rem;
+        border-radius: 50px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.3s;
+        margin-top: 1.5rem;
+      }
+      .btn-block:hover {
+        opacity: 0.9;
+      }
+      .toast {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%) translateY(100px);
+        background: rgba(20, 30, 60, 0.9);
+        border: 1px solid var(--gold);
+        color: var(--champagne);
+        padding: 14px 28px;
+        border-radius: 50px;
+        z-index: 9999;
+        transition: transform 0.4s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.85rem;
+      }
+      .toast.show {
+        transform: translateX(-50%) translateY(0);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="bg-orbit"></div>
+    <div class="toast" id="toast">
+      <i class="fa-solid fa-heart"></i> <span id="toastMsg"></span>
+    </div>
+    <div class="main-wrapper">
+      <div class="profile-card" id="profileContent">
+        <p style="color: var(--muted)">Loading profile...</p>
+      </div>
+    </div>
+    <script>
+      (function () {
+        const SESSION_KEY = "reh_user";
+        const USERS_KEY = "reh_users";
+        const GIFTS_KEY = 'reh_gifts';
+const NOTIF_KEY = 'ss_global_notifications';   // same as used for admirations
+
+function getGiftCount(email) {
+  const gifts = JSON.parse(localStorage.getItem(GIFTS_KEY) || '[]');
+  return gifts.filter(g => g.to === email).length;
+}
+
+function hasAlreadySentGift(fromEmail, toEmail) {
+  const gifts = JSON.parse(localStorage.getItem(GIFTS_KEY) || '[]');
+  return gifts.some(g => g.from === fromEmail && g.to === toEmail);
+}
+
+async function sendGift(targetEmail) {
+  const currentUser = getCurrentUser();
+  if (!currentUser) {
+    showToast('You must be logged in to send a gift.');
+    return;
+  }
+  if (currentUser.email === targetEmail) {
+    showToast('You cannot send a gift to yourself.');
+    return;
+  }
+  if (hasAlreadySentGift(currentUser.email, targetEmail)) {
+    showToast('You have already sent a gift to this user.');
+    return;
+  }
+
+  const gift = {
+    from: currentUser.email,
+    fromName: (currentUser.firstName + ' ' + currentUser.lastName).trim() || currentUser.email,
+    to: targetEmail,
+    giftType: 'diamond_rose',
+    timestamp: Date.now()
+  };
+
+  let gifts = JSON.parse(localStorage.getItem(GIFTS_KEY) || '[]');
+  gifts.push(gift);
+  localStorage.setItem(GIFTS_KEY, JSON.stringify(gifts));
+
+  // Send notification
+  let notifications = JSON.parse(localStorage.getItem(NOTIF_KEY) || '[]');
+  notifications.push({
+    id: Date.now().toString(36) + Math.random().toString(36).substr(2,5),
+    title: '💎 You received a gift!',
+    body: `${gift.fromName} sent you a Diamond Rose.`,
+    timestamp: Date.now(),
+    targetEmail: targetEmail
+  });
+  localStorage.setItem(NOTIF_KEY, JSON.stringify(notifications));
+
+  showToast('💎 Diamond Rose sent!');
+  // Update UI
+  document.getElementById('giftCount').textContent = getGiftCount(targetEmail);
+  const btn = document.getElementById('giftBtn');
+  btn.disabled = true;
+  btn.textContent = 'Gift Sent';
+}
+
+
+
+        function getCurrentUser() {
+          const stored = localStorage.getItem(SESSION_KEY);
+          return stored ? JSON.parse(stored) : null;
+        }
+
+        function showToast(msg) {
+          const toast = document.getElementById("toast");
+          const msgSpan = document.getElementById("toastMsg");
+          msgSpan.textContent = msg;
+          toast.classList.add("show");
+          setTimeout(() => toast.classList.remove("show"), 3000);
+        }
+
+        // Get target email from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetEmail = urlParams.get("email");
+
+        if (!targetEmail) {
+          document.getElementById("profileContent").innerHTML =
+            '<p style="color:var(--muted);">No user specified.</p>';
+        } else {
+          const allUsers = JSON.parse(localStorage.getItem(USERS_KEY) || "[]");
+          const profile = allUsers.find((u) => u.email === targetEmail);
+          if (!profile) {
+            document.getElementById("profileContent").innerHTML =
+              '<p style="color:var(--muted);">User not found.</p>';
+          } else {
+            // Render profile
+            const online = isUserOnline(profile.email);
+            document.getElementById("profileContent").innerHTML = `
+                <img src="${profile.avatar || "https://randomuser.me/api/portraits/women/44.jpg"}" alt="avatar" class="avatar">
+                <div class="name">${profile.firstName} ${profile.lastName}</div>
+                <div class="age">${profile.age || ""}</div>
+                <div class="info-row">
+                    <span><i class="fa-solid fa-location-dot"></i> ${profile.location || "Unknown"}</span>
+                    <span><i class="fa-solid fa-gem"></i> ${profile.plan || "Trial"}</span>
+                    <span><i class="fa-solid fa-circle" style="color:${online ? "#2ecc71" : "#7a756e"};"></i> ${online ? "Online" : "Offline"}</span>
+                </div>
+                ${profile.bio ? `<div class="bio">"${profile.bio}"</div>` : ""}
+                ${profile.interests ? `<div class="interests"><i class="fa-solid fa-heart"></i> ${profile.interests}</div>` : ""}
+                ${profile.profession ? `<p style="color:var(--text2);"><i class="fa-solid fa-briefcase"></i> ${profile.profession}</p>` : ""}
+                ${profile.income ? `<p style="color:var(--text2);"><i class="fa-solid fa-coins"></i> ${profile.income}</p>` : ""}
+                ${profile.netWorth ? `<p style="color:var(--text2);"><i class="fa-solid fa-gem"></i> ${profile.netWorth}</p>` : ""}
+                <div style="margin-top:1.5rem; display:flex; gap:1rem; align-items:center; justify-content:center;">
+  <button id="giftBtn" class="btn-gift">
+    <i class="fa-solid fa-gem"></i> Send a Diamond Rose
+  </button>
+  <span style="color:var(--gold-light);"><i class="fa-solid fa-gift"></i> <span id="giftCount">0</span></span>
+</div>
+                <button class="btn-block" id="blockBtn">Block this user</button>
+            `;
+
+            // Block logic
+            document
+              .getElementById("blockBtn")
+              .addEventListener("click", () => {
+                const currentUser = getCurrentUser();
+                if (!currentUser) {
+                  showToast("You must be logged in to block users.");
+                  return;
+                }
+                if (currentUser.email === targetEmail) {
+                  showToast("You cannot block yourself.");
+                  return;
+                }
+                // Add to blocked list
+                let blocked = currentUser.blocked || [];
+                if (blocked.includes(targetEmail)) {
+                  showToast("User is already blocked.");
+                  return;
+                }
+                blocked.push(targetEmail);
+                currentUser.blocked = blocked;
+                localStorage.setItem(SESSION_KEY, JSON.stringify(currentUser));
+
+                // Also update master list
+                const allUsers = JSON.parse(
+                  localStorage.getItem(USERS_KEY) || "[]",
+                );
+                const idx = allUsers.findIndex(
+                  (u) => u.email === currentUser.email,
+                );
+                if (idx !== -1) {
+                  allUsers[idx].blocked = blocked;
+                  localStorage.setItem(USERS_KEY, JSON.stringify(allUsers));
+                }
+                showToast(
+                  "User blocked. They will no longer see you, and you will not see them.",
+                );
+                // Optionally go back
+                window.history.back();
+              });
+          }
+        }
+
+        // Inside the profile rendering part, after the profile HTML is set:
+const giftCount = getGiftCount(targetEmail);
+document.getElementById('giftCount').textContent = giftCount;
+
+document.getElementById('giftBtn').addEventListener('click', () => sendGift(targetEmail));
+
+// If the current user already sent a gift, disable button
+if (currentUser && hasAlreadySentGift(currentUser.email, targetEmail)) {
+  const btn = document.getElementById('giftBtn');
+  btn.disabled = true;
+  btn.textContent = 'Gift Sent';
+}
+
+        function isUserOnline(email) {
+          const presence = JSON.parse(
+            localStorage.getItem("reh_presence") || "{}",
+          );
+          const lastBeat = presence[email] || 0;
+          return Date.now() - lastBeat < 20000;
+        }
+      })();
+    </script>
+  </body>
+</html>
