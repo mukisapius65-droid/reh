@@ -53,6 +53,9 @@ navContainer.innerHTML =
       <a href="index.html?redirect=bookmarks.html"
         ><i class="fa-solid fa-bookmark"></i> Bookmarks</a
       >
+      <a href="plans.html" id="upgradeLink" style="display:none;">
+          <i class="fa-solid fa-arrow-up"></i> Upgrade Plan
+      </a>
       <button id="logoutBtn">
         <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
       </button>
@@ -150,6 +153,13 @@ mobileSidebarContainer.innerHTML =
         })
       }
     }
+    const upgradeLink = document.getElementById('upgradeLink');
+    if (user && user.plan === 'trial') {
+        if (upgradeLink) upgradeLink.style.display = 'flex';
+        if (upgradeLink) upgradeLink.style.color = 'var(--gold-light)';
+    } else {
+        if (upgradeLink) upgradeLink.style.display = 'none';
+    }
   }
   updateNavFromAuth();
 
@@ -226,3 +236,13 @@ footerContainer.innerHTML =
     link.classList.toggle('active', link.dataset.page === activePage);
   });
 })();
+
+// Plan eligibility checker
+function isEligible(minimumPlan) {
+    const user = JSON.parse(localStorage.getItem('reh_user') || '{}');
+    const plan = user.plan || 'trial';
+    const planLevels = { 'trial': 0, 'premium-monthly': 1, 'elite-annual': 2 };
+    const requiredLevel = planLevels[minimumPlan] || 0;
+    const currentLevel = planLevels[plan] || 0;
+    return currentLevel >= requiredLevel;
+}

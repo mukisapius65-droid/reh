@@ -1,5 +1,7 @@
 // auth.js
+const USERS_KEY = 'reh_users'
 const AUTH_KEY = 'reh_user';
+const SESSION_KEY = 'reh_user';
 
 // Save user after login/signup
 function loginUser(userData) {
@@ -158,10 +160,30 @@ function isEmailRegistered(email) {
     return current && current.email === email;
 }
 
-// document.getElementById('sidebarLogoutBtn').addEventListener("click", () => {
-//     localStorage.removeItem(USER_KEY);
-//     updateNavUI();
-//     showToast("🌸 You have been logged out.");
-//     document.getElementById('sidebarLogoutBtn').disabled = true;
-//     window.location.href = 'index.html?redirect=discover.html';
-//   });
+document.getElementById('sidebarLogoutBtn').addEventListener("click", () => {
+    const user = JSON.parse(localStorage.getItem(USER_KEY));
+    const currentUserArray = JSON.parse(localStorage.getItem('reh_users')).filter(u => u.email === session.email) || '[]';
+    const currentUser = currentUserArray[0];
+    currentUser.lastActive = Date.now();
+
+
+    // Update session
+    const newSession = { ...user, ...currentUser };
+    localStorage.setItem(SESSION_KEY, JSON.stringify(newSession));
+
+    // Update master list (reh_users)
+    const allUsers = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
+    const userIndex = allUsers.findIndex(u => u.email === user.email);
+    if (userIndex !== -1) {
+       allUsers[userIndex] = { ...allUsers[userIndex], ...currentUser };
+    } else {
+        allUsers.push({ ...currentUser, email: user.email, id: user.id || Date.now().toString(36) });
+    }
+    localStorage.setItem(USERS_KEY, JSON.stringify(allUsers));
+
+    localStorage.removeItem(USER_KEY);
+    updateNavUI();
+    showToast("🌸 You have been logged out.");
+    document.getElementById('sidebarLogoutBtn').disabled = true;
+    window.location.href = 'index.html?redirect=discover.html';
+});
