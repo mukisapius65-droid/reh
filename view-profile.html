@@ -309,7 +309,7 @@ async function sendGift(targetEmail) {
                 ${profile.bio ? `<div class="bio">"${profile.bio}"</div>` : ""}
                 ${profile.interests ? `<div class="interests"><i class="fa-solid fa-heart"></i> ${profile.interests}</div>` : ""}
                 ${profile.profession ? `<p style="color:var(--text2);"><i class="fa-solid fa-briefcase"></i> ${profile.profession}</p>` : ""}
-                ${profile.income ? `<p style="color:var(--text2);"><i class="fa-solid fa-coins"></i> ${profile.income}</p>` : ""}
+                ${profile.income ? `<span style="color:var(--text2);"><i class="fa-solid fa-coins"></i> ${profile.income}</span>` : ""}
                 ${profile.netWorth ? `<p style="color:var(--text2);"><i class="fa-solid fa-gem"></i> ${profile.netWorth}</p>` : ""}
                 <div style="margin-top:1.5rem; display:flex; gap:1rem; align-items:center; justify-content:center;">
   <button id="giftBtn" class="btn-gift">

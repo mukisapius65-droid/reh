@@ -1238,6 +1238,23 @@ function attachAdmireHandlers() {
     });
 }
 
+   function getEliteIntroStatus(targetEmail) {
+    const session = JSON.parse(localStorage.getItem('reh_user') || '{}');
+    if (!session.email) return 'Exclusive Introduction';
+    // Not premium – show lock
+    if (!isEligible('premium-monthly')) {
+        return '<i class="fa-solid fa-lock"></i> Upgrade to Unlock';
+    }
+    const requests = JSON.parse(localStorage.getItem('reh_concierge_requests') || '[]');
+    const existing = requests.find(r =>
+        r.fromEmail === session.email &&
+        r.occasion === 'Exclusive Introduction' &&
+        r.destination === targetEmail
+    );
+    return existing ? 'Request Sent' : 'Exclusive Introduction';
+}
+
+
     // ── Elite data loader ───────────────────────
     function loadEliteProfiles() {
         const allUsers = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
@@ -1294,14 +1311,72 @@ function attachAdmireHandlers() {
 </div>
                     <div class="net-worth"><i class="fa-solid fa-gem"></i> Net Worth: ${u.netWorth || 'Private'}</div>
 <div style="color:#c5bfb3; font-size:0.8rem; margin:0.3rem 0;">Annual Income: ${u.income || 'Confidential'}</div>
-                    <button class="elite-contact" onclick="showToast('🔒 Elite Concierge will connect you with ${fullName}')">
-                        <i class="fa-solid fa-shield-halved"></i> Exclusive Introduction
-                    </button>
+                    <button class="elite-contact btn-elite-intro" 
+        data-target-email="${u.email || ''}" 
+        data-target-name="${fullName}"
+        ${!isEligible('premium-monthly') ? 'disabled' : ''}
+        style="${!isEligible('premium-monthly') ? 'opacity:0.7; cursor:not-allowed;' : ''}">
+    ${getEliteIntroStatus(u.email)}
+</button>
                 </div>
             </div>`;
         }).join('');
 
-        attachAdmireHandlers()
+        attachAdmireHandlers();
+
+        document.querySelectorAll('.btn-elite-intro').forEach(btn => {
+            if (!isEligible('premium-monthly')) {
+    showToast('🔒 Upgrade to Premium or Elite to request an introduction.');
+    return;
+}
+    // If already sent, disable it
+    if (btn.textContent.trim() === 'Request Sent') {
+        btn.disabled = true;
+        btn.style.opacity = '0.6';
+        btn.style.cursor = 'not-allowed';
+    }
+    btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const targetEmail = this.getAttribute('data-target-email');
+        const targetName = this.getAttribute('data-target-name');
+        const session = JSON.parse(localStorage.getItem('reh_user') || '{}');
+        if (!session.email) {
+            window.location.href = 'index.html?redirect=login.html';
+            return;
+        }
+
+        // Prevent duplicate requests
+        if (this.disabled || this.textContent.trim() === 'Request Sent') {
+            showToast('You have already sent an introduction request.');
+            return;
+        }
+
+        // Build concierge request
+        const request = {
+            id: Date.now().toString(36) + Math.random().toString(36).substr(2,5),
+            fromEmail: session.email,
+            fromName: (session.firstName + ' ' + session.lastName).trim() || session.email,
+            occasion: 'Exclusive Introduction',
+            destination: targetEmail,
+            budget: 'Elite',
+            special: `Requesting a personal introduction to ${targetName}.`,
+            timestamp: Date.now(),
+            status: 'new'
+        };
+
+        const requests = JSON.parse(localStorage.getItem('reh_concierge_requests') || '[]');
+        requests.push(request);
+        localStorage.setItem('reh_concierge_requests', JSON.stringify(requests));
+
+        // Disable button and change text
+        this.textContent = 'Request Sent';
+        this.disabled = true;
+        this.style.opacity = '0.6';
+        this.style.cursor = 'not-allowed';
+
+        showToast('✨ Your exclusive introduction request has been sent to the Elite Concierge.');
+    });
+});
 
         // Intersection Observer
         initObservers();

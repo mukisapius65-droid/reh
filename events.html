@@ -887,6 +887,16 @@
                 toastTimer = setTimeout(() => toast.classList.remove('show'), 2500);
             }
 
+            // Plan eligibility checker
+function isEligible(minimumPlan) {
+    const user = JSON.parse(localStorage.getItem('reh_user') || '{}');
+    const plan = user.plan || 'trial';
+    const planLevels = { 'trial': 0, 'premium-monthly': 1, 'elite-annual': 2 };
+    const requiredLevel = planLevels[minimumPlan] || 0;
+    const currentLevel = planLevels[plan] || 0;
+    return currentLevel >= requiredLevel;
+}
+
             // Render event cards
             function renderEvents(filter = 'all') {
                 const allEvents = getEvents();
@@ -909,11 +919,13 @@
                             <div class="dress-code"><i class="fa-solid fa-vest"></i> ${ev.dress}</div>
                             <p class="event-desc">${ev.description || ev.desc || ''}</p>
                             <button class="btn-request" data-event-name="${ev.name}" data-event-id="${ev.id}"
-    ${getExistingInvitationStatus(ev.id) ? 'disabled' : ''}
-    style="${getExistingInvitationStatus(ev.id) ? 'opacity:0.6; cursor:not-allowed;' : ''}">
-    <i class="fa-solid fa-envelope-open-text"></i>
-    ${getExistingInvitationButtonText(ev.id)}
-</button>
+                                ${!isEligible('premium-monthly') ? 'disabled' : ''}
+                                ${getExistingInvitationStatus(ev.id) ? 'disabled' : ''}
+                                
+                                style="${!isEligible('premium-monthly') && getExistingInvitationStatus(ev.id) ? 'opacity:0.7; cursor:not-allowed;' : ''}">
+                                <i class="fa-solid ${!isEligible('premium-monthly') ? 'fa-lock' : 'fa-envelope-open-text'}"></i>
+                                ${!isEligible('premium-monthly') ? 'Upgrade to Unlock' : `${getExistingInvitationButtonText(ev.id)}`}                                
+                            </button>
                         </div>
                     </div>
                 `).join('');
@@ -939,6 +951,10 @@ function getExistingInvitationButtonText(eventId) {
 
                 // Attach event listeners to buttons
                 document.querySelectorAll('.btn-request:not([disabled])').forEach(btn => {
+                    if (!isEligible('premium-monthly')) {
+    showToast('🔒 Upgrade to Premium to request event invitations.');
+    return;
+}
     btn.addEventListener('click', function(e) {
         e.stopPropagation();
         const eventName = this.getAttribute('data-event-name');

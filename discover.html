@@ -359,17 +359,26 @@
     showToast("❤️ You admired this profile!");
   }
 
-  // Attach admire button events after cards are rendered
-  function attachAdmireHandlers() {
-    document.querySelectorAll(".btn-admire").forEach((btn) => {
-      btn.addEventListener("click", function (e) {
-        e.stopPropagation();
-        const targetEmail = this.getAttribute("data-target-email");
-        admireUser(targetEmail);
-        playNotificationSound();
-      });
+  /// Attach admire & bookmark handlers (TikTok style)
+function attachInteractionHandlers() {
+  // Admire button
+  document.querySelectorAll('.admire-btn').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const targetEmail = this.getAttribute('data-target-email');
+      admireUser(targetEmail);
     });
-  }
+  });
+
+  // Bookmark button
+  document.querySelectorAll('.bookmark-btn').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const targetEmail = this.getAttribute('data-target-email');
+      toggleBookmark(targetEmail);
+    });
+  });
+}
 
   function renderCards(filter = "all", searchTerm = "") {
     activeFilter = filter;
@@ -460,6 +469,16 @@
             <div class="card-image-wrapper">
                 <img class="card-image" src="${u.avatar || "https://randomuser.me/api/portraits/women/44.jpg"}" alt="${u.firstName}" loading="lazy">
                 <div class="status-badge"><span class="status-dot ${statusClass}"></span> ${statusText}</div>
+                 <!-- Interaction bar (TikTok style) -->
+    <div class="card-interactions">
+      <button class="interaction-btn admire-btn" data-target-email="${u.email || ''}">
+        <i class="fa-heart ${hasAlreadyAdmired(u.email) ? 'fa-solid' : 'fa-regular'}"></i>
+        <span class="count">${getAdmirersCount(u.email)}</span>
+      </button>
+      <button class="interaction-btn bookmark-btn" data-target-email="${u.email || ''}">
+        <i class="fa-bookmark ${isBookmarked(u.email) ? 'fa-solid' : 'fa-regular'}"></i>
+      </button>
+    </div>
             </div>
                 <div class="card-body">
                     <span class="card-age">${u.age || ""}</span>
@@ -475,20 +494,6 @@
                     `
                         : ""
                     }
-                    <!-- Admire section -->
-                    <div class="card-admire" data-target-email="${u.email || ""}">
-    <i class="bookmark-icon fa-bookmark ${isBookmarked(u.email) ? "fa-solid" : "fa-regular"}" 
-       data-target-email="${u.email || ""}" 
-       style="cursor:pointer; color:var(--gold-light); font-size:1.2rem; margin-right:0.6rem;" 
-       title="Bookmark"></i>
-    <button class="btn-admire" data-target-email="${u.email || ""}"
-        ${hasAlreadyAdmired(u.email) ? "disabled" : ""}
-        style="${hasAlreadyAdmired(u.email) ? "opacity:0.6; cursor:not-allowed;" : ""}">
-        <i class="fa-heart ${hasAlreadyAdmired(u.email) ? "fa-solid" : "fa-regular"}"></i>
-        ${hasAlreadyAdmired(u.email) ? "Admired" : "Admire"}
-    </button>
-    <span class="admirer-count">${getAdmirersCount(u.email)}</span>
-</div>
                     <div class="card-phone" data-phone="${phone}"><i class="fa-solid fa-phone"></i> ${phone}</div>
                     
                 </div>
@@ -544,18 +549,26 @@
       });
     });
     updateDistances();
-    attachAdmireHandlers();
+    attachInteractionHandlers();
 
-    document.querySelectorAll(".profile-card").forEach((card) => {
-      card.addEventListener("click", function (e) {
-        // Don't navigate if clicking a button inside
-        if (e.target.closest(".btn-admire") || e.target.closest(".card-phone"))
-          return;
-        const email =
-          this.querySelector(".card-admire")?.getAttribute("data-target-email");
-        if (email) window.location.href = `view-profile.html?email=${email}`;
-      });
-    });
+    document.querySelectorAll('.profile-card').forEach(card => {
+  card.addEventListener('click', function(e) {
+    if (e.target.closest('.interaction-btn') || e.target.closest('.card-phone')) return;
+    const email = this.querySelector('.admire-btn')?.getAttribute('data-target-email');
+    if (email) window.location.href = `view-profile.html?email=${email}`;
+  });
+});
+
+    // document.querySelectorAll(".profile-card").forEach((card) => {
+    //   card.addEventListener("click", function (e) {
+    //     // Don't navigate if clicking a button inside
+    //     if (e.target.closest(".btn-admire") || e.target.closest(".card-phone"))
+    //       return;
+    //     const email =
+    //       this.querySelector(".card-admire")?.getAttribute("data-target-email");
+    //     if (email) window.location.href = `view-profile.html?email=${email}`;
+    //   });
+    // });
 
     // Update distances (asynchronously)
 
