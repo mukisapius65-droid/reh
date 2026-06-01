@@ -160,7 +160,8 @@ function isEmailRegistered(email) {
     return current && current.email === email;
 }
 
-document.getElementById('sidebarLogoutBtn').addEventListener("click", () => {
+// This function can be called on logout to clear presence data for the user
+function resetPresence() {
     const user = JSON.parse(localStorage.getItem(USER_KEY));
     const currentUserArray = JSON.parse(localStorage.getItem('reh_users')).filter(u => u.email === session.email) || '[]';
     const currentUser = currentUserArray[0];
@@ -180,10 +181,24 @@ document.getElementById('sidebarLogoutBtn').addEventListener("click", () => {
         allUsers.push({ ...currentUser, email: user.email, id: user.id || Date.now().toString(36) });
     }
     localStorage.setItem(USERS_KEY, JSON.stringify(allUsers));
-
     localStorage.removeItem(USER_KEY);
+}
+
+document.getElementById('sidebarLogoutBtn').addEventListener("click", () => {
+    resetPresence(); // Clear presence data for this user
+
+    
     updateNavUI();
     showToast("🌸 You have been logged out.");
     document.getElementById('sidebarLogoutBtn').disabled = true;
     window.location.href = 'index.html?redirect=discover.html';
+});
+
+const logoutBtn = document.getElementById("logoutBtn");
+logoutBtn.addEventListener("click", () => {
+    resetPresence(); // Clear presence data for this user
+
+    
+    updateNavFromAuth();
+    showToast("🌸 You have been logged out.");
 });

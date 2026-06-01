@@ -3,7 +3,7 @@ const USER_KEY = "reh_user";
 const navContainer = document.querySelector('.nav');
 navContainer.innerHTML =
 `<div class="nav-inner">
-  <a href="#" class="nav-brand">
+  <a href="index.html?redirect=discover.html" class="nav-brand">
     <div class="nav-brand-icon"><i class="fa-solid fa-gem"></i></div>
     <span class="nav-brand-text">Reh</span>
   </a>
@@ -23,6 +23,18 @@ navContainer.innerHTML =
         </div>
         <div class="notif-list" id="notifList"></div>
       </div>
+    </li>
+    <!-- Event Requests Tracker -->
+    <li class="notification-bell" id="requestsBell">
+        <i class="fa-solid fa-ticket"></i>
+        <span class="badge" id="requestsBadge" style="display:none;">0</span>
+        <div class="notif-dropdown" id="requestsDropdown">
+            <div class="notif-header">
+                <h4>My Event Requests</h4>
+                <button id="refreshRequestsBtn">Refresh</button>
+            </div>
+            <div class="notif-list" id="requestsList"></div>
+        </div>
     </li>
   </ul>
   <!-- This button is shown when logged out -->
@@ -83,7 +95,7 @@ navContainer.innerHTML =
 
 const mobileSidebarContainer = document.querySelector('.sidebar');
 mobileSidebarContainer.innerHTML =
-`<a href="#" class="sidebar-brand">
+`<a href="index.html?redirect=discover.html" class="sidebar-brand">
     <div class="nav-brand-icon">
         <i class="fa-solid fa-gem"></i>
     </div>
@@ -194,11 +206,11 @@ footerContainer.innerHTML =
     <div class="footer-col">
         <h4>Support</h4>
         <ul>
-            <li><a href="#">Help Centre</a></li>
-            <li><a href="#">Safety Tips</a></li>
-            <li><a href="#">Contact Concierge</a></li>
-            <li><a href="#">Report a Profile</a></li>
-            <li><a href="#">Community Guidelines</a></li>
+          <li><a href="#" data-footer="help">Help Centre</a></li>
+          <li><a href="#" data-footer="safety">Safety Tips</a></li>
+          <li><a href="#" data-footer="contact">Contact Concierge</a></li>
+          <li><a href="#" data-footer="report">Report a Profile</a></li>
+          <li><a href="#" data-footer="community">Community Guidelines</a></li>
         </ul>
     </div>
     <!-- Legal & Newsletter -->
@@ -220,6 +232,116 @@ footerContainer.innerHTML =
 <div class="footer-bottom">
     <p>&copy; 2026 <span>Reh</span> — Crown Elite. All Rights Reserved.</p>
 </div>`;
+
+// Add modal container to body
+const modalHTML = `
+<div class="modal-overlay" id="footerModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="footerModalTitle"></h3>
+      <button class="modal-close" id="footerModalClose">&times;</button>
+    </div>
+    <div class="modal-body" id="footerModalBody"></div>
+  </div>
+</div>
+`;
+document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+// ── Footer modal logic ──────────────────────
+const footerModal = document.getElementById('footerModal');
+const footerModalTitle = document.getElementById('footerModalTitle');
+const footerModalBody = document.getElementById('footerModalBody');
+const footerModalClose = document.getElementById('footerModalClose');
+
+function openFooterModal(title, bodyHTML) {
+  footerModalTitle.textContent = title;
+  footerModalBody.innerHTML = bodyHTML;
+  footerModal.classList.add('active');
+}
+
+footerModalClose.addEventListener('click', () => footerModal.classList.remove('active'));
+footerModal.addEventListener('click', (e) => {
+  if (e.target === footerModal) footerModal.classList.remove('active');
+});
+
+// Content for each link
+const modalContent = {
+  'help': {
+    title: 'Help Centre',
+    body: `<p>Welcome to Reh Support. Here are some quick guides:</p>
+           <ul>
+             <li><strong>Getting Started:</strong> Complete your profile and browse Discover.</li>
+             <li><strong>Matches:</strong> Use the search and filters to find extraordinary people.</li>
+             <li><strong>Events:</strong> Request invitations to exclusive gatherings.</li>
+             <li><strong>Concierge:</strong> Chat with our team for personalised help.</li>
+           </ul>
+           <p>For immediate assistance, contact <a href="mailto:support@reh.com" style="color:var(--gold);">support@reh.com</a>.</p>`
+  },
+  'safety': {
+    title: 'Safety Tips',
+    body: `<p>Your safety is paramount. Follow these guidelines:</p>
+           <ul>
+             <li>Keep personal information private until trust is established.</li>
+             <li>Always meet in public, luxury venues.</li>
+             <li>Report suspicious behaviour immediately.</li>
+             <li>Use our block feature to stop unwanted contact.</li>
+           </ul>
+           <p>Reh is committed to creating a secure environment for all members.</p>`
+  },
+  'community': {
+    title: 'Community Guidelines',
+    body: `<p>Reh is built on respect and elegance:</p>
+           <ul>
+             <li>Treat others with kindness and courtesy.</li>
+             <li>No harassment, hate speech, or inappropriate content.</li>
+             <li>Profiles must be genuine and accurate.</li>
+             <li>Violations may result in suspension or permanent ban.</li>
+           </ul>
+           <p>Together we maintain a sanctuary for genuine connections.</p>`
+  },
+  'contact': {
+    title: 'Contact Concierge',
+    body: `<p>Our concierge team is available 24/7 to assist you with anything from date planning to technical support.</p>
+           <p>Email: <a href="mailto:concierge@reh.com" style="color:var(--gold);">concierge@reh.com</a></p>`
+  },
+  'report': {
+    title: 'Report a Profile',
+    body: `<p>If you encounter a profile that violates our guidelines, please let us know.</p>
+           <input type="email" id="reportEmail" placeholder="Profile email to report" required>
+           <textarea id="reportReason" rows="3" placeholder="Reason for report"></textarea>
+           <button id="submitReportBtn">Submit Report</button>`
+  }
+};
+
+// Attach click handlers to footer links with data-page attributes
+document.addEventListener('click', (e) => {
+  const link = e.target.closest('[data-footer]');
+  if (!link) return;
+  e.preventDefault();
+  const page = link.getAttribute('data-footer');
+
+  if (page === 'report') {
+    openFooterModal('Report a Profile', modalContent.report.body);
+    // Bind the report submission after modal opens
+    setTimeout(() => {
+      const submitBtn = document.getElementById('submitReportBtn');
+      if (submitBtn) {
+        submitBtn.addEventListener('click', () => {
+          const email = document.getElementById('reportEmail').value.trim();
+          const reason = document.getElementById('reportReason').value.trim();
+          if (!email) return showToast('Please enter the profile email.');
+          const reports = JSON.parse(localStorage.getItem('reh_reports') || '[]');
+          reports.push({ reported: email, reason, reporter: getCurrentUser()?.email, timestamp: Date.now() });
+          localStorage.setItem('reh_reports', JSON.stringify(reports));
+          showToast('Report submitted. Thank you for helping keep Reh safe.');
+          footerModal.classList.remove('active');
+        });
+      }
+    }, 100);
+  } else if (modalContent[page]) {
+    openFooterModal(modalContent[page].title, modalContent[page].body);
+  }
+});
 
 // ── Automatically set active class based on current page ──
 (function setActiveNavLink() {
