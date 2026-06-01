@@ -619,6 +619,16 @@
                     </div>
                 </div>
 
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h2><i class="fa-solid fa-eye"></i> Who's Viewed You</h2>
+                        <a href="index.html?redirect=profile.html" class="card-action">See all <i class="fa-solid fa-arrow-right"></i></a>
+                    </div>
+                    <div id="dashboardViews" style="color:var(--text2);">
+                        <p>Loading...</p>
+                    </div>
+                </div>
+
                 <!-- Upcoming Events Card -->
                 <div class="dashboard-card">
                     <div class="card-header">
@@ -712,6 +722,32 @@
                 document.getElementById('welcomeName').textContent = `Welcome back, ${firstName}`;
             }
 
+            function loadDashboardViews() {
+            const user = getCurrentUser();
+            if (!user) return;
+            const allViews = JSON.parse(localStorage.getItem('reh_profile_views') || '[]');
+            const myViews = allViews.filter(v => v.viewed === user.email);
+            const uniqueViewers = {};
+            myViews.forEach(v => {
+                if (!uniqueViewers[v.viewer] || uniqueViewers[v.viewer].timestamp < v.timestamp) {
+                    uniqueViewers[v.viewer] = v;
+                }
+            });
+            const recent = Object.values(uniqueViewers).sort((a,b) => b.timestamp - a.timestamp).slice(0, 5);
+            const container = document.getElementById('dashboardViews');
+            if (recent.length === 0) {
+                container.innerHTML = '<p style="color:var(--muted);">No one has viewed your profile yet. Complete your profile to attract extraordinary people.</p>';
+                return;
+            }
+            container.innerHTML = recent.map(v => `
+                <div style="display:flex; align-items:center; gap:0.5rem; padding:0.4rem 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+                    <i class="fa-solid fa-eye" style="color:var(--gold-light);"></i>
+                    <span>${v.viewerName || v.viewer}</span>
+                    <span style="font-size:0.7rem; color:var(--muted); margin-left:auto;">${new Date(v.timestamp).toLocaleDateString()}</span>
+                </div>
+            `).join('');
+        }
+
             // ── Populate Daily Matches (mock data) ───
             // ── Populate Daily Matches (real data) ─────
 const USERS_KEY = 'reh_users';
@@ -787,6 +823,7 @@ function getRelativeStatus(lastActive) {
 
 // Call the loader immediately
 loadDailyMatches();
+loadDashboardViews()
 
             // ── Populate Upcoming Events ────────────
             const eventsData = [

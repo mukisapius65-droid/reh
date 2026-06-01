@@ -127,6 +127,14 @@
   const USER_KEY = "reh_user";
   let searchTerm = "";
   const PRESENCE_KEY = "reh_presence";
+  const VIEWS_KEY = 'reh_profile_views';
+
+function hasViewed(targetEmail) {
+    const session = JSON.parse(localStorage.getItem('reh_user') || '{}');
+    if (!session.email) return false;
+    const views = JSON.parse(localStorage.getItem(VIEWS_KEY) || '[]');
+    return views.some(v => v.viewer === session.email && v.viewed === targetEmail);
+}
 
   window.addEventListener("storage", (e) => {
     if (e.key === PRESENCE_KEY) {
@@ -181,16 +189,8 @@
   const sidebarJoinCta = document.getElementById("sidebarJoinCta");
   const profileArea = document.getElementById("profileArea");
   const navAvatarImg = document.getElementById("navAvatarImg");
-  const logoutBtn = document.getElementById("logoutBtn");
   const sidebarLogoutBtn = document.getElementById("sidebarLogoutBtn");
 
-
-
-  logoutBtn.addEventListener("click", () => {
-    localStorage.removeItem(USER_KEY);
-    updateNavFromAuth();
-    showToast("🌸 You have been logged out.");
-  });
 
   window.addEventListener("storage", (e) => {
     if (e.key === USER_KEY) updateNavFromAuth();
@@ -469,6 +469,7 @@ function attachInteractionHandlers() {
             <div class="card-image-wrapper">
                 <img class="card-image" src="${u.avatar || "https://randomuser.me/api/portraits/women/44.jpg"}" alt="${u.firstName}" loading="lazy">
                 <div class="status-badge"><span class="status-dot ${statusClass}"></span> ${statusText}</div>
+                ${hasViewed(u.email) ? '<div class="viewed-badge" style="position:absolute; top:16px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.6); backdrop-filter:blur(10px); padding:4px 12px; border-radius:20px; font-size:0.7rem; color:var(--gold-light); display:flex; align-items:center; gap:4px;"><i class="fa-solid fa-eye"></i> Viewed</div>' : ''}
                  <!-- Interaction bar (TikTok style) -->
     <div class="card-interactions">
       <button class="interaction-btn admire-btn" data-target-email="${u.email || ''}">

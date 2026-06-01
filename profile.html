@@ -1097,6 +1097,7 @@
     const ADMIRATIONS_KEY = 'reh_admirations';
     const GIFTS_KEY = 'reh_gifts';
     const USER_KEY = "reh_user";
+    const VIEWS_KEY = 'reh_profile_views';
     let sidebarGiftCount;
 
     // ── Floating Particles ──────────────────────
@@ -1157,6 +1158,39 @@
     // }
     // updateNavUI();
 
+
+    function loadProfileViews() {
+        const user = JSON.parse(localStorage.getItem('reh_user') || '{}');
+        if (!user.email) return;
+        const allViews = JSON.parse(localStorage.getItem(VIEWS_KEY) || '[]');
+        const myViews = allViews.filter(v => v.viewed === user.email);
+        const container = document.getElementById('viewsContent');
+        if (!container) return;
+
+        // Get unique viewers, keep latest timestamp
+        const uniqueViewers = {};
+        myViews.forEach(v => {
+            if (!uniqueViewers[v.viewer] || uniqueViewers[v.viewer].timestamp < v.timestamp) {
+                uniqueViewers[v.viewer] = v;
+            }
+        });
+        const recentViewers = Object.values(uniqueViewers).sort((a,b) => b.timestamp - a.timestamp).slice(0, 10);
+
+        container.innerHTML = `
+            <p style="color:var(--text2); margin-bottom:1rem;">Total views: <strong style="color:var(--gold-light);">${myViews.length}</strong> | Unique viewers: <strong style="color:var(--gold-light);">${Object.keys(uniqueViewers).length}</strong></p>
+            ${recentViewers.length === 0 ? '<p style="color:var(--muted);">No one has viewed your profile yet.</p>' : 
+            recentViewers.map(v => `
+                <div style="display:flex; align-items:center; gap:0.8rem; padding:0.5rem 0; border-bottom:1px solid var(--glass-border);">
+                    <i class="fa-solid fa-eye" style="color:var(--gold-light);"></i>
+                    <div style="flex:1;">
+                        <span style="color:var(--text);">${v.viewerName || v.viewer}</span>
+                        <span style="font-size:0.7rem; color:var(--muted); margin-left:0.5rem;">${new Date(v.timestamp).toLocaleString()}</span>
+                    </div>
+                </div>
+            `).join('')}
+        `;
+    }
+
     
     // ── Dropdown toggle ────────────────────────
     const navProfile = document.getElementById('profileArea');
@@ -1171,6 +1205,26 @@
 
     // ── Logout ─────────────────────────────────
     document.getElementById('logoutBtn').addEventListener('click', () => {
+        const user = JSON.parse(localStorage.getItem(USER_KEY));
+    const currentUserArray = JSON.parse(localStorage.getItem('reh_users')).filter(u => u.email === session.email) || '[]';
+    const currentUser = currentUserArray[0];
+    currentUser.lastActive = Date.now();
+
+
+    // Update session
+    const newSession = { ...user, ...currentUser };
+    localStorage.setItem(SESSION_KEY, JSON.stringify(newSession));
+
+    // Update master list (reh_users)
+    const allUsers = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
+    const userIndex = allUsers.findIndex(u => u.email === user.email);
+    if (userIndex !== -1) {
+       allUsers[userIndex] = { ...allUsers[userIndex], ...currentUser };
+    } else {
+        allUsers.push({ ...currentUser, email: user.email, id: user.id || Date.now().toString(36) });
+    }
+    localStorage.setItem(USERS_KEY, JSON.stringify(allUsers));
+
         localStorage.removeItem(SESSION_KEY);
         updateNavUI();
         showToast('🌸 You have been logged out.');
@@ -1234,6 +1288,7 @@
     }
     updatePlanBadge(user.plan || 'premium-monthly');
     loadVault();
+    loadProfileViews();
 
     function loadVault() {
     const user = JSON.parse(localStorage.getItem('reh_user') || '{}');
