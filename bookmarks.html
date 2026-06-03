@@ -38,69 +38,113 @@
 <div class="main-wrapper" id="bookmarksList">
     <h2 style="font-family:'Playfair Display',serif;color:var(--gold-light);margin-bottom:2rem;"><i class="fa-solid fa-bookmark"></i> My Bookmarks</h2>
 </div>
+<script type="module" src="assets/firebase.js"></script>
 <script>
-(function() {
+(function () {
+  // ── Firebase readiness helper ─────────────────
+  function waitForFirebase(callback) {
+    if (window.db && window.collection && window.getDocs && window.deleteDoc && window.doc) {
+      callback();
+    } else {
+      let attempts = 0;
+      const check = setInterval(() => {
+        if (window.db && window.collection && window.getDocs && window.deleteDoc && window.doc) {
+          clearInterval(check);
+          callback();
+        }
+        attempts++;
+        if (attempts > 50) {
+          clearInterval(check);
+          console.error('Firebase not ready for bookmarks');
+        }
+      }, 100);
+    }
+  }
+
+  function startApp() {
     const SESSION_KEY = 'reh_user';
-    const USERS_KEY = 'reh_users';
-    const BOOKMARKS_KEY = 'reh_bookmarks';
+    const container = document.getElementById('bookmarksList');
 
     function showToast(msg) {
-        const toast = document.getElementById('toast');
-        document.getElementById('toastMsg').textContent = msg;
-        toast.classList.add('show');
-        setTimeout(() => toast.classList.remove('show'), 3000);
+      const toast = document.getElementById('toast');
+      document.getElementById('toastMsg').textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3000);
     }
 
     function getCurrentUser() {
-        const stored = localStorage.getItem(SESSION_KEY);
-        return stored ? JSON.parse(stored) : null;
+      const stored = localStorage.getItem(SESSION_KEY);
+      return stored ? JSON.parse(stored) : null;
     }
 
     const user = getCurrentUser();
     if (!user) {
-        window.location.href = 'index.html?redirect=login.html';
+      window.location.href = 'index.html?redirect=login.html';
+      return;
     }
 
-    const bookmarks = JSON.parse(localStorage.getItem(BOOKMARKS_KEY) || '[]');
-    const myBookmarks = bookmarks.filter(b => b.from === user.email);
-    const allUsers = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
-    const container = document.getElementById('bookmarksList');
+    // ── Load bookmarks from Firestore ────────────
+    async function loadBookmarks() {
+      container.innerHTML = '<p style="color:var(--muted);"><i class="fa-solid fa-spinner fa-spin"></i> Loading bookmarks…</p>';
 
-    if (myBookmarks.length === 0) {
-        container.innerHTML += '<p style="color:var(--muted);">No bookmarks yet. Start adding profiles you like!</p>';
-    } else {
-        myBookmarks.forEach(b => {
-            const profile = allUsers.find(u => u.email === b.to);
-            if (!profile) return;
-            const card = document.createElement('a');
-            card.className = 'profile-card';
-            card.href = `view-profile.html?email=${profile.email}`;
-            card.innerHTML = `
-                <img src="${profile.avatar || 'https://randomuser.me/api/portraits/women/44.jpg'}" class="avatar">
-                <div class="info">
-                    <div class="name">${profile.firstName} ${profile.lastName}, ${profile.age || ''}</div>
-                    <div class="loc"><i class="fa-solid fa-location-dot"></i> ${profile.location || 'Unknown'}</div>
-                </div>
-                <button class="remove-btn" data-email="${profile.email}"><i class="fa-solid fa-bookmark"></i></button>
-            `;
-            container.appendChild(card);
+      try {
+        const bookmarksRef = window.collection(window.db, "users", user.email, "bookmarks");
+        const snapshot = await window.getDocs(bookmarksRef);
+        const bookmarks = [];
+        snapshot.forEach(doc => {
+          bookmarks.push({ id: doc.id, ...doc.data() });
         });
 
-        // Remove bookmark
+        // Clear container (keep the heading)
+        container.innerHTML = '<h2 style="font-family:\'Playfair Display\',serif;color:var(--gold-light);margin-bottom:2rem;"><i class="fa-solid fa-bookmark"></i> My Bookmarks</h2>';
+
+        if (bookmarks.length === 0) {
+          container.innerHTML += '<p style="color:var(--muted);">No bookmarks yet. Start adding profiles you like!</p>';
+          return;
+        }
+
+        bookmarks.forEach(b => {
+          const card = document.createElement('a');
+          card.className = 'profile-card';
+          card.href = `view-profile.html?email=${b.email}`;
+          card.innerHTML = `
+            <img src="${b.avatar || 'https://randomuser.me/api/portraits/women/44.jpg'}" class="avatar">
+            <div class="info">
+              <div class="name">${b.firstName || ''} ${b.lastName || ''}${b.age ? ', ' + b.age : ''}</div>
+              <div class="loc"><i class="fa-solid fa-location-dot"></i> ${b.location || 'Unknown'}</div>
+            </div>
+            <button class="remove-btn" data-email="${b.email}"><i class="fa-solid fa-bookmark"></i></button>
+          `;
+          container.appendChild(card);
+        });
+
+        // Attach remove handlers
         document.querySelectorAll('.remove-btn').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                const email = this.getAttribute('data-email');
-                let bookmarks = JSON.parse(localStorage.getItem(BOOKMARKS_KEY) || '[]');
-                bookmarks = bookmarks.filter(b => !(b.from === user.email && b.to === email));
-                localStorage.setItem(BOOKMARKS_KEY, JSON.stringify(bookmarks));
-                showToast('🔖 Bookmark removed.');
-                // Refresh the list
-                location.reload();
-            });
+          btn.addEventListener('click', async function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const email = this.getAttribute('data-email');
+            try {
+              await window.deleteDoc(window.doc(window.db, "users", user.email, "bookmarks", email));
+              showToast('🔖 Bookmark removed.');
+              loadBookmarks(); // refresh list
+            } catch (err) {
+              console.error(err);
+              showToast('Failed to remove bookmark.');
+            }
+          });
         });
+
+      } catch (err) {
+        console.error(err);
+        container.innerHTML += '<p style="color:var(--danger);">Failed to load bookmarks. Please try again.</p>';
+      }
     }
+
+    loadBookmarks();
+  }
+
+  waitForFirebase(startApp);
 })();
 </script>
 </body>

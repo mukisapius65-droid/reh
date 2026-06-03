@@ -14,45 +14,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="assets/main.css">
 
-        <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
-
-    const firebaseConfig = {
-        apiKey: "AIzaSyClJ9Mlln04N_7XFSvy1zGHaE6w5E2DQ8I",
-        authDomain: "rehp-c82b8.firebaseapp.com",
-        projectId: "rehp-c82b8",
-        storageBucket: "rehp-c82b8.firebasestorage.app",
-        messagingSenderId: "363083908702",
-        appId: "1:363083908702:web:33e7d66890c9ef79fb96cf",
-        measurementId: "G-KX9ZEBL3E1"
-    };
-
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    const storage = getStorage(app);
-
-    // Expose to global window
-    window.auth = auth;
-    window.db = db;
-    window.storage = storage;
-    window.onAuthStateChanged = onAuthStateChanged;
-    window.signInWithEmailAndPassword = signInWithEmailAndPassword;
-    window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
-    window.signOut = signOut;
-    window.getDoc = getDoc;
-    window.setDoc = setDoc;
-    window.updateDoc = updateDoc;
-    window.serverTimestamp = serverTimestamp;
-    window.doc = doc;
-    window.getDownloadURL = getDownloadURL;
-    window.uploadBytes = uploadBytes;
-    window.ref = ref;
-</script>
+        <script type="module" src="assets/firebase.js"></script>
 
     <style>
         :root {
@@ -828,339 +790,328 @@
 
         <footer class="footer"></footer>
     </div>
-    <script src="assets/general.js"></script>
-    <script src="assets/auth.js"></script>
-
-    <script>
-        // if toast is not defined globally
-        function showToast(msg) {
-            const toast = document.getElementById('toast');
-            if (!toast) return;
-            toast.textContent = msg;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
+   <script src="assets/general.js"></script>
+<script type="module" src="assets/auth.js"></script>
+<script>
+(function () {
+  // ── Wait for Firebase to be ready ──────────
+  function waitForFirebase(callback) {
+    if (window.db && window.collection && window.addDoc && window.serverTimestamp && window.doc && window.updateDoc) {
+      callback();
+    } else {
+      let attempts = 0;
+      const check = setInterval(() => {
+        if (window.db && window.collection && window.addDoc && window.serverTimestamp && window.doc && window.updateDoc) {
+          clearInterval(check);
+          callback();
         }
-
-        (function() {
-            // ── Toast ────────────────────────────────
-            const toast = document.getElementById('toast');
-            let toastTimer;
-            function showToast(msg) {
-                if (toastTimer) clearTimeout(toastTimer);
-                toast.textContent = msg;
-                toast.classList.add('show');
-                toastTimer = setTimeout(() => toast.classList.remove('show'), 2800);
-            }
-
-            // ── Particles ────────────────────────────
-            function createParticles() {
-                const container = document.getElementById('particlesContainer');
-                const colors = [
-                    'rgba(247,184,74,0.6)', // beach gold
-                    'rgba(255,107,74,0.5)', // sunset
-                    'rgba(200,160,60,0.5)',
-                    'rgba(220,180,70,0.4)',
-                    'rgba(180,35,50,0.4)',
-                    'rgba(30,55,150,0.4)',
-                    'rgba(255,255,255,0.3)'
-                ];
-                const frag = document.createDocumentFragment();
-                for (let i=0; i<40; i++) {
-                    const p = document.createElement('div');
-                    p.className = 'particle' + (Math.random()>0.6?' diamond':'');
-                    const size = Math.random()*7+2;
-                    p.style.width = size+'px';
-                    p.style.height = size+'px';
-                    p.style.left = Math.random()*100+'%';
-                    p.style.backgroundColor = colors[Math.floor(Math.random()*colors.length)];
-                    p.style.animationDuration = (Math.random()*16+9)+'s';
-                    p.style.animationDelay = (Math.random()*14)+'s';
-                    if(p.classList.contains('diamond')) {
-                        p.style.backgroundColor = 'transparent';
-                        p.style.border = '1px solid '+colors[Math.floor(Math.random()*colors.length)];
-                    }
-                    frag.appendChild(p);
-                }
-                container.appendChild(frag);
-            }
-
-            // ── Intersection Observer ────────────────
-            function initObserver() {
-                const elements = document.querySelectorAll('.request-form, .service-card, .testimonial');
-                if (!('IntersectionObserver' in window)) {
-                    elements.forEach(el => el.classList.add('card-visible'));
-                    return;
-                }
-                const observer = new IntersectionObserver((entries) => {
-                    entries.forEach(entry => {
-                        if (entry.isIntersecting) {
-                            entry.target.classList.add('card-visible');
-                            observer.unobserve(entry.target);
-                        }
-                    });
-                }, { threshold: 0.15, rootMargin: '0px 0px -20px 0px' });
-                elements.forEach(el => observer.observe(el));
-            }
-
-            // ── Form Submission ──────────────────────
-            document.getElementById('submitRequest').addEventListener('click', function() {
-                const occasion = document.getElementById('occasion').value;
-                const destination = document.getElementById('destination').value || 'your dream location';
-                showToast(`✨ Your ${occasion} in ${destination} request has been sent. Concierge will confirm within 10 minutes.`);
-            });
-
-           // ── Persistent Concierge Chat (Reh) ─────────────
-(function() {
-    const CHAT_KEY = 'reh_chat_messages';
-    const SESSION_KEY = 'reh_user';
-    let currentUserEmail = null;
-    let chatLastCount = 0;
-
-    // Get current user's email from session
-    // try {
-    //     const session = JSON.parse(localStorage.getItem(SESSION_KEY));
-    //     currentUserEmail = session.email || 'unknown@reh.com';
-    // } catch(e) { currentUserEmail = null; }
-
-    const session = JSON.parse(localStorage.getItem(SESSION_KEY) || '{}');
-    currentUserEmail = session.email || 'unknown@reh.com';
-    const userName = session.name || currentUserEmail;
-
-    // Initial message count
-    const msgs = JSON.parse(localStorage.getItem(CHAT_KEY) || '[]');
-    chatLastCount = msgs.length;
-
-    // Sound
-    function playChatSound() {
-        try {
-            const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.connect(gain); gain.connect(ctx.destination);
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(600, ctx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(900, ctx.currentTime + 0.1);
-            gain.gain.setValueAtTime(0.3, ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
-            osc.start(ctx.currentTime);
-            osc.stop(ctx.currentTime + 0.3);
-        } catch(e) {}
+        attempts++;
+        if (attempts > 50) {
+          clearInterval(check);
+          console.error('Firebase not ready for Concierge');
+        }
+      }, 100);
     }
+  }
 
-    // Toast (fallback if not defined globally)
+  function startApp() {
+    // ── Toast ────────────────────────────────
+    const toast = document.getElementById('toast');
+    let toastTimer;
     function showToast(msg) {
-        const toast = document.getElementById('toast');
-        if (!toast) return;
-        toast.textContent = msg;
-        toast.classList.add('show');
-        setTimeout(() => toast.classList.remove('show'), 3000);
+      if (toastTimer) clearTimeout(toastTimer);
+      toast.textContent = msg;
+      toast.classList.add('show');
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+    window.showToast = showToast;
+
+    // ── Particles ────────────────────────────
+    function createParticles() {
+      const container = document.getElementById('particlesContainer');
+      const colors = [
+        'rgba(247,184,74,0.6)',
+        'rgba(255,107,74,0.5)',
+        'rgba(200,160,60,0.5)',
+        'rgba(220,180,70,0.4)',
+        'rgba(180,35,50,0.4)',
+        'rgba(30,55,150,0.4)',
+        'rgba(255,255,255,0.3)'
+      ];
+      const frag = document.createDocumentFragment();
+      for (let i = 0; i < 40; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle' + (Math.random() > 0.6 ? ' diamond' : '');
+        const size = Math.random() * 7 + 2;
+        p.style.width = size + 'px';
+        p.style.height = size + 'px';
+        p.style.left = Math.random() * 100 + '%';
+        p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        p.style.animationDuration = (Math.random() * 16 + 9) + 's';
+        p.style.animationDelay = (Math.random() * 14) + 's';
+        if (p.classList.contains('diamond')) {
+          p.style.backgroundColor = 'transparent';
+          p.style.border = '1px solid ' + colors[Math.floor(Math.random() * colors.length)];
+        }
+        frag.appendChild(p);
+      }
+      container.appendChild(frag);
     }
 
-    function updateChatBadge() {
+    // ── Intersection Observer ────────────────
+    function initObserver() {
+      const elements = document.querySelectorAll('.request-form, .service-card, .testimonial');
+      if (!('IntersectionObserver' in window)) {
+        elements.forEach(el => el.classList.add('card-visible'));
+        return;
+      }
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('card-visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.15, rootMargin: '0px 0px -20px 0px' });
+      elements.forEach(el => observer.observe(el));
+    }
+
+    // ── Form Submission (Firestore) ──────────
+    document.getElementById('submitRequest').addEventListener('click', async function () {
+      const occasion = document.getElementById('occasion').value;
+      const destination = document.getElementById('destination').value.trim();
+      const budget = document.getElementById('budget').value;
+      const special = document.querySelector('#requestForm textarea').value.trim();
+      const sessionUser = JSON.parse(localStorage.getItem('reh_user') || '{}');
+
+      if (!destination) {
+        showToast('Please enter a preferred destination.');
+        return;
+      }
+      if (!sessionUser.email) {
+        window.location.href = 'index.html?redirect=login.html';
+        return;
+      }
+
+      const btn = document.getElementById('submitRequest');
+      const originalHTML = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending…';
+
+      try {
+        await window.addDoc(window.collection(window.db, "concierge_requests"), {
+          fromEmail: sessionUser.email,
+          fromName: (sessionUser.firstName + ' ' + sessionUser.lastName).trim() || sessionUser.email,
+          occasion: occasion,
+          destination: destination,
+          budget: budget,
+          special: special,
+          timestamp: window.serverTimestamp ? window.serverTimestamp() : new Date(),
+          status: 'new'
+        });
+
+        showToast('✨ Your dream date request has been sent to our concierge!');
+
+        // Clear form
+        document.getElementById('destination').value = '';
+        document.querySelector('#requestForm textarea').value = '';
+        document.getElementById('occasion').selectedIndex = 0;
+        document.getElementById('budget').selectedIndex = 0;
+      } catch (error) {
+        console.error(error);
+        showToast('Failed to send request. Please try again.');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalHTML;
+      }
+    });
+
+    // ── Persistent Concierge Chat (localStorage – unchanged) ──
+    (function () {
+      const CHAT_KEY = 'reh_chat_messages';
+      const SESSION_KEY = 'reh_user';
+      let currentUserEmail = null;
+      let chatLastCount = 0;
+
+      const session = JSON.parse(localStorage.getItem(SESSION_KEY) || '{}');
+      currentUserEmail = session.email || 'unknown@reh.com';
+
+      const msgs = JSON.parse(localStorage.getItem(CHAT_KEY) || '[]');
+      chatLastCount = msgs.length;
+
+      function playChatSound() {
+        try {
+          const ctx = new (window.AudioContext || window.webkitAudioContext)();
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain); gain.connect(ctx.destination);
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(600, ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(900, ctx.currentTime + 0.1);
+          gain.gain.setValueAtTime(0.3, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+          osc.start(ctx.currentTime);
+          osc.stop(ctx.currentTime + 0.3);
+        } catch (e) {}
+      }
+
+      function updateChatBadge() {
         const messages = JSON.parse(localStorage.getItem(CHAT_KEY) || '[]');
         const unread = messages.filter(m => m.to === currentUserEmail && !m.read).length;
         const badge = document.getElementById('chatBadge');
         if (badge) {
-            badge.textContent = unread;
-            badge.style.display = unread > 0 ? 'flex' : 'none';
+          badge.textContent = unread;
+          badge.style.display = unread > 0 ? 'flex' : 'none';
         }
-    }
+      }
 
-    function renderChatMessages() {
+      function renderChatMessages() {
         const messages = JSON.parse(localStorage.getItem(CHAT_KEY) || '[]');
         const userMsgs = messages.filter(m =>
-            (m.from === currentUserEmail && m.to === 'admin') ||
-            (m.from === 'admin' && m.to === currentUserEmail)
+          (m.from === currentUserEmail && m.to === 'admin') ||
+          (m.from === 'admin' && m.to === currentUserEmail)
         );
         const container = document.getElementById('chatMessages');
         if (!container) return;
         container.innerHTML = userMsgs.map(m => {
-            const isSent = m.from === currentUserEmail;
-            return `
-            <div class="chat-message ${isSent ? 'sent' : 'received'}">
-                <div>${m.text}</div>
-                <div class="chat-time">${new Date(m.timestamp).toLocaleString()}</div>
-            </div>`;
+          const isSent = m.from === currentUserEmail;
+          return `
+          <div class="chat-message ${isSent ? 'sent' : 'received'}">
+              <div>${m.text}</div>
+              <div class="chat-time">${new Date(m.timestamp).toLocaleString()}</div>
+          </div>`;
         }).join('');
         container.scrollTop = container.scrollHeight;
 
-        // Mark received as read
         let changed = false;
         messages.forEach(m => {
-            if (m.to === currentUserEmail && !m.read) {
-                m.read = true;
-                changed = true;
-            }
+          if (m.to === currentUserEmail && !m.read) {
+            m.read = true;
+            changed = true;
+          }
         });
         if (changed) {
-            localStorage.setItem(CHAT_KEY, JSON.stringify(messages));
-            updateChatBadge();
+          localStorage.setItem(CHAT_KEY, JSON.stringify(messages));
+          updateChatBadge();
         }
-    }
+      }
 
-    function sendMessage() {
+      function sendMessage() {
         const input = document.getElementById('chatInput');
         const text = input.value.trim();
         if (!text || !currentUserEmail) return;
         const messages = JSON.parse(localStorage.getItem(CHAT_KEY) || '[]');
         const newMsg = {
-            id: Date.now().toString(36) + Math.random().toString(36).substr(2,5),
-            from: currentUserEmail,
-            to: 'admin',
-            text: text,
-            timestamp: Date.now(),
-            read: false
+          id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
+          from: currentUserEmail,
+          to: 'admin',
+          text: text,
+          timestamp: Date.now(),
+          read: false
         };
         messages.push(newMsg);
         localStorage.setItem(CHAT_KEY, JSON.stringify(messages));
         chatLastCount = messages.length;
         input.value = '';
-        // renderChatMessages();
-    }
+        renderChatMessages();
+      }
 
-    // Event listeners
-    document.getElementById('sendChat').addEventListener('click', sendMessage);
-    document.getElementById('chatInput').addEventListener('keypress', (e) => {
+      document.getElementById('sendChat').addEventListener('click', sendMessage);
+      document.getElementById('chatInput').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') sendMessage();
-    });
+      });
 
-    document.getElementById('chatBubble').addEventListener('click', () => {
+      document.getElementById('chatBubble').addEventListener('click', () => {
         const panel = document.getElementById('chatMini');
         panel.classList.toggle('open');
         if (panel.classList.contains('open')) {
-            // renderChatMessages();
-            updateChatBadge();
+          renderChatMessages();
+          updateChatBadge();
         }
-    });
+      });
 
-    document.getElementById('closeChat').addEventListener('click', () => {
+      document.getElementById('closeChat').addEventListener('click', () => {
         document.getElementById('chatMini').classList.remove('open');
-    });
+      });
 
-    // Cross‑tab sync
-    window.addEventListener('storage', (e) => {
+      window.addEventListener('storage', (e) => {
         if (e.key === CHAT_KEY) {
-            const messages = JSON.parse(e.newValue || '[]');
-            const newCount = messages.length;
-            if (newCount > chatLastCount) {
-                const newest = messages[messages.length - 1];
-                if (newest && newest.to === currentUserEmail) {
-                    const session = JSON.parse(localStorage.getItem(SESSION_KEY) || '{}');
-                    if (session.notifPopup !== false) {
-                        showToast(`📩 New message from Concierge: ${newest.text.substring(0,50)}`);
-                    }
-                    if (session.notifSound !== false) {
-                        playChatSound();
-                    }
-                }
+          const messages = JSON.parse(e.newValue || '[]');
+          const newCount = messages.length;
+          if (newCount > chatLastCount) {
+            const newest = messages[messages.length - 1];
+            if (newest && newest.to === currentUserEmail) {
+              const session = JSON.parse(localStorage.getItem(SESSION_KEY) || '{}');
+              if (session.notifPopup !== false) {
+                showToast(`📩 New message from Concierge: ${newest.text.substring(0, 50)}`);
+              }
+              if (session.notifSound !== false) {
+                playChatSound();
+              }
             }
-            chatLastCount = newCount;
-            updateChatBadge();
-            if (document.getElementById('chatMini').classList.contains('open')) {
-                renderChatMessages();
-            }
+          }
+          chatLastCount = newCount;
+          updateChatBadge();
+          if (document.getElementById('chatMini').classList.contains('open')) {
+            renderChatMessages();
+          }
         }
-    });
+      });
 
-    updateChatBadge();
-})();
+      updateChatBadge();
+    })();
 
-            // ── Mobile Nav ───────────────────────────
-            const hamburger = document.querySelector('.nav-hamburger');
-            const navLinks = document.querySelector('.nav-links');
-            if (hamburger && navLinks) {
-                hamburger.addEventListener('click', () => {
-                    if (navLinks.style.display === 'flex') {
-                        navLinks.style.display = 'none';
-                    } else {
-                        navLinks.style.display = 'flex';
-                        navLinks.style.flexDirection = 'column';
-                        navLinks.style.position = 'absolute';
-                        navLinks.style.top = '100%';
-                        navLinks.style.left = '0';
-                        navLinks.style.right = '0';
-                        navLinks.style.background = 'rgba(8,12,36,0.95)';
-                        navLinks.style.backdropFilter = 'blur(30px)';
-                        navLinks.style.padding = '1.5rem 2rem';
-                        navLinks.style.gap = '1rem';
-                        navLinks.style.borderBottom = '1px solid var(--glass-border)';
-                    }
-                });
-            }
-
-            // ── Start ────────────────────────────────
-            createParticles();
-            initObserver();
-            // initial visible check
-            window.addEventListener('load', () => {
-                document.querySelectorAll('.request-form, .service-card, .testimonial').forEach(el => {
-                    const rect = el.getBoundingClientRect();
-                    if (rect.top < window.innerHeight && rect.bottom > 0) {
-                        el.classList.add('card-visible');
-                    }
-                });
-            });
-        })();
-
-        const navProfile = document.getElementById('profileArea');
-        const dropdownMenu = document.getElementById('dropdownMenu');
-        if (navProfile && dropdownMenu) {
-            navProfile.addEventListener('click', (e) => {
-                e.stopPropagation();
-                dropdownMenu.classList.toggle('show');
-            });
-            document.addEventListener('click', () => {
-                dropdownMenu.classList.remove('show');
-            });
+    // ── Mobile Nav ───────────────────────────
+    const hamburger = document.querySelector('.nav-hamburger');
+    const navLinks = document.querySelector('.nav-links');
+    if (hamburger && navLinks) {
+      hamburger.addEventListener('click', () => {
+        if (navLinks.style.display === 'flex') {
+          navLinks.style.display = 'none';
+        } else {
+          navLinks.style.display = 'flex';
+          navLinks.style.flexDirection = 'column';
+          navLinks.style.position = 'absolute';
+          navLinks.style.top = '100%';
+          navLinks.style.left = '0';
+          navLinks.style.right = '0';
+          navLinks.style.background = 'rgba(8,12,36,0.95)';
+          navLinks.style.backdropFilter = 'blur(30px)';
+          navLinks.style.padding = '1.5rem 2rem';
+          navLinks.style.gap = '1rem';
+          navLinks.style.borderBottom = '1px solid var(--glass-border)';
         }
-
-        // ── Concierge Request Form ─────────────────────
-document.getElementById('submitRequest').addEventListener('click', () => {
-    // Gather form values
-    const occasion = document.getElementById('occasion').value;
-    const destination = document.getElementById('destination').value.trim();
-    const budget = document.getElementById('budget').value;
-    const special = document.querySelector('#requestForm textarea').value.trim();
-
-    if (!destination) {
-        alert('Please enter a preferred destination.');
-        return;
+      });
     }
 
-    // Get current user info
-    const sessionUser = JSON.parse(localStorage.getItem('reh_user') || '{}');
-    const fromEmail = sessionUser.email || 'unknown@reh.com';
-    const fromName = sessionUser.name;
+    // ── Dropdown toggle ──────────────────────
+    const navProfile = document.getElementById('profileArea');
+    const dropdownMenu = document.getElementById('dropdownMenu');
+    if (navProfile && dropdownMenu) {
+      navProfile.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dropdownMenu.classList.toggle('show');
+      });
+      document.addEventListener('click', () => dropdownMenu.classList.remove('show'));
+    }
 
-    // Build request object
-    const request = {
-        id: Date.now().toString(36) + Math.random().toString(36).substr(2,5),
-        fromEmail,
-        fromName,
-        occasion,
-        destination,
-        budget,
-        special,
-        timestamp: Date.now(),
-        status: 'new'          // new → in-progress → completed
-    };
+    // ── Start ────────────────────────────────
+    createParticles();
+    initObserver();
+    window.addEventListener('load', () => {
+      document.querySelectorAll('.request-form, .service-card, .testimonial').forEach(el => {
+        const rect = el.getBoundingClientRect();
+        if (rect.top < window.innerHeight && rect.bottom > 0) {
+          el.classList.add('card-visible');
+        }
+      });
+    });
+  }
 
-    // Save to local storage
-    const KEY = 'reh_concierge_requests';
-    const requests = JSON.parse(localStorage.getItem(KEY) || '[]');
-    requests.push(request);
-    localStorage.setItem(KEY, JSON.stringify(requests));
-
-    // Feedback
-    showToast('✨ Your dream date request has been sent to our concierge!');
-
-    // Clear form
-    document.getElementById('destination').value = '';
-    document.querySelector('#requestForm textarea').value = '';
-    document.getElementById('occasion').selectedIndex = 0;
-    document.getElementById('budget').selectedIndex = 0;
-});
-    </script>
+  // ── Kick off after Firebase is ready ──────
+  waitForFirebase(startApp);
+})();
+</script>
 
     <script src="assets/toadmin.js"></script>    
 </body>

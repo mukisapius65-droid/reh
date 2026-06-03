@@ -14,6 +14,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="assets/main.css">
 
+    <script type="module" src="assets/firebase.js"></script>
+
         <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -655,7 +657,7 @@
         <footer class="footer"></footer>
     </div>
     <script src="assets/general.js"></script>
-    <script src="assets/auth.js"></script>
+    <script type="module" src="assets/auth.js"></script>
 
     <script>
         (function() {
@@ -847,17 +849,7 @@ loadDashboardViews()
                 });
                 eventsContainer.appendChild(div);
             });
-
-            // ── Dropdown & Mobile Nav ──────────────
-            const profileAreaEl = document.getElementById('profileArea');
-            const dropdownEl = document.getElementById('dropdownMenu');
-            if (profileAreaEl && dropdownEl) {
-                profileAreaEl.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    dropdownEl.classList.toggle('show');
-                });
-                document.addEventListener('click', () => dropdownEl.classList.remove('show'));
-            }
+            
             const hamburgerBtn = document.getElementById('hamburgerBtn');
             const navLinksEl = document.getElementById('navLinks');
             if (hamburgerBtn && navLinksEl) {

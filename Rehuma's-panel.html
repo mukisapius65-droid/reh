@@ -19,6 +19,8 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
     />
 
+    <script type="module" src="assets/firebase.js"></script>
+
     <style>
       :root {
         --deep-navy: #080c24;
@@ -1056,14 +1058,36 @@
 
     <script>
       (function () {
+        function waitForFirebase(callback) {
+        if (window.db) {
+            callback();
+        } else {
+            let attempts = 0;
+            const check = setInterval(() => {
+                if (window.db) {
+                    clearInterval(check);
+                    callback();
+                }
+                attempts++;
+                if (attempts > 50) {   // stop after 5 seconds
+                    clearInterval(check);
+                    console.error('Firebase failed to load');
+                }
+            }, 100);
+        }
+    }
+    function startAdminPanel() {
         // ── Storage Keys ──────────────────────────
         const USERS_KEY = "reh_users";
         const EVENTS_KEY = "reh_events";
         const MESSAGES_KEY = "reh_chat_messages";
+        const CHAT_KEY = 'reh_chat_messages';
         const CONCIERGE_KEY = "reh_concierge_requests";
         const EVENT_INVITES_KEY = "reh_event_invitations";
         const NOTIF_KEY = "ss_global_notifications";
         const SETTINGS_KEY = "ss_admin_settings";
+        // ── Firebase references ──────────
+        const usersCollection = window.collection(window.db, "users");
 
         // ── Default Data ──────────────────────────
         function getDefaultUsers() {
@@ -1200,7 +1224,7 @@
           users = getData(USERS_KEY, getDefaultUsers());
           events = getData(EVENTS_KEY, getDefaultEvents());
           messages = getData(MESSAGES_KEY, getDefaultMessages());
-          // notifications = getData(NOTIFICATIONS_KEY, getDefaultNotifications());
+          // notifications = getData(NOTIF_KEY, getDefaultNotifications());
         }
 
         function generateId() {
@@ -1258,9 +1282,24 @@
           });
 
         // ── Dashboard ─────────────────────────────
-        function loadDashboard() {
+        // function loadDashboard() {
+        async function loadDashboard() {
+          const recentUserstbody = document.querySelector("#recentUsersTable tbody");
+          recentUserstbody.innerHTML = `
+              <tr>
+                <td colspan="7" style="text-align:center; padding:3rem;">
+                  <i class="fa-solid fa-spinner fa-spin fa-2x" style="color:var(--gold-light);"></i>
+                  <p style="margin-top:0.5rem; color:var(--text-muted);">Loading stats…</p>
+                </td>
+              </tr>`;
           refreshData();
+          // const totalUsers = users.length;
+
+          const usersSnapshot = await window.getDocs(usersCollection);
+          const users = [];
+          usersSnapshot.forEach(doc => users.push(doc.data()));
           const totalUsers = users.length;
+
           const onlineUsers = users.filter(
             (u) => Date.now() - (u.lastActive || 0) < 120000,
           ).length;
@@ -1280,35 +1319,78 @@
             (inv) => inv.status === "pending",
           ).length;
           const totalSubscribers = JSON.parse(localStorage.getItem(SUBSCRIBERS_KEY) || '[]').length;
-// Inside statsContainer innerHTML, add:
+          // Inside statsContainer innerHTML, add:
 
 
           document.getElementById("statsContainer").innerHTML = `
-                    <div class="stat-card"><div class="stat-icon users"><i class="fa-solid fa-user"></i></div><div class="stat-info"><h3>${totalUsers}</h3><p>Total Users</p></div></div>
-                    <div class="stat-card"><div class="stat-icon events"><i class="fa-solid fa-circle"></i></div><div class="stat-info"><h3>${onlineUsers}</h3><p>Online Now</p></div></div>
                     <div class="stat-card">
-                        <div class="stat-icon" style="background:rgba(255,107,74,0.2); color:#ff6b4a;">
-                            <i class="fa-solid fa-envelope-open-text"></i>
-                        </div>
-                        <div class="stat-info">
-                            <h3 id="pendingInvitesCount">0</h3>
-                            <p>Pending Event Invitations</p>
-                        </div>
+                      <div class="stat-icon users"><i class="fa-solid fa-user"></i></div>
+                      <div class="stat-info">
+                        <h3>${totalUsers}</h3>
+                        <p>Total Users</p>
+                      </div>
                     </div>
-                    
-                    <div class="stat-card"><div class="stat-icon banned"><i class="fa-solid fa-ban"></i></div><div class="stat-info"><h3>${bannedUsers}</h3><p>Banned Users</p></div></div>
                     <div class="stat-card">
-                        <div class="stat-icon" style="background:rgba(255,107,74,0.2); color:#ff6b4a;">
-                            <i class="fa-solid fa-clipboard-list"></i>
-                        </div>
-                        <div class="stat-info">
-                            <h3 id="pendingRequestsCount">0</h3>
-                            <p>Pending Concierge Requests</p>
-                        </div>
+                      <div class="stat-icon events"><i class="fa-solid fa-circle"></i></div>
+                      <div class="stat-info">
+                        <h3>${onlineUsers}</h3>
+                        <p>Online Now</p>
+                      </div>
                     </div>
-                   <div class="stat-card"><div class="stat-icon users"><i class="fa-solid fa-newspaper"></i></div><div class="stat-info"><h3>${totalSubscribers}</h3><p>Newsletter Subscribers</p></div></div>
-                    <div class="stat-card"><div class="stat-icon messages"><i class="fa-solid fa-envelope"></i></div><div class="stat-info"><h3>${unreadMessages}</h3><p>Unread Messages</p></div></div>
-                    <div class="stat-card"><div class="stat-icon users"><i class="fa-solid fa-crown"></i></div><div class="stat-info"><h3>${users.filter((u) => u.plan === "elite-annual").length}</h3><p>Elite Members</p></div></div>
+                    <div class="stat-card">
+                      <div
+                        class="stat-icon"
+                        style="background: rgba(255, 107, 74, 0.2); color: #ff6b4a"
+                      >
+                        <i class="fa-solid fa-envelope-open-text"></i>
+                      </div>
+                      <div class="stat-info">
+                        <h3 id="pendingInvitesCount">0</h3>
+                        <p>Pending Event Invitations</p>
+                      </div>
+                    </div>
+
+                    <div class="stat-card">
+                      <div class="stat-icon banned"><i class="fa-solid fa-ban"></i></div>
+                      <div class="stat-info">
+                        <h3>${bannedUsers}</h3>
+                        <p>Banned Users</p>
+                      </div>
+                    </div>
+                    <div class="stat-card">
+                      <div
+                        class="stat-icon"
+                        style="background: rgba(255, 107, 74, 0.2); color: #ff6b4a"
+                      >
+                        <i class="fa-solid fa-clipboard-list"></i>
+                      </div>
+                      <div class="stat-info">
+                        <h3 id="pendingRequestsCount">0</h3>
+                        <p>Pending Concierge Requests</p>
+                      </div>
+                    </div>
+                    <div class="stat-card">
+                      <div class="stat-icon users"><i class="fa-solid fa-newspaper"></i></div>
+                      <div class="stat-info">
+                        <h3>${totalSubscribers}</h3>
+                        <p>Newsletter Subscribers</p>
+                      </div>
+                    </div>
+                    <div class="stat-card">
+                      <div class="stat-icon messages"><i class="fa-solid fa-envelope"></i></div>
+                      <div class="stat-info">
+                        <h3>${unreadMessages}</h3>
+                        <p>Unread Messages</p>
+                      </div>
+                    </div>
+                    <div class="stat-card">
+                      <div class="stat-icon users"><i class="fa-solid fa-crown"></i></div>
+                      <div class="stat-info">
+                        <h3>${users.filter((u) => u.plan === "elite-annual").length}</h3>
+                        <p>Elite Members</p>
+                      </div>
+                    </div>
+
                 `;
 
           document.getElementById("pendingRequestsCount").textContent =
@@ -1334,31 +1416,74 @@
         }
 
         // ── Users ─────────────────────────────────
-        function loadUsers() {
-          refreshData();
-          const tbody = document.querySelector("#usersTable tbody");
-          tbody.innerHTML = users
-            .map(
-              (u) => `
-                    <tr>
-                        <td><img src="${u.avatar || "https://randomuser.me/api/portraits/women/44.jpg"}" style="width:35px;height:35px;border-radius:50%;object-fit:cover;"></td>
-                        <td>${u.firstName} ${u.lastName}</td>
-                        <td>${u.email}</td>
-                        <td>${u.location || "—"}</td>
-                        <td><span class="badge badge-${u.plan === "elite-annual" ? "success" : u.plan === "premium-monthly" ? "info" : "warning"}">${u.plan}</span></td>
-                        <td><span class="badge ${u.banned ? "badge-danger" : "badge-success"}">${u.banned ? "Yes" : "No"}</span></td>
-                        <td>
-                            <button class="btn-sm btn-edit" data-id="${u.id}">Edit</button>
-                            <button class="btn-sm ${u.banned ? "btn-unban" : "btn-ban"}" data-id="${u.id}">${u.banned ? "Unban" : "Ban"}</button>
-                            <button class="btn-sm btn-upgrade" data-id="${u.id}">Plan</button>
-                            <button class="btn-sm btn-delete" data-id="${u.id}">Del</button>
-                        </td>
-                    </tr>
-                `,
-            )
-            .join("");
-          attachUserActions();
-        }
+        // function loadUsers() {
+        //   refreshData();
+        //   const tbody = document.querySelector("#usersTable tbody");
+        //   tbody.innerHTML = users
+        //     .map(
+        //       (u) => `
+        //             <tr>
+        //                 <td><img src="${u.avatar || "https://randomuser.me/api/portraits/women/44.jpg"}" style="width:35px;height:35px;border-radius:50%;object-fit:cover;"></td>
+        //                 <td>${u.firstName} ${u.lastName}</td>
+        //                 <td>${u.email}</td>
+        //                 <td>${u.location || "—"}</td>
+        //                 <td><span class="badge badge-${u.plan === "elite-annual" ? "success" : u.plan === "premium-monthly" ? "info" : "warning"}">${u.plan}</span></td>
+        //                 <td><span class="badge ${u.banned ? "badge-danger" : "badge-success"}">${u.banned ? "Yes" : "No"}</span></td>
+        //                 <td>
+        //                     <button class="btn-sm btn-edit" data-id="${u.id}">Edit</button>
+        //                     <button class="btn-sm ${u.banned ? "btn-unban" : "btn-ban"}" data-id="${u.id}">${u.banned ? "Unban" : "Ban"}</button>
+        //                     <button class="btn-sm btn-upgrade" data-id="${u.id}">Plan</button>
+        //                     <button class="btn-sm btn-delete" data-id="${u.id}">Del</button>
+        //                 </td>
+        //             </tr>
+        //         `,
+        //     )
+        //     .join("");
+        //   attachUserActions();
+        // }
+
+        async function loadUsers() {
+  const tbody = document.querySelector('#usersTable tbody');
+  tbody.innerHTML = `
+    <tr>
+      <td colspan="7" style="text-align:center; padding:3rem;">
+        <i class="fa-solid fa-spinner fa-spin fa-2x" style="color:var(--gold-light);"></i>
+        <p style="margin-top:0.5rem; color:var(--text-muted);">Loading users…</p>
+      </td>
+    </tr>`;
+
+  try {
+    const snapshot = await window.getDocs(usersCollection);
+    users = [];                             // ← reassign outer variable (no const!)
+    snapshot.forEach(doc => {
+      const u = doc.data();
+      u.id = doc.id;                        // ← use 'id' for consistency
+      users.push(u);
+    });
+
+    tbody.innerHTML = users.map(u => `
+      <tr>
+        <td><img src="${u.avatar || 'https://randomuser.me/api/portraits/women/44.jpg'}" style="width:35px;height:35px;border-radius:50%;object-fit:cover;"></td>
+        <td>${u.firstName} ${u.lastName}</td>
+        <td>${u.email}</td>
+        <td>${u.location || '—'}</td>
+        <td><span class="badge badge-${u.plan==='elite-annual'?'success':u.plan==='premium-monthly'?'info':'warning'}">${u.plan}</span></td>
+        <td><span class="badge ${u.banned?'badge-danger':'badge-success'}">${u.banned?'Yes':'No'}</span></td>
+        <td>
+          <button class="btn-sm btn-edit" data-id="${u.id}">Edit</button>
+          <button class="btn-sm ${u.banned?'btn-unban':'btn-ban'}" data-id="${u.id}">${u.banned?'Unban':'Ban'}</button>
+          <button class="btn-sm btn-upgrade" data-id="${u.id}">Plan</button>
+          <button class="btn-sm btn-delete" data-id="${u.id}">Del</button>
+        </td>
+      </tr>
+    `).join('');
+
+    attachUserActions();
+  } catch (error) {
+    console.error('Error loading users:', error);
+    tbody.innerHTML = '<tr><td colspan="7" style="color:var(--danger);">Failed to load users.</td></tr>';
+  }
+}
 
         function attachUserActions() {
           document
@@ -1437,85 +1562,195 @@
           .getElementById("addUserBtn")
           .addEventListener("click", () => openUserModal(null));
 
-        document.getElementById("saveUserBtn").addEventListener("click", () => {
-          const id = document.getElementById("editUserId").value;
-          const userData = {
-            firstName: document.getElementById("editFirstName").value.trim(),
-            lastName: document.getElementById("editLastName").value.trim(),
-            email: document.getElementById("editEmail").value.trim(),
-            age: document.getElementById("editAge").value,
-            location: document.getElementById("editLocation").value.trim(),
-            phone: document.getElementById("editPhone").value.trim(),
-            bio: document.getElementById("editBio").value.trim(),
-            interests: document.getElementById("editInterests").value.trim(),
-            profession: document.getElementById("editProfession").value.trim(),
-            income: document.getElementById("editIncome").value.trim(),
-            netWorth: document.getElementById("editNetWorth").value.trim(),
-            avatar: document.getElementById("editAvatar").value.trim(),
-            plan: document.getElementById("editPlan").value,
-            banned: document.getElementById("editBanned").checked,
+        // document.getElementById("saveUserBtn").addEventListener("click", () => {
+        //   const id = document.getElementById("editUserId").value;
+        //   const userData = {
+        //     firstName: document.getElementById("editFirstName").value.trim(),
+        //     lastName: document.getElementById("editLastName").value.trim(),
+        //     email: document.getElementById("editEmail").value.trim(),
+        //     age: document.getElementById("editAge").value,
+        //     location: document.getElementById("editLocation").value.trim(),
+        //     phone: document.getElementById("editPhone").value.trim(),
+        //     bio: document.getElementById("editBio").value.trim(),
+        //     interests: document.getElementById("editInterests").value.trim(),
+        //     profession: document.getElementById("editProfession").value.trim(),
+        //     income: document.getElementById("editIncome").value.trim(),
+        //     netWorth: document.getElementById("editNetWorth").value.trim(),
+        //     avatar: document.getElementById("editAvatar").value.trim(),
+        //     plan: document.getElementById("editPlan").value,
+        //     banned: document.getElementById("editBanned").checked,
+        //   };
+        //   const password = document.getElementById("editPassword").value.trim();
+        //   if (password) userData.password = password;
+
+        //   if (id) {
+        //     const idx = users.findIndex((u) => u.id === id);
+        //     if (idx >= 0) {
+        //       users[idx] = { ...users[idx], ...userData };
+        //     }
+        //   } else {
+        //     users.push({
+        //       ...userData,
+        //       id: generateId(),
+        //       password: password || "12345678",
+        //       joined: new Date().toISOString().split("T")[0],
+        //       lastActive: Date.now(),
+        //     });
+        //   }
+        //   saveData(USERS_KEY, users);
+        //   document.getElementById("userModal").classList.remove("active");
+        //   loadUsers();
+        //   loadDashboard();
+        //   showToast("✅ User saved successfully.");
+        // });
+
+        document.getElementById('saveUserBtn').addEventListener('click', async () => {
+          const btn = this;
+          const originalHTML = btn.innerHTML;   // store original button content
+
+          // Disable and show spinner
+          btn.disabled = true;
+          btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving…';
+
+            const id = document.getElementById('editUserId').value.trim();   // this will be the Firestore document ID (email or uid)
+            const userData = {
+              firstName: document.getElementById('editFirstName').value.trim(),
+              lastName: document.getElementById('editLastName').value.trim(),
+              email: document.getElementById('editEmail').value.trim(),
+              age: document.getElementById('editAge').value,
+              location: document.getElementById('editLocation').value.trim(),
+              phone: document.getElementById('editPhone').value.trim(),
+              bio: document.getElementById('editBio').value.trim(),
+              interests: document.getElementById('editInterests').value.trim(),
+              profession: document.getElementById('editProfession').value.trim(),
+              income: document.getElementById('editIncome').value.trim(),
+              netWorth: document.getElementById('editNetWorth').value.trim(),
+              avatar: document.getElementById('editAvatar').value.trim(),
+              plan: document.getElementById('editPlan').value,
+              banned: document.getElementById('editBanned').checked,
           };
-          const password = document.getElementById("editPassword").value.trim();
-          if (password) userData.password = password;
 
-          if (id) {
-            const idx = users.findIndex((u) => u.id === id);
-            if (idx >= 0) {
-              users[idx] = { ...users[idx], ...userData };
-            }
-          } else {
-            users.push({
-              ...userData,
-              id: generateId(),
-              password: password || "12345678",
-              joined: new Date().toISOString().split("T")[0],
-              lastActive: Date.now(),
+    // If password field isn't empty, add it (only for local storage compatibility; we shouldn't store plain passwords)
+    const password = document.getElementById('editPassword').value.trim();
+    if (password) userData.password = password;
+
+    try {
+        if (id) {
+            // Update existing user
+            await window.updateDoc(window.doc(window.db, "users", id), userData);
+        } else {
+            // Add new user – use email as document ID (or generate a new one)
+            const docId = userData.email || Date.now().toString(36);
+            // Also set a default password if none provided (demo only)
+            if (!password) userData.password = '12345678';
+            await window.setDoc(window.doc(window.db, "users", docId), {
+                ...userData,
+                createdAt: window.serverTimestamp(),
+                lastActive: window.serverTimestamp(),
+                uid: docId,
+                banned: false,
+                incognito: false,
+                visibility: true
             });
-          }
-          saveData(USERS_KEY, users);
-          document.getElementById("userModal").classList.remove("active");
-          loadUsers();
-          loadDashboard();
-          showToast("✅ User saved successfully.");
-        });
+        }
+        document.getElementById('userModal').classList.remove('active');
+        loadUsers();
+        loadDashboard();
+        showToast('✅ User saved successfully.');
+    } catch (error) {
+        console.error('Error saving user:', error);
+        showToast('Failed to save user.');
+    } finally {
+    // Restore button
+    btn.disabled = false;
+    btn.innerHTML = originalHTML;
+  }
+});
 
-        function toggleBan(id) {
-          const idx = users.findIndex((u) => u.id === id);
-          if (idx >= 0) {
-            users[idx].banned = !users[idx].banned;
-            saveData(USERS_KEY, users);
+        // function toggleBan(id) {
+        //   const idx = users.findIndex((u) => u.id === id);
+        //   if (idx >= 0) {
+        //     users[idx].banned = !users[idx].banned;
+        //     saveData(USERS_KEY, users);
+        //     loadUsers();
+        //     loadDashboard();
+        //     showToast(`User ${users[idx].banned ? "banned" : "unbanned"}.`);
+        //   }
+        // }
+
+        async function toggleBan(id) {
+    try {
+        const docRef = window.doc(window.db, "users", id);
+        const snap = await window.getDoc(docRef);
+        if (snap.exists()) {
+            const current = snap.data().banned || false;
+            await window.updateDoc(docRef, { banned: !current });
             loadUsers();
             loadDashboard();
-            showToast(`User ${users[idx].banned ? "banned" : "unbanned"}.`);
-          }
+            showToast(`User ${!current?'banned':'unbanned'}.`);
         }
+    } catch (error) {
+        console.error(error);
+    }
+}
 
-        function cyclePlan(id) {
-          const idx = users.findIndex((u) => u.id === id);
-          if (idx >= 0) {
-            const plans = ["trial", "premium-monthly", "elite-annual"];
-            const current = plans.indexOf(users[idx].plan);
-            users[idx].plan = plans[(current + 1) % plans.length];
-            saveData(USERS_KEY, users);
+        // function cyclePlan(id) {
+        //   const idx = users.findIndex((u) => u.id === id);
+        //   if (idx >= 0) {
+        //     const plans = ["trial", "premium-monthly", "elite-annual"];
+        //     const current = plans.indexOf(users[idx].plan);
+        //     users[idx].plan = plans[(current + 1) % plans.length];
+        //     saveData(USERS_KEY, users);
+        //     loadUsers();
+        //     loadDashboard();
+        //     showToast(`Plan updated to ${users[idx].plan}.`);
+        //   }
+        // }
+
+        async function cyclePlan(id) {
+    const plans = ['trial', 'premium-monthly', 'elite-annual'];
+    try {
+        const docRef = window.doc(window.db, "users", id);
+        const snap = await window.getDoc(docRef);
+        if (snap.exists()) {
+            const currentPlan = snap.data().plan || 'trial';
+            const nextIndex = (plans.indexOf(currentPlan) + 1) % plans.length;
+            await window.updateDoc(docRef, { plan: plans[nextIndex] });
             loadUsers();
             loadDashboard();
-            showToast(`Plan updated to ${users[idx].plan}.`);
-          }
+            showToast(`Plan updated to ${plans[nextIndex]}.`);
         }
+    } catch (error) {
+        console.error(error);
+    }
+}
 
-        function deleteUser(id) {
-          if (
-            !confirm(
-              "Are you sure you want to delete this user? This cannot be undone.",
-            )
-          )
-            return;
-          users = users.filter((u) => u.id !== id);
-          saveData(USERS_KEY, users);
-          loadUsers();
-          loadDashboard();
-          showToast("🗑️ User deleted.");
-        }
+        // function deleteUser(id) {
+        //   if (
+        //     !confirm(
+        //       "Are you sure you want to delete this user? This cannot be undone.",
+        //     )
+        //   )
+        //     return;
+        //   users = users.filter((u) => u.id !== id);
+        //   saveData(USERS_KEY, users);
+        //   loadUsers();
+        //   loadDashboard();
+        //   showToast("🗑️ User deleted.");
+        // }
+
+        async function deleteUser(id) {
+    if (!confirm('Are you sure? This cannot be undone.')) return;
+    try {
+        await window.deleteDoc(window.doc(window.db, "users", id));
+        loadUsers();
+        loadDashboard();
+        showToast('🗑️ User deleted.');
+    } catch (error) {
+        console.error(error);
+        showToast('Failed to delete user.');
+    }
+}
 
         // ── Events ────────────────────────────────
         function loadEvents() {
@@ -1745,10 +1980,12 @@
           }
         }
 
-        function loadConciergeRequests() {
-          const requests = JSON.parse(
-            localStorage.getItem(CONCIERGE_KEY) || "[]",
-          );
+        async function loadConciergeRequests() {
+          // const requests = JSON.parse(
+          //   localStorage.getItem(CONCIERGE_KEY) || "[]",
+          // );
+          const snapshot = await window.getDocs(window.collection(window.db, "concierge_requests"));
+          const requests = snapshot.docs.map((doc) => doc.data());
           const tbody = document.querySelector("#conciergeTable tbody");
           tbody.innerHTML = "";
 
@@ -1936,17 +2173,19 @@
 
         document
           .getElementById("sendNotifBtn")
-          .addEventListener("click", () => {
+          .addEventListener("click", async () => {
             const title = document.getElementById("notifTitle").value.trim();
             const body = document.getElementById("notifBody").value.trim();
             if (!title || !body)
               return showToast("⚠️ Please fill both fields.");
-            notifications.push({
-              id: generateId(),
+            const notifData = {
               title: title,
               body: body,
-              timestamp: Date.now(),
-            });
+              timestamp: window.serverTimestamp ? window.serverTimestamp() : new Date(),
+              targetEmail: null,   // global notification – null means everyone gets it
+              readBy: []           // initially nobody has read it
+          };
+          await window.addDoc(window.collection(window.db, "notifications"), notifData);
             localStorage.setItem(NOTIF_KEY, JSON.stringify(notifications));
             document.getElementById("notifTitle").value = "";
             document.getElementById("notifBody").value = "";
@@ -2017,7 +2256,7 @@ function loadNewsletterSubscribers() {
                 localStorage.removeItem(USERS_KEY);
                 localStorage.removeItem(EVENTS_KEY);
                 localStorage.removeItem(MESSAGES_KEY);
-                localStorage.removeItem(NOTIFICATIONS_KEY);
+                localStorage.removeItem(NOTIF_KEY);
                 refreshData();
                 loadDashboard();
                 loadUsers();
@@ -2067,6 +2306,10 @@ function loadNewsletterSubscribers() {
         loadEvents();
         loadMessages();
         loadNotifications();
+    }
+
+    waitForFirebase(startAdminPanel);
+
       })();
     </script>
   </body>

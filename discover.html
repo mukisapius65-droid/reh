@@ -11,6 +11,8 @@
 
     <link rel="stylesheet" href="assets/main.css">
 
+    <script type="module" src="assets/firebase.js"></script>
+
     <!-- <link rel ="stylesheet" href="styles.css"> -->
 </head>
 <body>
@@ -120,16 +122,38 @@
 
   let allProfiles = [];
   let activeFilter = "all";
+  let bookmarkedEmails = new Set();   // cache of emails the current user has bookmarked
+  let admiredEmails = new Set();   // cache of emails the current user has admired
+  let admirersCountMap = {};   // key: targetEmail, value: number of admirers
+
+  async function loadAdmirationCache() {
+  const session = JSON.parse(localStorage.getItem('reh_user') || '{}');
+  if (!session.email) return;
+  const admirationsRef = window.collection(window.db, "users", session.email, "admirations");
+  const snapshot = await window.getDocs(admirationsRef);
+  admiredEmails.clear();
+  snapshot.forEach(doc => admiredEmails.add(doc.id));   // doc id = target email
+}
+  
+async function loadBookmarkCache() {
+  const session = JSON.parse(localStorage.getItem('reh_user') || '{}');
+  if (!session.email) return;
+  const bookmarksRef = window.collection(window.db, "users", session.email, "bookmarks");
+  const snapshot = await window.getDocs(bookmarksRef);
+  bookmarkedEmails.clear();
+  snapshot.forEach(doc => bookmarkedEmails.add(doc.id));   // doc id is the target email
+}
 
   // ── Data keys ────────────────────────────────
-  const USERS_KEY = "reh_users";
+  // const USERS_KEY = "reh_users";
   const AUTH_KEY = "rehw_user"; // old login system
   const USER_KEY = "reh_user";
-  let searchTerm = "";
+  let searchTerm = ""
   const PRESENCE_KEY = "reh_presence";
   const VIEWS_KEY = 'reh_profile_views';
 
 function hasViewed(targetEmail) {
+  
     const session = JSON.parse(localStorage.getItem('reh_user') || '{}');
     if (!session.email) return false;
     const views = JSON.parse(localStorage.getItem(VIEWS_KEY) || '[]');
@@ -197,51 +221,83 @@ function hasViewed(targetEmail) {
   });
 
   // ── Load users from Admin Panel storage ──────
-  function getUsers() {
-    const stored = localStorage.getItem(USERS_KEY);
-    if (stored) return JSON.parse(stored);
-    // Fallback default users if storage is empty
-    const defaults = [
-      {
-        id: "1",
-        firstName: "Isabella",
-        lastName: "Rossi",
-        email: "isabella@example.com",
-        age: 26,
-        location: "Milan, Italy",
-        avatar: "https://randomuser.me/api/portraits/women/44.jpg",
-        plan: "premium-monthly",
-        banned: false,
-        lastActive: Date.now(),
-      },
-      {
-        id: "2",
-        firstName: "Sophia",
-        lastName: "Laurent",
-        email: "sophia@example.com",
-        age: 28,
-        location: "Paris, France",
-        avatar: "https://randomuser.me/api/portraits/women/5.jpg",
-        plan: "elite-annual",
-        banned: false,
-        lastActive: Date.now() - 3600000,
-      },
-      {
-        id: "3",
-        firstName: "Valentina",
-        lastName: "Cruz",
-        email: "valentina@example.com",
-        age: 29,
-        location: "Barcelona, Spain",
-        avatar: "https://randomuser.me/api/portraits/women/12.jpg",
-        plan: "trial",
-        banned: true,
-        lastActive: Date.now() - 86400000,
-      },
-    ];
-    localStorage.setItem(USERS_KEY, JSON.stringify(defaults));
-    return defaults;
-  }
+  //  function getUsers() {
+  //   // const snapshot = await getDocs(collection(db, "users"));
+  //   // const allUsers = [];
+  //   // snapshot.forEach(doc => allUsers.push({ id: doc.id, ...doc.data() }));
+
+  //   const stored = localStorage.getItem(USERS_KEY);
+  //   if (stored) return JSON.parse(stored);
+  //   // Fallback default users if storage is empty
+  //   const defaults = [
+  //     {
+  //       id: "1",
+  //       firstName: "Isabella",
+  //       lastName: "Rossi",
+  //       email: "isabella@example.com",
+  //       age: 26,
+  //       location: "Milan, Italy",
+  //       avatar: "https://randomuser.me/api/portraits/women/44.jpg",
+  //       plan: "premium-monthly",
+  //       banned: false,
+  //       lastActive: Date.now(),
+  //     },
+  //     {
+  //       id: "2",
+  //       firstName: "Sophia",
+  //       lastName: "Laurent",
+  //       email: "sophia@example.com",
+  //       age: 28,
+  //       location: "Paris, France",
+  //       avatar: "https://images.unsplash.com/photo-1606596556957-f6566cc865a9?q=80&w=386&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  //       plan: "elite-annual",
+  //       banned: false,
+  //       lastActive: Date.now() - 3600000,
+  //     },
+  //     {
+  //       id: "3",
+  //       firstName: "Valentina",
+  //       lastName: "Cruz",
+  //       email: "valentina@example.com",
+  //       age: 29,
+  //       location: "Barcelona, Spain",
+  //       avatar: "https://randomuser.me/api/portraits/women/12.jpg",
+  //       plan: "trial",
+  //       banned: true,
+  //       lastActive: Date.now() - 86400000,
+  //     },
+  //   ];
+  //   localStorage.setItem(USERS_KEY, JSON.stringify(defaults));
+  //   return defaults;
+  // }
+
+  // ── Get users from Firestore ────────────
+async function getUsers() {
+    // Wait for Firebase to be ready (safety)
+    if (!window.db) {
+        console.warn('Firebase not ready yet');
+        return [];
+    }
+    try {
+        const snapshot = await window.getDocs(
+            window.query(
+                window.collection(window.db, "users"),
+                window.orderBy("lastActive", "desc"),
+                window.limit(30)
+            )
+        );
+        const allUsers = [];
+        snapshot.forEach(doc => {
+            const u = doc.data();
+            u.id = doc.id;   // add the Firestore document ID
+            allUsers.push(u);
+        });
+        return allUsers;
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        return [];
+    }
+}
 
   // ── Relative status helper ──────────────────
   function getRelativeStatus(lastActive) {
@@ -261,112 +317,175 @@ function hasViewed(targetEmail) {
     return "Offline";
   }
 
-  const ADMIRATIONS_KEY = "reh_admirations";
+  // const ADMIRATIONS_KEY = "reh_admirations";
 
-  function hasAlreadyAdmired(targetEmail) {
-    if (!targetEmail) return false;
-    const session = JSON.parse(localStorage.getItem("reh_user") || "{}");
-    if (!session.email) return false;
-    const admirations = JSON.parse(
-      localStorage.getItem(ADMIRATIONS_KEY) || "[]",
-    );
-    return admirations.some(
-      (a) => a.from === session.email && a.to === targetEmail,
-    );
+function hasAlreadyAdmired(targetEmail) {
+  return admiredEmails.has(targetEmail);
+}
+
+  // const BOOKMARKS_KEY = "reh_bookmarks";
+
+// async function isBookmarked(targetEmail) {
+//   const session = JSON.parse(localStorage.getItem('reh_user') || '{}');
+//   if (!session.email) return false;
+//   const docSnap = await window.getDoc(window.doc(window.db, "users", session.email, "bookmarks", targetEmail));
+//   return docSnap.exists();
+// }
+
+async function toggleBookmark(targetEmail, buttonElement) {
+  const session = JSON.parse(localStorage.getItem('reh_user') || '{}');
+  if (!session.email) {
+    window.location.href = 'index.html?redirect=login.html';
+    return;
   }
 
-  const BOOKMARKS_KEY = "reh_bookmarks";
+  const bookmarkIcon = buttonElement.querySelector('i.fa-bookmark');
+  // Determine current state from the icon's class
+  const currentlyBookmarked = bookmarkIcon && bookmarkIcon.classList.contains('fa-solid');
 
-  function isBookmarked(targetEmail) {
-    if (!targetEmail) return false;
-    const session = JSON.parse(localStorage.getItem("reh_user") || "{}");
-    if (!session.email) return false;
-    const bookmarks = JSON.parse(localStorage.getItem(BOOKMARKS_KEY) || "[]");
-    return bookmarks.some(
-      (b) => b.from === session.email && b.to === targetEmail,
-    );
+  // ── Optimistic UI toggle ─────────────────
+  if (bookmarkIcon) {
+    bookmarkIcon.classList.toggle('fa-solid');
+    bookmarkIcon.classList.toggle('fa-regular');
   }
 
-  function toggleBookmark(targetEmail) {
-    const session = JSON.parse(localStorage.getItem("reh_user") || "{}");
-    if (!session.email) {
-      window.location.href = "index.html?redirect=login.html";
-      return;
-    }
-    let bookmarks = JSON.parse(localStorage.getItem(BOOKMARKS_KEY) || "[]");
-    const existing = bookmarks.findIndex(
-      (b) => b.from === session.email && b.to === targetEmail,
-    );
-    if (existing !== -1) {
-      bookmarks.splice(existing, 1);
-      showToast("🔖 Bookmark removed.");
+  // Update the cache Set (used by future full renders)
+  if (currentlyBookmarked) {
+    bookmarkedEmails.delete(targetEmail);
+  } else {
+    bookmarkedEmails.add(targetEmail);
+  }
+
+  // ── Firestore write ─────────────────────
+  const bookmarkRef = window.doc(window.db, "users", session.email, "bookmarks", targetEmail);
+  try {
+    if (currentlyBookmarked) {
+      await window.deleteDoc(bookmarkRef);
+      showToast('🔖 Bookmark removed.');
     } else {
-      bookmarks.push({
-        from: session.email,
-        to: targetEmail,
-        timestamp: Date.now(),
+      const targetUserDoc = await window.getDoc(window.doc(window.db, "users", targetEmail));
+      if (!targetUserDoc.exists()) {
+        showToast('User not found.');
+        // Revert UI if needed – optional, you can skip for simplicity
+        return;
+      }
+      const target = targetUserDoc.data();
+      await window.setDoc(bookmarkRef, {
+        email: targetEmail,
+        firstName: target.firstName || '',
+        lastName: target.lastName || '',
+        age: target.age || '',
+        avatar: target.avatar || '',
+        location: target.location || '',
+        addedAt: window.serverTimestamp ? window.serverTimestamp() : new Date()
       });
-      showToast("🔖 Profile bookmarked.");
+      showToast('🔖 Profile bookmarked.');
     }
-    localStorage.setItem(BOOKMARKS_KEY, JSON.stringify(bookmarks));
-    // Re-render cards to update icon
-    renderCards(activeFilter, searchTerm);
+  } catch (err) {
+    console.error(err);
+    showToast('Could not update bookmark.');
+    // Revert UI on failure
+    if (bookmarkIcon) {
+      bookmarkIcon.classList.toggle('fa-solid');
+      bookmarkIcon.classList.toggle('fa-regular');
+    }
+    if (currentlyBookmarked) {
+      bookmarkedEmails.add(targetEmail);
+    } else {
+      bookmarkedEmails.delete(targetEmail);
+    }
   }
 
-  function getAdmirersCount(targetEmail) {
-    if (!targetEmail) return 0;
-    const admirations = JSON.parse(
-      localStorage.getItem(ADMIRATIONS_KEY) || "[]",
-    );
-    return admirations.filter((a) => a.to === targetEmail).length;
+  // ❌ No renderCards() call – the card is already updated
+}
+
+
+async function admireUser(targetEmail, buttonElement) {
+  const session = JSON.parse(localStorage.getItem('reh_user') || '{}');
+  if (!session.email) {
+    window.location.href = 'index.html?redirect=login.html';
+    return;
+  }
+  if (admiredEmails.has(targetEmail)) return;  // already admired
+
+  // ── Optimistic UI update ─────────────────
+  const heartIcon = buttonElement.querySelector('i.fa-heart');
+  const countSpan = buttonElement.parentElement.querySelector('.admirer-count');
+  // If the count span is inside the button, find it there
+  const countInsideBtn = buttonElement.querySelector('.admirer-count');
+  const count = countSpan || countInsideBtn;
+
+  // Toggle heart icon
+  if (heartIcon) {
+    heartIcon.classList.remove('fa-regular');
+    heartIcon.classList.add('fa-solid');
   }
 
-  function admireUser(targetEmail) {
-    const session = JSON.parse(localStorage.getItem("reh_user") || "{}");
-    if (!session.email) {
-      window.location.href = "index.html?redirect=login.html";
-      return;
-    }
-    if (hasAlreadyAdmired(targetEmail)) return;
+  // Increment displayed count
+  if (count) {
+    const current = parseInt(count.textContent, 10) || 0;
+    count.textContent = current + 1;
+  }
 
-    // Save admiration
-    const admirations = JSON.parse(
-      localStorage.getItem(ADMIRATIONS_KEY) || "[]",
-    );
-    admirations.push({
-      from: session.email,
-      fromName:
-        (session.firstName + " " + session.lastName).trim() || session.email,
-      to: targetEmail,
-      timestamp: Date.now(),
+  // Disable button visually
+  buttonElement.disabled = true;
+  buttonElement.style.opacity = '0.6';
+  buttonElement.style.cursor = 'not-allowed';
+
+  // Update cache
+  admiredEmails.add(targetEmail);
+
+  try {
+    // 1. Add admiration record in current user's subcollection
+    const admRef = window.doc(window.db, "users", session.email, "admirations", targetEmail);
+    await window.setDoc(admRef, {
+      timestamp: window.serverTimestamp ? window.serverTimestamp() : new Date()
     });
-    localStorage.setItem(ADMIRATIONS_KEY, JSON.stringify(admirations));
 
-    // Send personalized notification
-    const notifications = JSON.parse(localStorage.getItem(NOTIF_KEY) || "[]");
-    const notif = {
-      id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
+    // 2. Increment target user's admirersCount
+    const targetUserRef = window.doc(window.db, "users", targetEmail);
+    const targetSnap = await window.getDoc(targetUserRef);
+    const currentCount = targetSnap.data()?.admirersCount || 0;
+    await window.updateDoc(targetUserRef, {
+      admirersCount: currentCount + 1
+    });
+
+    // 3. Send personalised notification
+    await window.addDoc(window.collection(window.db, "notifications"), {
       title: "Someone admires you!",
       body: `${session.firstName || "Someone"} just admired you ❤️`,
-      timestamp: Date.now(),
+      timestamp: window.serverTimestamp ? window.serverTimestamp() : new Date(),
       targetEmail: targetEmail,
-    };
-    notifications.push(notif);
-    localStorage.setItem(NOTIF_KEY, JSON.stringify(notifications));
+      readBy: []
+    });
 
-    // Re‑render cards to reflect new state
-    renderCards(activeFilter);
-    showToast("❤️ You admired this profile!");
+    showToast('❤️ You admired this profile!');
+  } catch (error) {
+    console.error(error);
+    // Revert UI on failure
+    if (heartIcon) {
+      heartIcon.classList.remove('fa-solid');
+      heartIcon.classList.add('fa-regular');
+    }
+    if (count) {
+      count.textContent = (parseInt(count.textContent, 10) || 1) - 1;
+    }
+    buttonElement.disabled = false;
+    buttonElement.style.opacity = '1';
+    buttonElement.style.cursor = 'pointer';
+    admiredEmails.delete(targetEmail);
+    showToast('Could not admire this profile.');
   }
+}
 
-  /// Attach admire & bookmark handlers (TikTok style)
+
 function attachInteractionHandlers() {
   // Admire button
   document.querySelectorAll('.admire-btn').forEach(btn => {
     btn.addEventListener('click', function(e) {
       e.stopPropagation();
       const targetEmail = this.getAttribute('data-target-email');
-      admireUser(targetEmail);
+      admireUser(targetEmail, this);   // ← pass the button
     });
   });
 
@@ -375,14 +494,14 @@ function attachInteractionHandlers() {
     btn.addEventListener('click', function(e) {
       e.stopPropagation();
       const targetEmail = this.getAttribute('data-target-email');
-      toggleBookmark(targetEmail);
+      toggleBookmark(targetEmail, this);   // ← pass the button
     });
   });
 }
 
-  function renderCards(filter = "all", searchTerm = "") {
+  async function renderCards(filter = "all", searchTerm = "") {
     activeFilter = filter;
-    const allUsers = getUsers();
+    const allUsers = await getUsers();
     const loggedUser = JSON.parse(localStorage.getItem(AUTH_KEY) || "{}");
     const currentUid = loggedUser?.email || null;
 
@@ -461,9 +580,13 @@ function attachInteractionHandlers() {
     grid.innerHTML = filtered
       .map((u, i) => {
         const online = isUserOnline(u.email);
-        const statusText = online ? "Online" : getRelativeStatus(u.lastActive);
+        const hideLastActive = u.showLastActive === false;   // false = hide
+        const statusText = hideLastActive 
+          ? (online ? "Online" : "Offline") 
+          : (online ? "Online" : getRelativeStatus(u.lastActive));
         const statusClass = online ? "online" : "offline";
         const phone = u.phone || "Private";
+        const admirersCount = u.admirersCount || 0;
         return `
         <div class="profile-card" data-index="${i}" style="transition-delay:${i * 0.08}s">
             <div class="card-image-wrapper">
@@ -474,10 +597,10 @@ function attachInteractionHandlers() {
     <div class="card-interactions">
       <button class="interaction-btn admire-btn" data-target-email="${u.email || ''}">
         <i class="fa-heart ${hasAlreadyAdmired(u.email) ? 'fa-solid' : 'fa-regular'}"></i>
-        <span class="count">${getAdmirersCount(u.email)}</span>
+        <span class="admirer-count">${u.admirersCount || 0}</span>
       </button>
       <button class="interaction-btn bookmark-btn" data-target-email="${u.email || ''}">
-        <i class="fa-bookmark ${isBookmarked(u.email) ? 'fa-solid' : 'fa-regular'}"></i>
+        <i class="fa-bookmark ${bookmarkedEmails.has(u.email) ? 'fa-solid' : 'fa-regular'}"></i>
       </button>
     </div>
             </div>
@@ -692,29 +815,39 @@ function attachInteractionHandlers() {
   }
 
   // ── Initial render ───────────────────────────
-  renderCards("all", "");
+  // renderCards("all", "");
+    // ── Start the app once Firebase is ready ──
+    async function startApp() {
+      await loadBookmarkCache();
+      await loadAdmirationCache();
+        createParticles();
+        renderCards("all", "");
 
+    }
 
-  // document.addEventListener('click', (e) => {
-  //     if (sidebar && hamburger) return;
-  //     sidebar.classList.add('invisible');
-  // });
+    function waitForFirebase(callback) {
+        if (window.db) {
+            callback();
+        } else {
+            let attempts = 0;
+            const check = setInterval(() => {
+                if (window.db) {
+                    clearInterval(check);
+                    callback();
+                }
+                attempts++;
+                if (attempts > 50) {   // stop after 5 seconds
+                    clearInterval(check);
+                    console.error('Firebase failed to load');
+                }
+            }, 100);
+        }
+    }
+
+    waitForFirebase(startApp);
 
   window.showToast = showToast; // expose for onclick
-  createParticles();
-
-  // avater and logout logic
-  const navProfile = document.getElementById("profileArea");
-  const dropdownMenu = document.getElementById("dropdownMenu");
-  if (navProfile && dropdownMenu) {
-    navProfile.addEventListener("click", (e) => {
-      e.stopPropagation();
-      dropdownMenu.classList.toggle("show");
-    });
-    document.addEventListener("click", () => {
-      dropdownMenu.classList.remove("show");
-    });
-  }
+  // createParticles();
 })();
 </script>
 <script src="assets/toadmin.js"></script>

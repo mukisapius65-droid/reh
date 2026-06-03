@@ -13,6 +13,8 @@
     <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
+    <script type="module" src="assets/firebase.js"></script>
+
     <style>
         :root {
             --deep-navy: #080c24;
@@ -619,302 +621,324 @@
     </div>
     <script src="assets/auth.js"></script>
 
-    <script>
-        (function() {
-            // ── Floating hearts ──────────────────────
-            const heartsContainer = document.getElementById('heartsContainer');
-            const heartIcons = ['❤️', '💕', '💖', '💗', '💘', '✨', '🌸'];
-            const goldHearts = ['💛', '⭐', '🌟'];
-
-            function createHeart() {
-                const heart = document.createElement('span');
-                heart.className = 'floating-heart';
-                heart.textContent = (Math.random() > 0.7 ? goldHearts : heartIcons)[Math.floor(Math.random() * 6)];
-                heart.style.left = Math.random() * 100 + '%';
-                heart.style.animationDuration = (Math.random() * 8 + 6) + 's';
-                heart.style.animationDelay = Math.random() * 5 + 's';
-                heart.style.fontSize = (Math.random() * 1.5 + 1) + 'rem';
-                heartsContainer.appendChild(heart);
-                setTimeout(() => heart.remove(), 12000);
-            }
-            setInterval(createHeart, 400);
-            for (let i = 0; i < 12; i++) setTimeout(createHeart, i * 200);
-
-            // ── Toast ────────────────────────────────
-            const toast = document.getElementById('toast');
-            const toastMessage = document.getElementById('toastMessage');
-            let toastTimer;
-
-            function showToast(msg) {
-                if (toastTimer) clearTimeout(toastTimer);
-                toastMessage.textContent = msg;
-                toast.classList.add('show');
-                toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
-            }
-
-            function isEmailRegistered(email) {
-    const allUsers = JSON.parse(localStorage.getItem('reh_users') || '[]');
-    return allUsers.some(u => u.email === email);
-}
-
-function loginUser(userData) {
-    localStorage.setItem('reh_user', JSON.stringify(userData));
-    // Update navigation UI if the function exists (general.js)
-    if (typeof updateNavFromAuth === 'function') {
-        updateNavFromAuth();
+    <script src="assets/auth.js"></script>
+<script>
+  (function () {
+    // ── Wait for Firebase to be ready ──────────────
+    function waitForFirebase(callback) {
+      if (window.db) {
+        callback();
+      } else {
+        let attempts = 0;
+        const check = setInterval(() => {
+          if (window.db) {
+            clearInterval(check);
+            callback();
+          }
+          attempts++;
+          if (attempts > 50) {
+            clearInterval(check);
+            console.error('Firebase failed to load');
+          }
+        }, 100);
+      }
     }
-}
 
-            // ── Step navigation ─────────────────────
-            let currentStep = 1;
-            const totalSteps = 3;
+    function startApp() {
+      let submitCancelled = false;
 
-            const step1Panel = document.getElementById('step1Panel');
-            const step2Panel = document.getElementById('step2Panel');
-            const step3Panel = document.getElementById('step3Panel');
-            const step1Dot = document.getElementById('step1Dot');
-            const step2Dot = document.getElementById('step2Dot');
-            const step3Dot = document.getElementById('step3Dot');
-            const line1 = document.getElementById('line1');
-            const line2 = document.getElementById('line2');
+      // ── Floating hearts ──────────────────────────
+      const heartsContainer = document.getElementById('heartsContainer');
+      const heartIcons = ['❤️', '💕', '💖', '💗', '💘', '✨', '🌸'];
+      const goldHearts = ['💛', '⭐', '🌟'];
 
-            function updateStepUI(step) {
-                [step1Panel, step2Panel, step3Panel].forEach(p => p.classList.remove('active'));
-                [step1Dot, step2Dot, step3Dot].forEach(d => d.classList.remove('active', 'done'));
-                [line1, line2].forEach(l => l.classList.remove('active'));
+      function createHeart() {
+        const heart = document.createElement('span');
+        heart.className = 'floating-heart';
+        heart.textContent = (Math.random() > 0.7 ? goldHearts : heartIcons)[
+          Math.floor(Math.random() * 6)
+        ];
+        heart.style.left = Math.random() * 100 + '%';
+        heart.style.animationDuration = (Math.random() * 8 + 6) + 's';
+        heart.style.animationDelay = Math.random() * 5 + 's';
+        heart.style.fontSize = (Math.random() * 1.5 + 1) + 'rem';
+        heartsContainer.appendChild(heart);
+        setTimeout(() => heart.remove(), 12000);
+      }
+      setInterval(createHeart, 400);
+      for (let i = 0; i < 12; i++) setTimeout(createHeart, i * 200);
 
-                if (step === 1) {
-                    step1Panel.classList.add('active');
-                    step1Dot.classList.add('active');
-                } else if (step === 2) {
-                    step2Panel.classList.add('active');
-                    step1Dot.classList.add('done');
-                    step2Dot.classList.add('active');
-                    line1.classList.add('active');
-                } else if (step === 3) {
-                    step3Panel.classList.add('active');
-                    step1Dot.classList.add('done');
-                    step2Dot.classList.add('done');
-                    step3Dot.classList.add('active');
-                    line1.classList.add('active');
-                    line2.classList.add('active');
-                }
-                currentStep = step;
-            }
+      // ── Toast ────────────────────────────────────
+      const toast = document.getElementById('toast');
+      const toastMessage = document.getElementById('toastMessage');
+      let toastTimer;
 
-            // Validation helpers
-            function validateStep1() {
-                const firstName = document.getElementById('firstName').value.trim();
-                const lastName = document.getElementById('lastName').value.trim();
-                const email = document.getElementById('email').value.trim();
-                const password = document.getElementById('password').value;
-                if (!firstName || !lastName || !email || !password) {
-                    showToast('🌸 Please fill in all fields.');
-                    return false;
-                }
-                if (password.length < 8) {
-                    showToast('🔐 Password must be at least 8 characters.');
-                    return false;
-                }
-                return true;
-            }
+      function showToast(msg) {
+        if (toastTimer) clearTimeout(toastTimer);
+        toastMessage.textContent = msg;
+        toast.classList.add('show');
+        toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+      }
 
-            // Step 1 → 2
-            document.getElementById('nextStep1').addEventListener('click', () => {
-                if (validateStep1()) {
-                    updateStepUI(2);
-                }
+      // ── Step navigation ─────────────────────────
+      let currentStep = 1;
+      const step1Panel = document.getElementById('step1Panel');
+      const step2Panel = document.getElementById('step2Panel');
+      const step3Panel = document.getElementById('step3Panel');
+      const step1Dot = document.getElementById('step1Dot');
+      const step2Dot = document.getElementById('step2Dot');
+      const step3Dot = document.getElementById('step3Dot');
+      const line1 = document.getElementById('line1');
+      const line2 = document.getElementById('line2');
+
+      function updateStepUI(step) {
+        [step1Panel, step2Panel, step3Panel].forEach(p => p.classList.remove('active'));
+        [step1Dot, step2Dot, step3Dot].forEach(d => d.classList.remove('active', 'done'));
+        [line1, line2].forEach(l => l.classList.remove('active'));
+
+        if (step === 1) {
+          step1Panel.classList.add('active');
+          step1Dot.classList.add('active');
+        } else if (step === 2) {
+          step2Panel.classList.add('active');
+          step1Dot.classList.add('done');
+          step2Dot.classList.add('active');
+          line1.classList.add('active');
+        } else if (step === 3) {
+          step3Panel.classList.add('active');
+          step1Dot.classList.add('done');
+          step2Dot.classList.add('done');
+          step3Dot.classList.add('active');
+          line1.classList.add('active');
+          line2.classList.add('active');
+        }
+        currentStep = step;
+      }
+
+      // Validation
+      function validateStep1() {
+        const firstName = document.getElementById('firstName').value.trim();
+        const lastName = document.getElementById('lastName').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        if (!firstName || !lastName || !email || !password) {
+          showToast('🌸 Please fill in all fields.');
+          return false;
+        }
+        if (password.length < 8) {
+          showToast('🔐 Password must be at least 8 characters.');
+          return false;
+        }
+        return true;
+      }
+
+      document.getElementById('nextStep1').addEventListener('click', () => {
+        if (validateStep1()) updateStepUI(2);
+      });
+      document.getElementById('nextStep2').addEventListener('click', () => updateStepUI(3));
+      document.getElementById('backStep1').addEventListener('click', () => updateStepUI(1));
+      document.getElementById('backStep2').addEventListener('click', () => updateStepUI(2));
+
+      // Photo upload
+      const photoUpload = document.getElementById('photoUpload');
+      const photoFile = document.getElementById('photoFile');
+      const previewImg = document.getElementById('previewImg');
+      const photoPlaceholder = document.getElementById('photoPlaceholder');
+
+      photoUpload.addEventListener('click', (e) => {
+        if (e.target !== photoFile) photoFile.click();
+      });
+      photoFile.addEventListener('change', function () {
+        const file = this.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            previewImg.src = e.target.result;
+            previewImg.style.display = 'block';
+            photoPlaceholder.style.display = 'none';
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+
+      // Plan selection
+      const planCards = document.querySelectorAll('.plan-card');
+      let selectedPlan = 'premium-monthly';
+      planCards.forEach(card => {
+        card.addEventListener('click', () => {
+          planCards.forEach(c => c.classList.remove('selected'));
+          card.classList.add('selected');
+          selectedPlan = card.getAttribute('data-plan');
+        });
+      });
+
+      // ── Helper: login user (session) ────────────
+      function loginUser(userData) {
+        localStorage.setItem('reh_user', JSON.stringify(userData));
+        if (typeof updateNavFromAuth === 'function') {
+          updateNavFromAuth();
+        }
+      }
+
+      // ── Final submission (Firestore) ────────────
+      document.getElementById('submitAll').addEventListener('click', async function () {
+        const btn = this;
+        const originalHTML = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Creating your account…';
+        // ── Transform Back button into Cancel ──────────
+        const backBtn = document.getElementById('backStep2');
+        const originalBackHTML = backBtn.innerHTML;
+        const originalBackHandler = backBtn.onclick;
+
+        backBtn.innerHTML = '<i class="fa-solid fa-xmark"></i> Cancel';
+        backBtn.onclick = function cancelSubmit() {
+        submitCancelled = true;
+        // Restore submit button
+        btn.disabled = false;
+        btn.innerHTML = originalHTML;
+        // Restore back button
+        backBtn.innerHTML = originalBackHTML;
+        backBtn.onclick = originalBackHandler;
+        showToast('❌ Registration cancelled.');
+        // Optionally go back to step 2 so user can edit
+        updateStepUI(2);
+        };
+
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value; // never store plaintext in production!
+        const firstName = document.getElementById('firstName').value.trim();
+        const lastName = document.getElementById('lastName').value.trim();
+
+        // Quick duplicate check on Firestore
+        try {
+          const docRef = window.doc(window.db, "users", email);
+          const existing = await window.getDoc(docRef);
+          if (existing.exists()) {
+            showToast('📧 This email is already part of the circle. Please sign in.');
+            btn.disabled = false;
+            btn.innerHTML = originalHTML;
+            return;
+          }
+        } catch (err) {
+          showToast('⚠️ Unable to verify email. Please try again.');
+          btn.disabled = false;
+          btn.innerHTML = originalHTML;
+          return;
+        }
+
+        // Gather user data
+        const userData = {
+          firstName: firstName,
+          lastName: lastName,
+          name: `${firstName} ${lastName}`,
+          email: email,
+          password: password,               // only for demo – hash in production!
+          age: document.getElementById('age').value,
+          location: document.getElementById('location').value || 'Milan, Italy',
+          phone: '',                         // you can add a phone field later
+          bio: document.getElementById('bio').value,
+          interests: document.getElementById('interests').value,
+          avatar: document.getElementById('previewImg').src || 'https://randomuser.me/api/portraits/women/44.jpg',
+          plan: selectedPlan,
+          profession: document.getElementById('regProfession').value.trim(),
+          income: document.getElementById('regIncome').value.trim(),
+          netWorth: document.getElementById('regNetWorth').value.trim(),
+          joined: new Date().toISOString().split('T')[0],
+          lastActive: Date.now(),
+          banned: false,
+          visibility: true,
+          incognito: false,
+          uid: email,                        // using email as document ID
+        };
+
+        try {
+          // Save to Firestore
+          await window.setDoc(window.doc(window.db, "users", email), {
+            ...userData,
+            createdAt: window.serverTimestamp ? window.serverTimestamp() : new Date(),
+            lastActive: window.serverTimestamp ? window.serverTimestamp() : new Date(),
+          });
+
+          // Login (session)
+          loginUser(userData);
+
+          // Update step indicators
+          step1Dot.classList.add('done');
+          step2Dot.classList.add('done');
+          step3Dot.classList.add('done');
+          step1Dot.classList.remove('active');
+          step2Dot.classList.remove('active');
+          step3Dot.classList.remove('active');
+          line1.classList.add('active');
+          line2.classList.add('active');
+
+          // ── Referral handling (unchanged) ─────
+          const urlParams = new URLSearchParams(window.location.search);
+          const referrerEmail = decodeURIComponent(urlParams.get('ref') || '');
+          if (referrerEmail) {
+            // (keep existing referral logic)
+            const referrals = JSON.parse(localStorage.getItem('reh_referrals') || '[]');
+            referrals.push({
+              referrer: referrerEmail,
+              referred: email,
+              referredName: userData.name,
+              timestamp: Date.now(),
+              status: 'joined'
             });
+            localStorage.setItem('reh_referrals', JSON.stringify(referrals));
 
-            // Step 2 → 3
-            document.getElementById('nextStep2').addEventListener('click', () => {
-                updateStepUI(3);
+            const gifts = JSON.parse(localStorage.getItem('reh_gifts') || '[]');
+            gifts.push({
+              from: 'Reh Team',
+              fromName: 'Reh Concierge',
+              to: referrerEmail,
+              giftType: 'diamond_rose',
+              timestamp: Date.now(),
+              message: `${userData.name} joined using your referral link!`
             });
+            localStorage.setItem('reh_gifts', JSON.stringify(gifts));
 
-            // Back buttons
-            document.getElementById('backStep1').addEventListener('click', () => updateStepUI(1));
-            document.getElementById('backStep2').addEventListener('click', () => updateStepUI(2));
-
-            // Photo upload
-            const photoUpload = document.getElementById('photoUpload');
-            const photoFile = document.getElementById('photoFile');
-            const previewImg = document.getElementById('previewImg');
-            const photoPlaceholder = document.getElementById('photoPlaceholder');
-
-            photoUpload.addEventListener('click', (e) => {
-                if (e.target !== photoFile) photoFile.click();
+            const notifications = JSON.parse(localStorage.getItem('ss_global_notifications') || '[]');
+            notifications.push({
+              id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
+              title: '🎉 New Referral!',
+              body: `${userData.name} signed up using your link. A Diamond Rose has been added to your vault.`,
+              timestamp: Date.now(),
+              targetEmail: referrerEmail
             });
-            photoFile.addEventListener('change', function() {
-                const file = this.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        previewImg.src = e.target.result;
-                        previewImg.style.display = 'block';
-                        photoPlaceholder.style.display = 'none';
-                    };
-                    reader.readAsDataURL(file);
-                }
-            });
+            localStorage.setItem('ss_global_notifications', JSON.stringify(notifications));
+          }
 
-            // Plan selection
-            const planCards = document.querySelectorAll('.plan-card');
-            let selectedPlan = 'premium-monthly';
-            planCards.forEach(card => {
-                card.addEventListener('click', () => {
-                    planCards.forEach(c => c.classList.remove('selected'));
-                    card.classList.add('selected');
-                    selectedPlan = card.getAttribute('data-plan');
-                });
-            });
+          if (submitCancelled) return;
 
-            // Final submission
-            document.getElementById('submitAll').addEventListener('click', () => {
-                const email = document.getElementById('email').value.trim();
-                const password = document.getElementById('password').value;
+          showToast(`✨ Welcome to the Circle, ${firstName}!`);
 
-                // Check if email already exists (simulate)
-                if (isEmailRegistered(email)) {
-                    showToast('📧 This email is already part of the circle. Please sign in.');
-                    return;
-                }
-                
-                const userData = {
-                    name: document.getElementById('firstName').value + ' ' + document.getElementById('lastName').value,
-                    email: email,
-                    password: password,   // again, never store plain text in real life
-                    age: document.getElementById('age').value,
-                    location: document.getElementById('location').value || 'Milan, Italy',
-                    phone: '',  // add phone field if you have one
-                    bio: document.getElementById('bio').value,
-                    interests: document.getElementById('interests').value,
-                    avatar: document.getElementById('previewImg').src || 'https://randomuser.me/api/portraits/women/44.jpg',
-                    plan: selectedPlan,  // from the plan selection step
-                    profession: document.getElementById('regProfession').value.trim(),
-                    income: document.getElementById('regIncome').value.trim(),
-                    netWorth: document.getElementById('regNetWorth').value.trim(),
-                    joined: new Date().toISOString()
-                };
+          // Redirect after a brief pause
+          setTimeout(() => {
+            window.location.href = 'index.html?redirect=the-iron-convenant.html';
+          }, 2000);
 
-                // Save the user
-                loginUser(userData);
+        } catch (error) {
+          console.error(error);
+          showToast('❌ Registration failed. Please try again.');
+          btn.disabled = false;
+          btn.innerHTML = originalHTML;
+          // Restore back button to original state
+          backBtn.innerHTML = originalBackHTML;
+          backBtn.onclick = originalBackHandler;
+        }
+      });
 
-                // ── Add new user to the Admin / Discover list ──
-                const USER_KEY = 'reh_users';
+      // Init step 1
+      updateStepUI(1);
 
-                let allUsers = [];
-                try {
-                    const stored = localStorage.getItem(USER_KEY);
-                    allUsers = stored ? JSON.parse(stored) : [];
-                } catch (e) { allUsers = []; }
-
-                // Check if email already exists (to avoid duplicates)
-                const alreadyExists = allUsers.some(u => u.email === userData.email);
-                if (!alreadyExists) {
-                        // Build an object matching the admin panel's expected fields
-                        const newUser = {
-                        id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),  // unique ID
-                        firstName: userData.name.split(' ')[0] || '',
-                        lastName: userData.name.split(' ').slice(1).join(' ') || '',
-                        email: userData.email,
-                        password: userData.password,           // (in production, never store plain text)
-                        age: userData.age || '',
-                        location: userData.location || '',
-                        phone: userData.phone || '',
-                        bio: userData.bio || '',
-                        interests: userData.interests || '',
-                        avatar: userData.avatar || 'https://randomuser.me/api/portraits/women/44.jpg',
-                        plan: userData.plan || 'trial',
-                        banned: false,
-                        joined: new Date().toISOString().split('T')[0],   // e.g. "2026-05-24"
-                        profession: document.getElementById('regProfession').value.trim(),
-                        income: document.getElementById('regIncome').value.trim(),
-                        netWorth: document.getElementById('regNetWorth').value.trim(),
-                                lastActive: Date.now(),
-                        };
-                        allUsers.push(newUser);
-                        localStorage.setItem(USER_KEY, JSON.stringify(allUsers));
-                   }
-
-
-                // Update step dots to all done
-                step1Dot.classList.add('done');
-                step2Dot.classList.add('done');
-                step3Dot.classList.add('done');
-                step1Dot.classList.remove('active');
-                step2Dot.classList.remove('active');
-                step3Dot.classList.remove('active');
-                line1.classList.add('active');
-                line2.classList.add('active');
-
-                // ── Referral tracking ──────────────────────────
-const urlParams = new URLSearchParams(window.location.search);
-const referrerEmail = decodeURIComponent(urlParams.get('ref') || '');
-if (referrerEmail) {
-    // 1. Save referral record
-    const referrals = JSON.parse(localStorage.getItem('reh_referrals') || '[]');
-    referrals.push({
-        referrer: referrerEmail,
-        referred: userData.email,
-        referredName: userData.name,
-        timestamp: Date.now(),
-        status: 'joined'
-    });
-    localStorage.setItem('reh_referrals', JSON.stringify(referrals));
-
-    // 2. Reward the referrer with a Diamond Rose
-    const gifts = JSON.parse(localStorage.getItem('reh_gifts') || '[]');
-    gifts.push({
-        from: 'Reh Team',
-        fromName: 'Reh Concierge',
-        to: referrerEmail,
-        giftType: 'diamond_rose',
-        timestamp: Date.now(),
-        message: `${userData.name} joined using your referral link!`
-    });
-    localStorage.setItem('reh_gifts', JSON.stringify(gifts));
-
-    // 3. Notify the referrer
-    const notifications = JSON.parse(localStorage.getItem('ss_global_notifications') || '[]');
-    notifications.push({
-        id: Date.now().toString(36) + Math.random().toString(36).substr(2,5),
-        title: '🎉 New Referral!',
-        body: `${userData.name} signed up using your link. A Diamond Rose has been added to your vault.`,
-        timestamp: Date.now(),
-        targetEmail: referrerEmail
-    });
-    localStorage.setItem('ss_global_notifications', JSON.stringify(notifications));
-}
-                
-
-                // Redirect after a brief pause
-                setTimeout(() => {
-                    window.location.href = 'index.html?redirect=the-iron-convenant.html'; // or discover.html
-                }, 2000);
-            });
-
-            // // Inside join.html or signin.html, after form submission
-            // const userData = {
-            // name: firstName + ' ' + lastName,
-            // avatar: 'https://randomuser.me/api/portraits/women/44.jpg', // or a real URL
-            // email: email,
-            // location: 'Milan, Italy'
-            // };
-            // loginUser(userData);
-            // // Then redirect to the main page or profile
-            // window.location.href = 'index.html?redirect=the-iron-convenant.html';
-
-            // // Initialize step 1
-            // updateStepUI(1);
-
-            function loginUser(userData) {
-    localStorage.setItem('reh_user', JSON.stringify(userData));
-    // Optionally call updateNavFromAuth() if general.js is loaded
-    if (typeof updateNavFromAuth === 'function') {
-        updateNavFromAuth();
+      showLastActive: true   // default visible
     }
-}
-        })();
-    </script>
+
+    // Kick off after Firebase is ready
+    waitForFirebase(startApp);
+  })();
+</script>
 </body>
 </html>

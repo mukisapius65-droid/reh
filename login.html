@@ -14,6 +14,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="assets/main.css">
 
+    <script type="module" src="assets/firebase.js"></script>
+
     <style>
         :root {
             --deep-navy: #080c24;
@@ -349,6 +351,22 @@
         .btn-signin:active {
             transform: scale(0.98);
         }
+        .btn-back {
+            background: transparent;
+            border: 1px solid var(--glass-border);
+            color: var(--text-secondary);
+            padding: 10px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: 0.3s;
+            margin-left: 1rem;
+        }
+        .btn-back:hover {
+            border-color: var(--gold-light);
+            color: var(--champagne);
+        }
 
         .extra-links {
             margin-top: 1.5rem;
@@ -421,11 +439,10 @@
     <div class="toast" id="toast"><i class="fa-solid fa-heart"></i> <span id="toastMessage"></span></div>
 
     <div class="signin-card">
-                  <!-- Navigation -->
+        <!-- Navigation -->
         <nav class="nav invisible"></nav>
-
-          <!-- Sidebar -->
-    <aside class="sidebar invisible" id="sidebar"></aside>
+        <!-- Sidebar -->
+        <aside class="sidebar invisible" id="sidebar"></aside>
         <div class="brand-icon">
             <i class="fa-solid fa-gem"></i>
         </div>
@@ -460,108 +477,166 @@
         </div>
         <footer class="footer invisible"></footer>
     </div>
+
     <script src="assets/general.js"></script>
-    <script src="assets/auth.js"></script>
+    <script type="module" src="assets/auth.js"></script>
 
     <script>
-       (function() {
-    // ── Floating Hearts ───────────────────────
-    const heartsContainer = document.getElementById('heartsContainer');
-    const heartIcons = ['❤️', '💕', '💖', '💗', '💘', '✨', '🌸'];
-    const goldHearts = ['💛', '⭐', '🌟'];
+        (function() {
+            // ── Firebase readiness helper ──────────
+            function waitForFirebase(callback) {
+                if (window.db) {
+                    callback();
+                } else {
+                    let attempts = 0;
+                    const check = setInterval(() => {
+                        if (window.db) {
+                            clearInterval(check);
+                            callback();
+                        }
+                        attempts++;
+                        if (attempts > 50) {
+                            clearInterval(check);
+                            console.error('Firebase failed to load');
+                        }
+                    }, 100);
+                }
+            }
 
-    function createHeart() {
-        const heart = document.createElement('span');
-        heart.className = 'floating-heart';
-        const allIcons = Math.random() > 0.7 ? goldHearts : heartIcons;
-        heart.textContent = allIcons[Math.floor(Math.random() * allIcons.length)];
-        heart.style.left = Math.random() * 100 + '%';
-        heart.style.animationDuration = (Math.random() * 8 + 6) + 's';
-        heart.style.animationDelay = Math.random() * 5 + 's';
-        heart.style.fontSize = (Math.random() * 1.5 + 1) + 'rem';
-        heartsContainer.appendChild(heart);
-        setTimeout(() => heart.remove(), 12000);
-    }
-    setInterval(createHeart, 400);
-    for (let i = 0; i < 12; i++) {
-        setTimeout(createHeart, i * 200);
-    }
+            function startApp() {
+                // ── Floating Hearts ───────────────────────
+                const heartsContainer = document.getElementById('heartsContainer');
+                const heartIcons = ['❤️', '💕', '💖', '💗', '💘', '✨', '🌸'];
+                const goldHearts = ['💛', '⭐', '🌟'];
 
-    // ── Toast ────────────────────────────────
-    const toast = document.getElementById('toast');
-    const toastMessage = document.getElementById('toastMessage');
-    let toastTimer;
-    function showToast(message) {
-        if (toastTimer) clearTimeout(toastTimer);
-        toastMessage.textContent = message;
-        toast.classList.add('show');
-        toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
-    }
+                function createHeart() {
+                    const heart = document.createElement('span');
+                    heart.className = 'floating-heart';
+                    const allIcons = Math.random() > 0.7 ? goldHearts : heartIcons;
+                    heart.textContent = allIcons[Math.floor(Math.random() * allIcons.length)];
+                    heart.style.left = Math.random() * 100 + '%';
+                    heart.style.animationDuration = (Math.random() * 8 + 6) + 's';
+                    heart.style.animationDelay = Math.random() * 5 + 's';
+                    heart.style.fontSize = (Math.random() * 1.5 + 1) + 'rem';
+                    heartsContainer.appendChild(heart);
+                    setTimeout(() => heart.remove(), 12000);
+                }
+                setInterval(createHeart, 400);
+                for (let i = 0; i < 12; i++) {
+                    setTimeout(createHeart, i * 200);
+                }
 
-    // ── Member count animation ──────────────
-    const memberSpan = document.getElementById('memberCount');
-    let current = 2468573;
-    function incrementMemberCount() {
-        const newMembers = Math.floor(Math.random() * 3) + 1;
-        current += newMembers;
-        memberSpan.textContent = current.toLocaleString();
-    }
-    setInterval(incrementMemberCount, 8000);
+                // ── Toast ────────────────────────────────
+                const toast = document.getElementById('toast');
+                const toastMessage = document.getElementById('toastMessage');
+                let toastTimer;
+                function showToast(message) {
+                    if (toastTimer) clearTimeout(toastTimer);
+                    toastMessage.textContent = message;
+                    toast.classList.add('show');
+                    toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+                }
 
-    // ── LOGIN: Read from reh_users master list ──
-    document.getElementById('signinForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const email = document.getElementById('email').value.trim();
-        const password = document.getElementById('password').value;
+                // ── Member count animation ──────────────
+                const memberSpan = document.getElementById('memberCount');
+                let current = 2468573;
+                function incrementMemberCount() {
+                    const newMembers = Math.floor(Math.random() * 3) + 1;
+                    current += newMembers;
+                    memberSpan.textContent = current.toLocaleString();
+                }
+                setInterval(incrementMemberCount, 8000);
 
-        if (!email || !password) {
-            showToast('🌸 Please enter your email and password.');
-            return;
-        }
+                // ── Login handler (Firestore) ────────────
+                document.getElementById('signinForm').addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    const email = document.getElementById('email').value.trim();
+                    const password = document.getElementById('password').value;
 
-        // 1. Get the master user list
-        const allUsers = JSON.parse(localStorage.getItem('reh_users') || '[]');
+                    if (!email || !password) {
+                        showToast('🌸 Please enter your email and password.');
+                        return;
+                    }
 
-        // 2. Find the user
-        const user = allUsers.find(u => u.email === email);
-        if (!user) {
-            showToast('💔 No account found with that email.');
-            return;
-        }
-        
+                    const btn = document.querySelector('.btn-signin');
+                    const originalHTML = btn.innerHTML;
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Signing in…';
 
-        // 3. Check password (demo only – never store plain text in production)
-        if (user.password !== password) {
-            showToast('❌ Incorrect password.');
-            return;
-        }
+                    // Add Cancel button
+                    const cancelBtn = document.createElement('button');
+                    cancelBtn.type = 'button';
+                    cancelBtn.className = 'btn-back';
+                    cancelBtn.innerHTML = '<i class="fa-solid fa-xmark"></i> Cancel';
+                    btn.parentNode.appendChild(cancelBtn);
 
-        // 4. Save session
-        localStorage.setItem('reh_user', JSON.stringify(user));
+                    let cancelled = false;
+                    cancelBtn.addEventListener('click', () => {
+                        cancelled = true;
+                        btn.disabled = false;
+                        btn.innerHTML = originalHTML;
+                        cancelBtn.remove();
+                        showToast('Sign‑in cancelled.');
+                    });
 
-        // 5. Start presence heartbeat (if auth.js has the function)
-        if (typeof startPresence === 'function') {
-            startPresence();
-        }
+                    try {
+                        // Fetch user from Firestore
+                        const docRef = window.doc(window.db, "users", email);
+                        const docSnap = await window.getDoc(docRef);
 
-        // 6. Visual feedback & redirect
-        showToast(`✨ Welcome back, ${user.firstName || 'Beautiful'}!`);
-        const card = document.querySelector('.signin-card');
-        card.style.boxShadow = '0 0 80px rgba(255,107,138,0.7)';
-        setTimeout(() => {
-            card.style.boxShadow = '0 25px 60px rgba(0, 0, 0, 0.45), 0 0 40px rgba(200, 155, 60, 0.15)';
-        }, 1500);
+                        if (!docSnap.exists()) {
+                            showToast('💔 No account found with that email.');
+                            throw new Error('User not found');
+                        }
 
-        // 7. Redirect to dashboard
-        setTimeout(() => {
-            window.location.href = 'index.html?redirect=dashboard.html';
-        }, 1500);
-    });
+                        const user = docSnap.data();
 
-    console.log('%c💖 Welcome back to Reh %c— Your story continues.',
-        'color:#ff6b8a; font-size:1.2em;', 'color:#c5bfb3;');
-})();
-        
+                        // Password check (demo only – never store plain text in production)
+                        if (user.password !== password) {
+                            showToast('❌ Incorrect password.');
+                            throw new Error('Wrong password');
+                        }
+
+                        if (cancelled) return;  // stop if cancel was clicked
+
+                        // Save session
+                        localStorage.setItem('reh_user', JSON.stringify(user));
+
+                        // Start presence heartbeat (if auth.js provides it)
+                        if (typeof startPresence === 'function') {
+                            startPresence();
+                        }
+
+                        // Visual feedback & redirect
+                        showToast(`✨ Welcome back, ${user.firstName || 'Beautiful'}!`);
+                        const card = document.querySelector('.signin-card');
+                        card.style.boxShadow = '0 0 80px rgba(255,107,138,0.7)';
+                        setTimeout(() => {
+                            card.style.boxShadow = '0 25px 60px rgba(0, 0, 0, 0.45), 0 0 40px rgba(200, 155, 60, 0.15)';
+                        }, 1500);
+
+                        setTimeout(() => {
+                            window.location.href = 'index.html?redirect=dashboard.html';
+                        }, 1500);
+
+                    } catch (error) {
+                        // Errors are handled via toasts above; no further action needed
+                    } finally {
+                        if (!cancelled) {
+                            btn.disabled = false;
+                            btn.innerHTML = originalHTML;
+                        }
+                        if (cancelBtn.parentNode) cancelBtn.remove();
+                    }
+                });
+
+                console.log('%c💖 Welcome back to Reh %c— Your story continues.',
+                    'color:#ff6b8a; font-size:1.2em;', 'color:#c5bfb3;');
+            }
+
+            // Wait for Firebase, then run the app
+            waitForFirebase(startApp);
+        })();
     </script>
 </body>
 </html>

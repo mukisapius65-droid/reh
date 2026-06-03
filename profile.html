@@ -13,6 +13,9 @@
     <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="assets/main.css">
+
+    <script type="module" src="assets/firebase.js"></script>
+    
     <style>
         :root {
             --deep-navy: #080c24;
@@ -973,11 +976,13 @@
                     <a href="plans.html" style="font-size:0.75rem; color:var(--gold-light); text-decoration:underline;">
                         <i class="fa-solid fa-pen-to-square"></i> Change Plan
                     </a>
-                    <div class="slidebar-stats">
+                    <div id="slidebarStats1" class="slidebar-stats">
                         <div><i class="fa-solid fa-heart"></i></div>
                         <div>
                             <i class="fa-solid fa-vault"></i>
                         </div>
+                    </div>
+                    <div id="slidebarStats2" class="slidebar-stats">
                         <div><i class="fa-solid fa-calendar"></i> Joined June 2026</div>
                     </div>
                 </div>
@@ -1047,6 +1052,13 @@
                         </label>
                     </div>
                     <div class="toggle-group">
+                            <span class="toggle-label"><i class="fa-solid fa-clock"></i> Show My Last Active</span>
+                            <label class="switch">
+                                <input type="checkbox" id="showLastActiveToggle" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="toggle-group">
                         <span class="toggle-label"><i class="fa-solid fa-location-crosshairs"></i> Show Distance</span>
                         <label class="switch">
                             <input type="checkbox" id="distanceToggle">
@@ -1089,344 +1101,364 @@
     
     <script src="assets/general.js"></script>
     <script src="assets/auth.js"></script>
-    <script>
-       (function() {
-    // ── Storage keys ────────────────────────────
-    const SESSION_KEY = 'reh_user';
-    const USERS_KEY = 'reh_users';
-    const ADMIRATIONS_KEY = 'reh_admirations';
-    const GIFTS_KEY = 'reh_gifts';
-    const USER_KEY = "reh_user";
-    const VIEWS_KEY = 'reh_profile_views';
-    let sidebarGiftCount;
-
-    // ── Floating Particles ──────────────────────
-    const particlesContainer = document.getElementById('particlesContainer');
-    const colors = [
-        'rgba(200,160,60,0.5)', 'rgba(220,180,70,0.4)',
-        'rgba(180,35,50,0.4)', 'rgba(30,55,150,0.4)', 'rgba(255,255,255,0.3)'
-    ];
-    for (let i = 0; i < 30; i++) {
-        const p = document.createElement('div');
-        p.className = 'particle' + (Math.random() > 0.65 ? ' diamond' : '');
-        const size = Math.random() * 6 + 2;
-        p.style.width = size + 'px';
-        p.style.height = size + 'px';
-        p.style.left = Math.random() * 100 + '%';
-        p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-        p.style.animationDuration = (Math.random() * 18 + 10) + 's';
-        p.style.animationDelay = (Math.random() * 15) + 's';
-        if (p.classList.contains('diamond')) {
-            p.style.backgroundColor = 'transparent';
-            p.style.border = '1px solid ' + colors[Math.floor(Math.random() * colors.length)];
+   <script>
+(function() {
+    // ── Firebase readiness helper ──────────────
+    function waitForFirebase(callback) {
+        if (window.db) { callback(); }
+        else {
+            let attempts = 0;
+            const check = setInterval(() => {
+                if (window.db) { clearInterval(check); callback(); }
+                attempts++;
+                if (attempts > 50) { clearInterval(check); console.error('Firebase failed to load'); }
+            }, 100);
         }
-        particlesContainer.appendChild(p);
     }
 
-    // ── Toast ───────────────────────────────────
-    const toast = document.getElementById('toast');
-    const toastMessage = document.getElementById('toastMessage');
-    let toastTimer;
-    function showToast(msg) {
-        if (toastTimer) clearTimeout(toastTimer);
-        toastMessage.textContent = msg;
-        toast.classList.add('show');
-        toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
-    }
+    function startApp() {
+        // ── Storage keys (some still localStorage for non‑profile data) ──
+        const SESSION_KEY = 'reh_user';
+        const ADMIRATIONS_KEY = 'reh_admirations';
+        const GIFTS_KEY = 'reh_gifts';
+        const VIEWS_KEY = 'reh_profile_views';
 
-    // // ── Navigation UI (avatar / join button) ────
-    // function updateNavUI() {
-    //     const user = JSON.parse(localStorage.getItem(SESSION_KEY) || '{}');
-    //     const joinCta = document.getElementById('joinCta');
-    //     const sidebarJoinCta = document.getElementById('sidebarJoinCta');
-    //     const profileArea = document.getElementById('profileArea');
-    //     const sidebarProfileLink = document.getElementById('sidebarProfileLink');
-    //     const navAvatarImg = document.getElementById('navAvatarImg');
-    //     if (!joinCta || !profileArea) return;
-    //     if (user && user.email) {
-    //         joinCta.style.display = 'none';
-    //         if (sidebarJoinCta) sidebarJoinCta.classList.add('invisible');
-    //         profileArea.style.display = 'flex';
-    //         if (sidebarProfileLink) sidebarProfileLink.style.display = "";
-    //         if (navAvatarImg && user.avatar) {
-    //             navAvatarImg.src = user.avatar;
-    //         }
-    //     } else {
-    //         joinCta.style.display = '';
-    //         profileArea.style.display = 'none';
-    //     }
-    // }
-    // updateNavUI();
+        // ── Floating Particles ──────────────────────
+        const particlesContainer = document.getElementById('particlesContainer');
+        const colors = [
+            'rgba(200,160,60,0.5)', 'rgba(220,180,70,0.4)',
+            'rgba(180,35,50,0.4)', 'rgba(30,55,150,0.4)', 'rgba(255,255,255,0.3)'
+        ];
+        for (let i = 0; i < 30; i++) {
+            const p = document.createElement('div');
+            p.className = 'particle' + (Math.random() > 0.65 ? ' diamond' : '');
+            const size = Math.random() * 6 + 2;
+            p.style.width = size + 'px';
+            p.style.height = size + 'px';
+            p.style.left = Math.random() * 100 + '%';
+            p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            p.style.animationDuration = (Math.random() * 18 + 10) + 's';
+            p.style.animationDelay = (Math.random() * 15) + 's';
+            if (p.classList.contains('diamond')) {
+                p.style.backgroundColor = 'transparent';
+                p.style.border = '1px solid ' + colors[Math.floor(Math.random() * colors.length)];
+            }
+            particlesContainer.appendChild(p);
+        }
 
+        // ── Toast ───────────────────────────────────
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toastMessage');
+        let toastTimer;
+        function showToast(msg) {
+            if (toastTimer) clearTimeout(toastTimer);
+            toastMessage.textContent = msg;
+            toast.classList.add('show');
+            toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+        }
 
-    function loadProfileViews() {
-        const user = JSON.parse(localStorage.getItem('reh_user') || '{}');
-        if (!user.email) return;
-        const allViews = JSON.parse(localStorage.getItem(VIEWS_KEY) || '[]');
-        const myViews = allViews.filter(v => v.viewed === user.email);
-        const container = document.getElementById('viewsContent');
-        if (!container) return;
+        // ── Load user from session (still local, but it's just the cache) ──
+        const user = JSON.parse(localStorage.getItem(SESSION_KEY) || '{}');
+        if (!user.email) {
+            window.location.href = 'index.html?redirect=login.html';
+        }
 
-        // Get unique viewers, keep latest timestamp
-        const uniqueViewers = {};
-        myViews.forEach(v => {
-            if (!uniqueViewers[v.viewer] || uniqueViewers[v.viewer].timestamp < v.timestamp) {
-                uniqueViewers[v.viewer] = v;
+        // Grab DOM elements once
+        const firstNameInput = document.getElementById('firstName');
+        const lastNameInput = document.getElementById('lastName');
+        const locationInput = document.getElementById('location');
+        const displayName = document.getElementById('displayName');
+        const displayLocation = document.getElementById('displayLocation');
+        const profileAvatarImg = document.getElementById('profileAvatarImg');
+        const navAvatarImg = document.getElementById('navAvatarImg');
+        const planBadgeText = document.getElementById('planBadgeText');
+        const planBadge = document.getElementById('planBadge');
+        const sidebarStats1 = document.getElementById('slidebarStats1');
+        const sidebarStats2 = document.getElementById('slidebarStats2');
+
+        // ── Fetch the actual profile from Firestore ──
+        async function loadProfile() {
+            try {
+                const docRef = window.doc(window.db, "users", user.email);
+                const docSnap = await window.getDoc(docRef);
+                if (!docSnap.exists()) {
+                    showToast('Profile not found. Please log in again.');
+                    setTimeout(() => window.location.href = 'index.html?redirect=login.html', 2000);
+                    return;
+                }
+                const profile = docSnap.data();
+
+                // Pre‑fill form fields
+                firstNameInput.value = profile.firstName || '';
+                lastNameInput.value = profile.lastName || '';
+                document.getElementById('age').value = profile.age || '';
+                locationInput.value = profile.location || '';
+                document.getElementById('phone').value = profile.phone || '';
+                document.getElementById('bio').value = profile.bio || '';
+                document.getElementById('interests').value = profile.interests || '';
+                document.getElementById('profileProfession').value = profile.profession || '';
+                document.getElementById('profileIncome').value = profile.income || '';
+                document.getElementById('profileNetWorth').value = profile.netWorth || '';
+
+                // Avatar (use the Firestore one, fallback to default)
+                const avatarUrl = profile.avatar || 'https://randomuser.me/api/portraits/women/44.jpg';
+                profileAvatarImg.src = avatarUrl;
+                if (navAvatarImg) navAvatarImg.src = avatarUrl;
+
+                // Toggles
+                document.getElementById('visibilityToggle').checked = profile.visibility !== false;
+                document.getElementById('notificationsToggle').checked = profile.notifications !== false;
+                document.getElementById('eliteToggle').checked = profile.elite !== false;
+                document.getElementById('distanceToggle').checked = profile.distance === true;
+                document.getElementById('notifSoundToggle').checked = profile.notifSound !== false;
+                document.getElementById('notifPopupToggle').checked = profile.notifPopup !== false;
+                document.getElementById('showLastActiveToggle').checked = profile.showLastActive !== false;
+
+                // Update sidebar immediately
+                updateSidebarDisplay();
+                updatePlanBadge(profile.plan || 'premium-monthly');
+
+                // Admirer count & vault (still localStorage)
+                loadAdmirerCountAndVault();
+
+                // Also update the session with the fresh Firestore data
+                const sessionData = { ...profile };
+                localStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
+
+                // Load views (localStorage)
+                loadProfileViews();
+
+            } catch (error) {
+                console.error('Error loading profile:', error);
+                showToast('Failed to load profile. Please refresh.');
+            }
+        }
+
+        // ── Plan badge update ─────────────────────
+        function updatePlanBadge(plan) {
+            if (!planBadgeText || !planBadge) return;
+            const plans = {
+                'trial': { text: 'Trial Member', icon: 'fa-solid fa-clock', color: '#8a857a' },
+                'premium-monthly': { text: 'Premium Member', icon: 'fa-solid fa-crown', color: '#c9a84c' },
+                'elite-annual': { text: 'Elite Member', icon: 'fa-solid fa-gem', color: '#dfc278' }
+            };
+            const current = plans[plan] || plans['premium-monthly'];
+            planBadge.innerHTML = `<i class="${current.icon}"></i> <span>${current.text}</span>`;
+            planBadge.style.background = `linear-gradient(135deg, ${current.color}22, ${current.color}44)`;
+            planBadge.style.border = `1px solid ${current.color}`;
+            planBadge.style.color = current.color;
+        }
+
+        // ── Live sidebar text ──────────────────────
+        function updateSidebarDisplay() {
+            const first = firstNameInput.value.trim();
+            const last = lastNameInput.value.trim();
+            displayName.textContent = (first + ' ' + last).trim() || 'Your Name';
+            displayLocation.textContent = locationInput.value.trim() || 'Your Location';
+        }
+        firstNameInput.addEventListener('input', updateSidebarDisplay);
+        lastNameInput.addEventListener('input', updateSidebarDisplay);
+        locationInput.addEventListener('input', updateSidebarDisplay);
+
+        // ── Admirer count & vault (localStorage) ──
+        function loadAdmirerCountAndVault() {
+            const admirations = JSON.parse(localStorage.getItem(ADMIRATIONS_KEY) || '[]');
+            const admirerCount = admirations.filter(a => a.to === user.email).length;
+
+            const gifts = JSON.parse(localStorage.getItem(GIFTS_KEY) || '[]');
+            const myGifts = gifts.filter(g => g.to === user.email);
+            const giftCount = myGifts.length;
+
+            if (sidebarStats1) {
+                sidebarStats1.innerHTML = `
+                    <div><i class="fa-solid fa-heart"></i> ${admirerCount}</div>
+                    <div>
+                        <button class="vault-btn" title="Vault"><i class="fa-solid fa-vault"></i> ${giftCount}</button>
+                    </div>
+                    <div id="viewsContent">
+                        <p style="color:var(--text2);"><i class="fa-solid fa-eye"></i> Loading views…</p>
+                    </div>
+                    <a class="btm" href="#vaultCard"></a>
+                `;
+                document.querySelector('.vault-btn').addEventListener('click', () => {
+                    const vaultCard = document.getElementById('vaultCard');
+                    if (vaultCard) vaultCard.classList.toggle('invisible');
+                    document.querySelector('.btm').click();
+                });
+            }
+
+            if (sidebarStats2) {
+                sidebarStats2.innerHTML = `
+                    <div><i class="fa-solid fa-calendar"></i> Joined ${user.joined || 'recently'}</div>
+                `;
+            }
+
+            loadVault();
+            loadProfileViews();
+        }
+
+        // ── Profile views (localStorage) ──────────
+        function loadProfileViews() {
+            const allViews = JSON.parse(localStorage.getItem(VIEWS_KEY) || '[]');
+            const myViews = allViews.filter(v => v.viewed === user.email);
+            const container = document.getElementById('viewsContent');
+            if (!container) return;
+
+            const uniqueViewers = {};
+            myViews.forEach(v => {
+                if (!uniqueViewers[v.viewer] || uniqueViewers[v.viewer].timestamp < v.timestamp) {
+                    uniqueViewers[v.viewer] = v;
+                }
+            });
+            const recentViewers = Object.values(uniqueViewers).sort((a,b) => b.timestamp - a.timestamp).slice(0, 10);
+
+            container.innerHTML = `
+                <p style="color:var(--text2); margin-bottom:1rem;">Total views: <strong style="color:var(--gold-light);">${myViews.length}</strong> | Unique viewers: <strong style="color:var(--gold-light);">${Object.keys(uniqueViewers).length}</strong></p>
+                ${recentViewers.length === 0 ? '<p style="color:var(--muted);">No one has viewed your profile yet.</p>' : 
+                recentViewers.map(v => `
+                    <div style="display:flex; align-items:center; gap:0.8rem; padding:0.5rem 0; border-bottom:1px solid var(--glass-border);">
+                        <i class="fa-solid fa-eye" style="color:var(--gold-light);"></i>
+                        <div style="flex:1;">
+                            <span style="color:var(--text);">${v.viewerName || v.viewer}</span>
+                            <span style="font-size:0.7rem; color:var(--muted); margin-left:0.5rem;">${new Date(v.timestamp).toLocaleString()}</span>
+                        </div>
+                    </div>
+                `).join('')}
+            `;
+        }
+
+        // ── Vault (localStorage) ──────────────────
+        function loadVault() {
+            const vaultEl = document.getElementById('vaultContent');
+            if (!vaultEl) return;
+            const gifts = JSON.parse(localStorage.getItem(GIFTS_KEY) || '[]');
+            const myGifts = gifts.filter(g => g.to === user.email);
+            if (myGifts.length === 0) {
+                vaultEl.innerHTML = '<p style="color:var(--muted);">No treasures yet.</p>';
+            } else {
+                vaultEl.innerHTML = myGifts.map(g => `
+                    <div style="display:flex; align-items:center; gap:1rem; padding:0.6rem 0; border-bottom:1px solid var(--glass-border);">
+                        <i class="fa-solid fa-gem" style="color:var(--gold-light);"></i>
+                        <div>
+                            <div style="color:var(--text);">${g.fromName || 'Someone'}</div>
+                            <div style="font-size:0.7rem; color:var(--muted);">${new Date(g.timestamp).toLocaleDateString()}</div>
+                        </div>
+                    </div>
+                `).join('') + `
+                    <p style="margin-top:0.5rem; color:var(--text2);">Total received: ${myGifts.length}</p>
+                `;
+            }
+        }
+
+        // ── Avatar upload (still local preview) ────
+        const avatarUpload = document.getElementById('avatarUpload');
+        const avatarFileInput = document.getElementById('avatarFileInput');
+        avatarUpload.addEventListener('click', (e) => {
+            if (e.target !== avatarFileInput) avatarFileInput.click();
+        });
+        avatarFileInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    profileAvatarImg.src = e.target.result;
+                    if (navAvatarImg) navAvatarImg.src = e.target.result;
+                    showToast('📸 Photo updated – save to keep it.');
+                };
+                reader.readAsDataURL(file);
             }
         });
-        const recentViewers = Object.values(uniqueViewers).sort((a,b) => b.timestamp - a.timestamp).slice(0, 10);
 
-        container.innerHTML = `
-            <p style="color:var(--text2); margin-bottom:1rem;">Total views: <strong style="color:var(--gold-light);">${myViews.length}</strong> | Unique viewers: <strong style="color:var(--gold-light);">${Object.keys(uniqueViewers).length}</strong></p>
-            ${recentViewers.length === 0 ? '<p style="color:var(--muted);">No one has viewed your profile yet.</p>' : 
-            recentViewers.map(v => `
-                <div style="display:flex; align-items:center; gap:0.8rem; padding:0.5rem 0; border-bottom:1px solid var(--glass-border);">
-                    <i class="fa-solid fa-eye" style="color:var(--gold-light);"></i>
-                    <div style="flex:1;">
-                        <span style="color:var(--text);">${v.viewerName || v.viewer}</span>
-                        <span style="font-size:0.7rem; color:var(--muted); margin-left:0.5rem;">${new Date(v.timestamp).toLocaleString()}</span>
-                    </div>
-                </div>
-            `).join('')}
-        `;
-    }
+        // ── Save Profile (Firestore) ──────────────
+        document.getElementById('saveProfileBtn').addEventListener('click', async function() {
+            const btn = this;
+            const originalHTML = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving…';
 
-    
-    // ── Dropdown toggle ────────────────────────
-    const navProfile = document.getElementById('profileArea');
-    const dropdownMenu = document.getElementById('dropdownMenu');
-    if (navProfile && dropdownMenu) {
-        navProfile.addEventListener('click', (e) => {
-            e.stopPropagation();
-            dropdownMenu.classList.toggle('show');
+            // Create Cancel button
+            const cancelBtn = document.createElement('button');
+            cancelBtn.type = 'button';
+            cancelBtn.className = 'btn-back';
+            cancelBtn.innerHTML = '<i class="fa-solid fa-xmark"></i> Cancel';
+            cancelBtn.style.marginLeft = '1rem';
+            btn.parentNode.appendChild(cancelBtn);
+            let cancelled = false;
+            cancelBtn.addEventListener('click', () => {
+                cancelled = true;
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
+                cancelBtn.remove();
+                showToast('Save cancelled.');
+            });
+
+            try {
+                const updatedData = {
+                    firstName: firstNameInput.value.trim(),
+                    lastName: lastNameInput.value.trim(),
+                    age: document.getElementById('age').value,
+                    location: locationInput.value.trim(),
+                    phone: document.getElementById('phone').value.trim(),
+                    bio: document.getElementById('bio').value.trim(),
+                    interests: document.getElementById('interests').value.trim(),
+                    profession: document.getElementById('profileProfession').value.trim(),
+                    income: document.getElementById('profileIncome').value.trim(),
+                    netWorth: document.getElementById('profileNetWorth').value.trim(),
+                    avatar: profileAvatarImg.src,
+                    plan: user.plan || 'premium-monthly', // plan is not changed via this form
+                    visibility: document.getElementById('visibilityToggle').checked,
+                    notifications: document.getElementById('notificationsToggle').checked,
+                    elite: document.getElementById('eliteToggle').checked,
+                    distance: document.getElementById('distanceToggle').checked,
+                    notifSound: document.getElementById('notifSoundToggle').checked,
+                    showLastActive: document.getElementById('showLastActiveToggle').checked,
+                    notifPopup: document.getElementById('notifPopupToggle').checked,
+                    // lastActive will be updated automatically on the server if you want, but we'll set it here too
+                    lastActive: new Date().toISOString()
+                };
+
+                if (cancelled) return;
+
+                // Update Firestore
+                await window.updateDoc(window.doc(window.db, "users", user.email), updatedData);
+
+                // Update local session (so the nav/profile area reflects changes immediately)
+                const session = JSON.parse(localStorage.getItem(SESSION_KEY));
+                const newSession = { ...session, ...updatedData };
+                localStorage.setItem(SESSION_KEY, JSON.stringify(newSession));
+
+                // Refresh sidebar badges
+                updateSidebarDisplay();
+                updatePlanBadge(newSession.plan);
+
+                showToast('✨ Your profile has been beautifully updated.');
+            } catch (error) {
+                console.error('Error saving profile:', error);
+                showToast('Failed to save. Please try again.');
+            } finally {
+                if (!cancelled) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHTML;
+                }
+                if (cancelBtn.parentNode) cancelBtn.remove();
+            }
         });
-        document.addEventListener('click', () => dropdownMenu.classList.remove('show'));
-    }
 
-    // ── Logout ─────────────────────────────────
-    document.getElementById('logoutBtn').addEventListener('click', () => {
-        const user = JSON.parse(localStorage.getItem(USER_KEY));
-    const currentUserArray = JSON.parse(localStorage.getItem('reh_users')).filter(u => u.email === session.email) || '[]';
-    const currentUser = currentUserArray[0];
-    currentUser.lastActive = Date.now();
-
-
-    // Update session
-    const newSession = { ...user, ...currentUser };
-    localStorage.setItem(SESSION_KEY, JSON.stringify(newSession));
-
-    // Update master list (reh_users)
-    const allUsers = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
-    const userIndex = allUsers.findIndex(u => u.email === user.email);
-    if (userIndex !== -1) {
-       allUsers[userIndex] = { ...allUsers[userIndex], ...currentUser };
-    } else {
-        allUsers.push({ ...currentUser, email: user.email, id: user.id || Date.now().toString(36) });
-    }
-    localStorage.setItem(USERS_KEY, JSON.stringify(allUsers));
-
-        localStorage.removeItem(SESSION_KEY);
-        updateNavUI();
-        showToast('🌸 You have been logged out.');
-        window.location.href = 'index.html?redirect=discover.html';
-    });
-
-    // ── Load user data into the form ───────────
-    const user = JSON.parse(localStorage.getItem(SESSION_KEY) || '{}');
-    if (!user.email) {
-        window.location.href = 'index.html?redirect=login.html';
-    }
-
-    // Pre‑fill all fields
-    const firstNameInput = document.getElementById('firstName');
-    const lastNameInput = document.getElementById('lastName');
-    const locationInput = document.getElementById('location');
-    const displayName = document.getElementById('displayName');
-    const displayLocation = document.getElementById('displayLocation');
-    const profileAvatarImg = document.getElementById('profileAvatarImg');
-    const navAvatarImg = document.getElementById('navAvatarImg');
-
-    // const nameParts = (user.name || '').split(' ');
-    firstNameInput.value = user.firstName || '';
-    lastNameInput.value = user.lastName || '';
-    document.getElementById('age').value = user.age || '';
-    locationInput.value = user.location || '';
-    document.getElementById('phone').value = user.phone || '';
-    document.getElementById('bio').value = user.bio || '';
-    document.getElementById('interests').value = user.interests || '';
-    document.getElementById('profileProfession').value = user.profession || '';
-    document.getElementById('profileIncome').value = user.income || '';
-    document.getElementById('profileNetWorth').value = user.netWorth || '';
-
-    // Avatars
-    profileAvatarImg.src = user.avatar || 'https://randomuser.me/api/portraits/women/44.jpg';
-    navAvatarImg.src = user.avatar || 'https://randomuser.me/api/portraits/women/44.jpg';
-
-    // Toggles
-    document.getElementById('visibilityToggle').checked = user.visibility !== false;
-    document.getElementById('notificationsToggle').checked = user.notifications !== false;
-    document.getElementById('eliteToggle').checked = user.elite !== false;
-    document.getElementById('distanceToggle').checked = user.distance === true;
-    document.getElementById('notifSoundToggle').checked = user.notifSound !== false;
-    document.getElementById('notifPopupToggle').checked = user.notifPopup !== false;
-
-    // ── Plan badge ──────────────────────────────
-    function updatePlanBadge(plan) {
-        const badgeText = document.getElementById('planBadgeText');
-        const badge = document.getElementById('planBadge');
-        if (!badgeText || !badge) return;
-        const plans = {
-            'trial': { text: 'Trial Member', icon: 'fa-solid fa-clock', color: '#8a857a' },
-            'premium-monthly': { text: 'Premium Member', icon: 'fa-solid fa-crown', color: '#c9a84c' },
-            'elite-annual': { text: 'Elite Member', icon: 'fa-solid fa-gem', color: '#dfc278' }
-        };
-        const current = plans[plan] || plans['premium-monthly'];
-        badge.innerHTML = `<i class="${current.icon}"></i> <span>${current.text}</span>`;
-        badge.style.background = `linear-gradient(135deg, ${current.color}22, ${current.color}44)`;
-        badge.style.border = `1px solid ${current.color}`;
-        badge.style.color = current.color;
-    }
-    updatePlanBadge(user.plan || 'premium-monthly');
-    loadVault();
-    loadProfileViews();
-
-    function loadVault() {
-    const user = JSON.parse(localStorage.getItem('reh_user') || '{}');
-    if (!user.email) return;
-
-    const allGifts = JSON.parse(localStorage.getItem(GIFTS_KEY) || '[]');
-    const myGifts = allGifts.filter(g => g.to === user.email);
-    const vaultEl = document.getElementById('vaultContent');
-    if (!vaultEl) return;
-
-    if (myGifts.length === 0) {
-        vaultEl.innerHTML = '<p style="color:var(--muted);">No treasures yet. When someone sends you a gift, it will appear here.</p>';
-    } else {
-        vaultEl.innerHTML = myGifts.map(g => `
-            <div style="display:flex; align-items:center; gap:1rem; padding:0.6rem 0; border-bottom:1px solid var(--glass-border);">
-                <i class="fa-solid fa-gem" style="color:var(--gold-light);"></i>
-                <div>
-                    <div style="color:var(--text);">${g.fromName || 'Someone'}</div>
-                    <div style="font-size:0.7rem; color:var(--muted);">${new Date(g.timestamp).toLocaleDateString()}</div>
-                </div>
-            </div>
-        `).join('') + `
-            <p style="margin-top:0.5rem; color:var(--text2);">Total received: ${myGifts.length} Diamond Rose${myGifts.length !== 1 ? 's' : ''}</p>
-        `;
-    }
-
-    // Referral placeholder (if you later add referral payouts)
-    const referrals = JSON.parse(localStorage.getItem('reh_referral_payouts') || '[]');
-    const myReferrals = referrals.filter(r => r.to === user.email);
-    if (myReferrals.length > 0) {
-        // display referral payouts here
-    } else {
-        // optional: show a placeholder
-        // vaultEl.innerHTML += '<p style="color:var(--muted); font-size:0.8rem; margin-top:1rem;">Referral payouts: None yet</p>';
-    }
-    sidebarGiftCount = myGifts;
-}
-
-    // ── Live slidebar update ────────────────────
-    function updateSidebarDisplay() {
-        const first = firstNameInput.value.trim();
-        const last = lastNameInput.value.trim();
-        displayName.textContent = (first + ' ' + last).trim() || 'Your Name';
-        displayLocation.textContent = locationInput.value.trim() || 'Your Location';
-    }
-    firstNameInput.addEventListener('input', updateSidebarDisplay);
-    lastNameInput.addEventListener('input', updateSidebarDisplay);
-    locationInput.addEventListener('input', updateSidebarDisplay);
-    updateSidebarDisplay();
-
-    // ── Real admirer count ──────────────────────
-    const admirations = JSON.parse(localStorage.getItem(ADMIRATIONS_KEY) || '[]');
-    const admirerCount = admirations.filter(a => a.to === user.email).length;
-    const sidebarStats = document.querySelector('.slidebar-stats');
-    if (sidebarStats) {
-        sidebarStats.innerHTML = `
-            <div><i class="fa-solid fa-heart"></i> ${admirerCount}</div>
-            <div>
-                <button class="vault-btn"><i class="fa-solid fa-vault"></i> ${sidebarGiftCount.length}</button>
-            </div>
-            <div><i class="fa-solid fa-calendar"></i> Joined ${user.joined || 'recently'}</div>
-            <a class="btm" href="#vaultCard"></a>
-        `;
-        document.querySelector('.vault-btn').addEventListener('click', () => {
-            document.querySelector('.settings-card').classList.toggle('invisible');
-            document.querySelector('.btm').click();
+        // ── Logout (clears session only, no Firestore change) ──
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.removeItem(SESSION_KEY);
+            showToast('🌸 You have been logged out.');
+            window.location.href = 'index.html?redirect=discover.html';
         });
+
+        // ── Kick off ───────────────────────────────
+        loadProfile();
     }
-    // ── Avatar upload ───────────────────────────
-    const avatarUpload = document.getElementById('avatarUpload');
-    const avatarFileInput = document.getElementById('avatarFileInput');
-    avatarUpload.addEventListener('click', (e) => {
-        if (e.target !== avatarFileInput) avatarFileInput.click();
-    });
-    avatarFileInput.addEventListener('change', function() {
-        const file = this.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                profileAvatarImg.src = e.target.result;
-                navAvatarImg.src = e.target.result;
-                showToast('📸 Photo updated – save to keep it.');
-            };
-            reader.readAsDataURL(file);
-        }
-    });
 
-    // ── Save Profile (single handler) ───────────
-    document.getElementById('saveProfileBtn').addEventListener('click', () => {
-        if (!user.email) {
-            showToast('You must be logged in.');
-            return;
-        }
-
-        const updatedData = {
-            firstName: firstNameInput.value.trim(),
-            lastName: lastNameInput.value.trim(),
-            name: `${firstNameInput.value.trim()} ${lastNameInput.value.trim()}`.trim(),
-            age: document.getElementById('age').value,
-            location: locationInput.value.trim(),
-            phone: document.getElementById('phone').value.trim(),
-            bio: document.getElementById('bio').value.trim(),
-            interests: document.getElementById('interests').value.trim(),
-            profession: document.getElementById('profileProfession').value.trim(),
-            income: document.getElementById('profileIncome').value.trim(),
-            netWorth: document.getElementById('profileNetWorth').value.trim(),
-            avatar: profileAvatarImg.src,
-            plan: user.plan || 'premium-monthly',
-            visibility: document.getElementById('visibilityToggle').checked,
-            notifications: document.getElementById('notificationsToggle').checked,
-            elite: document.getElementById('eliteToggle').checked,
-            distance: document.getElementById('distanceToggle').checked,
-            notifSound: document.getElementById('notifSoundToggle').checked,
-            notifPopup: document.getElementById('notifPopupToggle').checked,
-        };
-
-        // Update session
-        const newSession = { ...user, ...updatedData };
-        localStorage.setItem(SESSION_KEY, JSON.stringify(newSession));
-
-        // Update master list (reh_users)
-        const allUsers = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
-        const userIndex = allUsers.findIndex(u => u.email === user.email);
-        if (userIndex !== -1) {
-            allUsers[userIndex] = { ...allUsers[userIndex], ...updatedData };
-        } else {
-            allUsers.push({ ...updatedData, email: user.email, id: user.id || Date.now().toString(36) });
-        }
-        localStorage.setItem(USERS_KEY, JSON.stringify(allUsers));
-
-        // Update plan badge
-        updatePlanBadge(newSession.plan);
-
-        showToast('✨ Your profile has been beautifully updated.');
-        console.log(USERS_KEY)
-    });
+    // Wait for Firebase, then start the app
+    waitForFirebase(startApp);
 })();
-    </script>
+</script>
     <script src="assets/toadmin.js"></script>
 </body>
 </html>

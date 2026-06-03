@@ -14,45 +14,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="assets/main.css">
 
-        <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
-
-    const firebaseConfig = {
-        apiKey: "AIzaSyClJ9Mlln04N_7XFSvy1zGHaE6w5E2DQ8I",
-        authDomain: "rehp-c82b8.firebaseapp.com",
-        projectId: "rehp-c82b8",
-        storageBucket: "rehp-c82b8.firebasestorage.app",
-        messagingSenderId: "363083908702",
-        appId: "1:363083908702:web:33e7d66890c9ef79fb96cf",
-        measurementId: "G-KX9ZEBL3E1"
-    };
-
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    const storage = getStorage(app);
-
-    // Expose to global window
-    window.auth = auth;
-    window.db = db;
-    window.storage = storage;
-    window.onAuthStateChanged = onAuthStateChanged;
-    window.signInWithEmailAndPassword = signInWithEmailAndPassword;
-    window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
-    window.signOut = signOut;
-    window.getDoc = getDoc;
-    window.setDoc = setDoc;
-    window.updateDoc = updateDoc;
-    window.serverTimestamp = serverTimestamp;
-    window.doc = doc;
-    window.getDownloadURL = getDownloadURL;
-    window.uploadBytes = uploadBytes;
-    window.ref = ref;
-</script>
+        <script type="module" src="assets/firebase.js"></script>
 
     <style>
         :root {
@@ -767,7 +729,7 @@
     </div>
     
     <script src="assets/general.js"></script>
-    <script src="assets/auth.js"></script>
+    <script type="module" src="assets/auth.js"></script>
 
     <script>
         (function() {
