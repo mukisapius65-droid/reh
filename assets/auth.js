@@ -126,10 +126,10 @@ if (currentUser && currentUser.email) {
 // Also start when auth state changes (if your page uses updateNavFromAuth)
 // You can call startPresence() after a successful login or registration.
 
-function getCurrentUser() {
-    const stored = localStorage.getItem(AUTH_KEY);
-    return stored ? JSON.parse(stored) : null;
-}
+// function getCurrentUser() {
+//     const stored = localStorage.getItem(AUTH_KEY);
+//     return stored ? JSON.parse(stored) : null;
+// }
 
 function loginUser(userData) {
     localStorage.setItem(AUTH_KEY, JSON.stringify(userData));
@@ -184,7 +184,9 @@ function resetPresence() {
     localStorage.removeItem(USER_KEY);
 }
 
-document.getElementById('sidebarLogoutBtn').addEventListener("click", () => {
+const sidebarLogoutBtn = document.getElementById('sidebarLogoutBtn');
+if (sidebarLogoutBtn) {
+sidebarLogoutBtn.addEventListener("click", () => {
     resetPresence(); // Clear presence data for this user
 
     
@@ -193,8 +195,10 @@ document.getElementById('sidebarLogoutBtn').addEventListener("click", () => {
     document.getElementById('sidebarLogoutBtn').disabled = true;
     window.location.href = 'index.html?redirect=discover.html';
 });
+}
 
 const logoutBtn = document.getElementById("logoutBtn");
+if (logoutBtn) {
 logoutBtn.addEventListener("click", () => {
     resetPresence(); // Clear presence data for this user
 
@@ -202,3 +206,4 @@ logoutBtn.addEventListener("click", () => {
     updateNavFromAuth();
     showToast("🌸 You have been logged out.");
 });
+}

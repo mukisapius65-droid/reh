@@ -1,8 +1,7 @@
 const USER_KEY = "reh_user";
 
-const navContainer = document.querySelector('.nav');
-navContainer.innerHTML =
-`<div class="nav-inner">
+const navContainer = document.querySelector(".nav");
+navContainer.innerHTML = `<div class="nav-inner">
   <a href="index.html?redirect=discover.html" class="nav-brand">
     <div class="nav-brand-icon"><i class="fa-solid fa-gem"></i></div>
     <span class="nav-brand-text">Reh</span>
@@ -93,9 +92,8 @@ navContainer.innerHTML =
 </div>
 `;
 
-const mobileSidebarContainer = document.querySelector('.sidebar');
-mobileSidebarContainer.innerHTML =
-`<a href="index.html?redirect=discover.html" class="sidebar-brand">
+const mobileSidebarContainer = document.querySelector(".sidebar");
+mobileSidebarContainer.innerHTML = `<a href="index.html?redirect=discover.html" class="sidebar-brand">
     <div class="nav-brand-icon">
         <i class="fa-solid fa-gem"></i>
     </div>
@@ -126,58 +124,70 @@ mobileSidebarContainer.innerHTML =
     <button id="sidebarLogoutBtn"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</button>
 </div>`;
 
-  // ── Mobile nav toggle ────────────────────────
-  const sidebar = document.getElementById('sidebar');
-  const hamburger = document.querySelector(".nav-hamburger");
-  hamburger.addEventListener("click", () => {
-    sidebar.classList.toggle("invisible");
-  });
+// ── Mobile nav toggle ────────────────────────
+const sidebar = document.getElementById("sidebar");
+const hamburger = document.querySelector(".nav-hamburger");
+hamburger.addEventListener("click", () => {
+  sidebar.classList.toggle("invisible");
+});
 
-    function updateNavFromAuth() {
-    const user = JSON.parse(localStorage.getItem(USER_KEY));
-    const joinCta = document.getElementById("joinCta");
-    const sidebarJoinCta = document.getElementById("sidebarJoinCta");
-    const sidebarProfileLink = document.getElementById("sidebarProfileLink");
-    const profileArea = document.getElementById("profileArea");
-    const navAvatarImg = document.getElementById("navAvatarImg");
-    const notifiBells = document.querySelectorAll('.notification-bell');
+function updateNavFromAuth() {
+  const user = JSON.parse(localStorage.getItem(USER_KEY));
+  const joinCta = document.getElementById("joinCta");
+  const sidebarJoinCta = document.getElementById("sidebarJoinCta");
+  const sidebarProfileLink = document.getElementById("sidebarProfileLink");
+  const profileArea = document.getElementById("profileArea");
+  const navAvatarImg = document.getElementById("navAvatarImg");
+  const notifiBells = document.querySelectorAll(".notification-bell");
 
-    if (user) {
-      // Hide join buttons
-      if (joinCta) joinCta.style.display = "none";
-      if (sidebarJoinCta) sidebarJoinCta.style.display = "none";
-      // Show top‑nav avatar and sidebar profile link
-      if (profileArea) profileArea.style.display = "flex";
-      if (sidebarProfileLink) sidebarProfileLink.style.display = "";
-      if (navAvatarImg)
-        navAvatarImg.src =
-          user.avatar || "https://randomuser.me/api/portraits/women/44.jpg";
-    } else {
-      // Show join buttons
-      if (joinCta) joinCta.style.display = "";
-      if (sidebarJoinCta) sidebarJoinCta.style.display = "";
-      // Hide top‑nav avatar, sidebar profile link & notif bells
-      if (profileArea) profileArea.style.display = "none";
-      if (sidebarProfileLink) sidebarProfileLink.style.display = "none";
-      if (notifiBells) {
-        notifiBells.forEach(bell => {
-            bell.classList.add('invisible');
-        })
-      }
-    }
-    const upgradeLink = document.getElementById('upgradeLink');
-    if (user && user.plan === 'trial') {
-        if (upgradeLink) upgradeLink.style.display = 'flex';
-        if (upgradeLink) upgradeLink.style.color = 'var(--gold-light)';
-    } else {
-        if (upgradeLink) upgradeLink.style.display = 'none';
+  if (user) {
+    // Hide join buttons
+    if (joinCta) joinCta.style.display = "none";
+    if (sidebarJoinCta) sidebarJoinCta.style.display = "none";
+    // Show top‑nav avatar and sidebar profile link
+    if (profileArea) profileArea.style.display = "flex";
+    if (sidebarProfileLink) sidebarProfileLink.style.display = "";
+    if (navAvatarImg)
+      navAvatarImg.src =
+        user.avatar || "https://randomuser.me/api/portraits/women/44.jpg";
+  } else {
+    // Show join buttons
+    if (joinCta) joinCta.style.display = "";
+    if (sidebarJoinCta) sidebarJoinCta.style.display = "";
+    // Hide top‑nav avatar, sidebar profile link & notif bells
+    if (profileArea) profileArea.style.display = "none";
+    if (sidebarProfileLink) sidebarProfileLink.style.display = "none";
+    if (notifiBells) {
+      notifiBells.forEach((bell) => {
+        bell.classList.add("invisible");
+      });
     }
   }
-  updateNavFromAuth();
+  const upgradeLink = document.getElementById("upgradeLink");
+  if (user && user.plan === "trial") {
+    if (upgradeLink) upgradeLink.style.display = "flex";
+    if (upgradeLink) upgradeLink.style.color = "var(--gold-light)";
+  } else {
+    if (upgradeLink) upgradeLink.style.display = "none";
+  }
+}
+updateNavFromAuth();
+
+  // avater and logout logic
+  const navProfile = document.getElementById("profileArea");
+  const dropdownMenu = document.getElementById("dropdownMenu");
+  if (navProfile && dropdownMenu) {
+    navProfile.addEventListener("click", (e) => {
+      e.stopPropagation();
+      dropdownMenu.classList.toggle("show");
+    });
+    document.addEventListener("click", () => {
+      dropdownMenu.classList.remove("show");
+    });
+  }
 
 const footerContainer = document.querySelector("footer");
-footerContainer.innerHTML =
-`<div class="footer-grid">
+footerContainer.innerHTML = `<div class="footer-grid">
     <!-- About -->
     <div class="footer-col">
         <h4>About Reh</h4>
@@ -245,29 +255,31 @@ const modalHTML = `
   </div>
 </div>
 `;
-document.body.insertAdjacentHTML('beforeend', modalHTML);
+document.body.insertAdjacentHTML("beforeend", modalHTML);
 
 // ── Footer modal logic ──────────────────────
-const footerModal = document.getElementById('footerModal');
-const footerModalTitle = document.getElementById('footerModalTitle');
-const footerModalBody = document.getElementById('footerModalBody');
-const footerModalClose = document.getElementById('footerModalClose');
+const footerModal = document.getElementById("footerModal");
+const footerModalTitle = document.getElementById("footerModalTitle");
+const footerModalBody = document.getElementById("footerModalBody");
+const footerModalClose = document.getElementById("footerModalClose");
 
 function openFooterModal(title, bodyHTML) {
   footerModalTitle.textContent = title;
   footerModalBody.innerHTML = bodyHTML;
-  footerModal.classList.add('active');
+  footerModal.classList.add("active");
 }
 
-footerModalClose.addEventListener('click', () => footerModal.classList.remove('active'));
-footerModal.addEventListener('click', (e) => {
-  if (e.target === footerModal) footerModal.classList.remove('active');
+footerModalClose.addEventListener("click", () =>
+  footerModal.classList.remove("active"),
+);
+footerModal.addEventListener("click", (e) => {
+  if (e.target === footerModal) footerModal.classList.remove("active");
 });
 
 // Content for each link
 const modalContent = {
-  'help': {
-    title: 'Help Centre',
+  help: {
+    title: "Help Centre",
     body: `<p>Welcome to Reh Support. Here are some quick guides:</p>
            <ul>
              <li><strong>Getting Started:</strong> Complete your profile and browse Discover.</li>
@@ -275,10 +287,10 @@ const modalContent = {
              <li><strong>Events:</strong> Request invitations to exclusive gatherings.</li>
              <li><strong>Concierge:</strong> Chat with our team for personalised help.</li>
            </ul>
-           <p>For immediate assistance, contact <a href="mailto:support@reh.com" style="color:var(--gold);">support@reh.com</a>.</p>`
+           <p>For immediate assistance, contact <a href="mailto:support@reh.com" style="color:var(--gold);">support@reh.com</a>.</p>`,
   },
-  'safety': {
-    title: 'Safety Tips',
+  safety: {
+    title: "Safety Tips",
     body: `<p>Your safety is paramount. Follow these guidelines:</p>
            <ul>
              <li>Keep personal information private until trust is established.</li>
@@ -286,10 +298,10 @@ const modalContent = {
              <li>Report suspicious behaviour immediately.</li>
              <li>Use our block feature to stop unwanted contact.</li>
            </ul>
-           <p>Reh is committed to creating a secure environment for all members.</p>`
+           <p>Reh is committed to creating a secure environment for all members.</p>`,
   },
-  'community': {
-    title: 'Community Guidelines',
+  community: {
+    title: "Community Guidelines",
     body: `<p>Reh is built on respect and elegance:</p>
            <ul>
              <li>Treat others with kindness and courtesy.</li>
@@ -297,44 +309,51 @@ const modalContent = {
              <li>Profiles must be genuine and accurate.</li>
              <li>Violations may result in suspension or permanent ban.</li>
            </ul>
-           <p>Together we maintain a sanctuary for genuine connections.</p>`
+           <p>Together we maintain a sanctuary for genuine connections.</p>`,
   },
-  'contact': {
-    title: 'Contact Concierge',
+  contact: {
+    title: "Contact Concierge",
     body: `<p>Our concierge team is available 24/7 to assist you with anything from date planning to technical support.</p>
-           <p>Email: <a href="mailto:concierge@reh.com" style="color:var(--gold);">concierge@reh.com</a></p>`
+           <p>Email: <a href="mailto:concierge@reh.com" style="color:var(--gold);">concierge@reh.com</a></p>`,
   },
-  'report': {
-    title: 'Report a Profile',
+  report: {
+    title: "Report a Profile",
     body: `<p>If you encounter a profile that violates our guidelines, please let us know.</p>
            <input type="email" id="reportEmail" placeholder="Profile email to report" required>
            <textarea id="reportReason" rows="3" placeholder="Reason for report"></textarea>
-           <button id="submitReportBtn">Submit Report</button>`
-  }
+           <button id="submitReportBtn">Submit Report</button>`,
+  },
 };
 
 // Attach click handlers to footer links with data-page attributes
-document.addEventListener('click', (e) => {
-  const link = e.target.closest('[data-footer]');
+document.addEventListener("click", (e) => {
+  const link = e.target.closest("[data-footer]");
   if (!link) return;
   e.preventDefault();
-  const page = link.getAttribute('data-footer');
+  const page = link.getAttribute("data-footer");
 
-  if (page === 'report') {
-    openFooterModal('Report a Profile', modalContent.report.body);
+  if (page === "report") {
+    openFooterModal("Report a Profile", modalContent.report.body);
     // Bind the report submission after modal opens
     setTimeout(() => {
-      const submitBtn = document.getElementById('submitReportBtn');
+      const submitBtn = document.getElementById("submitReportBtn");
       if (submitBtn) {
-        submitBtn.addEventListener('click', () => {
-          const email = document.getElementById('reportEmail').value.trim();
-          const reason = document.getElementById('reportReason').value.trim();
-          if (!email) return showToast('Please enter the profile email.');
-          const reports = JSON.parse(localStorage.getItem('reh_reports') || '[]');
-          reports.push({ reported: email, reason, reporter: getCurrentUser()?.email, timestamp: Date.now() });
-          localStorage.setItem('reh_reports', JSON.stringify(reports));
-          showToast('Report submitted. Thank you for helping keep Reh safe.');
-          footerModal.classList.remove('active');
+        submitBtn.addEventListener("click", () => {
+          const email = document.getElementById("reportEmail").value.trim();
+          const reason = document.getElementById("reportReason").value.trim();
+          if (!email) return showToast("Please enter the profile email.");
+          const reports = JSON.parse(
+            localStorage.getItem("reh_reports") || "[]",
+          );
+          reports.push({
+            reported: email,
+            reason,
+            reporter: getCurrentUser()?.email,
+            timestamp: Date.now(),
+          });
+          localStorage.setItem("reh_reports", JSON.stringify(reports));
+          showToast("Report submitted. Thank you for helping keep Reh safe.");
+          footerModal.classList.remove("active");
         });
       }
     }, 100);
@@ -345,26 +364,26 @@ document.addEventListener('click', (e) => {
 
 // ── Automatically set active class based on current page ──
 (function setActiveNavLink() {
-  const path = window.location.pathname.split('/').pop();  // e.g., 'discover.html'
-  let activePage = 'discover';   // default
+  const path = window.location.pathname.split("/").pop(); // e.g., 'discover.html'
+  let activePage = "discover"; // default
 
-  if (path === 'elite.html')         activePage = 'elite';
-  else if (path === 'events.html')   activePage = 'events';
-  else if (path === 'concierge.html') activePage = 'concierge';
-  else if (path === 'index.html')    activePage = 'discover';  // fallback
+  if (path === "elite.html") activePage = "elite";
+  else if (path === "events.html") activePage = "events";
+  else if (path === "concierge.html") activePage = "concierge";
+  else if (path === "index.html") activePage = "discover"; // fallback
   // add other pages as needed
 
-  document.querySelectorAll('[data-page]').forEach(link => {
-    link.classList.toggle('active', link.dataset.page === activePage);
+  document.querySelectorAll("[data-page]").forEach((link) => {
+    link.classList.toggle("active", link.dataset.page === activePage);
   });
 })();
 
 // Plan eligibility checker
 function isEligible(minimumPlan) {
-    const user = JSON.parse(localStorage.getItem('reh_user') || '{}');
-    const plan = user.plan || 'trial';
-    const planLevels = { 'trial': 0, 'premium-monthly': 1, 'elite-annual': 2 };
-    const requiredLevel = planLevels[minimumPlan] || 0;
-    const currentLevel = planLevels[plan] || 0;
-    return currentLevel >= requiredLevel;
+  const user = JSON.parse(localStorage.getItem("reh_user") || "{}");
+  const plan = user.plan || "trial";
+  const planLevels = { trial: 0, "premium-monthly": 1, "elite-annual": 2 };
+  const requiredLevel = planLevels[minimumPlan] || 0;
+  const currentLevel = planLevels[plan] || 0;
+  return currentLevel >= requiredLevel;
 }
