@@ -173,18 +173,22 @@ function updateNavFromAuth() {
 }
 updateNavFromAuth();
 
-  // avater and logout logic
-  const navProfile = document.getElementById("profileArea");
-  const dropdownMenu = document.getElementById("dropdownMenu");
-  if (navProfile && dropdownMenu) {
-    navProfile.addEventListener("click", (e) => {
-      e.stopPropagation();
-      dropdownMenu.classList.toggle("show");
-    });
-    document.addEventListener("click", () => {
-      dropdownMenu.classList.remove("show");
-    });
-  }
+// avater and logout logic
+const navProfile = document.getElementById("profileArea");
+const dropdownMenu = document.getElementById("dropdownMenu");
+if (navProfile && dropdownMenu) {
+  navProfile.addEventListener("click", (e) => {
+    e.stopPropagation();
+    dropdownMenu.classList.toggle("show");
+  });
+  document.addEventListener("click", () => {
+    dropdownMenu.classList.remove("show");
+  });
+}
+
+document.getElementById('logoutBtn')?.addEventListener('click', () => {
+  window.logoutUser();
+});
 
 const footerContainer = document.querySelector("footer");
 footerContainer.innerHTML = `<div class="footer-grid">
@@ -387,3 +391,212 @@ function isEligible(minimumPlan) {
   const currentLevel = planLevels[plan] || 0;
   return currentLevel >= requiredLevel;
 }
+
+// ── Event Requests Tracker (global, Firestore) ──
+(function initEventRequestsTracker() {
+  // Wait for Firebase to be ready
+  let attempts = 0;
+  const maxAttempts = 50;
+  const checkFirebase = setInterval(() => {
+    if (
+      window.db &&
+      window.collection &&
+      window.query &&
+      window.where &&
+      window.orderBy &&
+      window.getDocs &&
+      window.updateDoc
+    ) {
+      clearInterval(checkFirebase);
+      startTracker();
+    } else {
+      attempts++;
+      if (attempts >= maxAttempts) {
+        clearInterval(checkFirebase);
+        console.warn("Event requests tracker: Firebase not ready.");
+      }
+    }
+  }, 100);
+
+  function startTracker() {
+    const SESSION_KEY = "reh_user";
+
+    function getCurrentUser() {
+      const stored = localStorage.getItem(SESSION_KEY);
+      return stored ? JSON.parse(stored) : null;
+    }
+
+    async function updateRequestsBadge() {
+      const user = getCurrentUser();
+      const badge = document.getElementById("requestsBadge");
+      if (!badge) return;
+
+      if (!user || !user.email) {
+        badge.style.display = "none";
+        return;
+      }
+
+      try {
+        const q = window.query(
+          window.collection(window.db, "event_invitations"),
+          window.where("userEmail", "==", user.email),
+          window.where("status", "==", "pending"),
+        );
+        const snapshot = await window.getDocs(q);
+        const count = snapshot.size;
+        badge.textContent = count;
+        badge.style.display = count > 0 ? "flex" : "none";
+      } catch (err) {
+        console.error("Error updating requests badge:", err);
+      }
+    }
+
+    async function renderRequestsDropdown() {
+      const user = getCurrentUser();
+      const list = document.getElementById("requestsList");
+      if (!list) return;
+
+      if (!user || !user.email) {
+        list.innerHTML =
+          '<p style="color:var(--text-muted); text-align:center; padding:1rem;">Log in to see your requests.</p>';
+        return;
+      }
+
+      try {
+        const q = window.query(
+          window.collection(window.db, "event_invitations"),
+          window.where("userEmail", "==", user.email),
+          window.orderBy("timestamp", "desc"),
+        );
+        const snapshot = await window.getDocs(q);
+
+        if (snapshot.empty) {
+          list.innerHTML =
+            '<p style="color:var(--text-muted); text-align:center; padding:1rem;">No event requests yet.</p>';
+          return;
+        }
+
+        const requests = [];
+        snapshot.forEach((doc) => requests.push({ id: doc.id, ...doc.data() }));
+
+        list.innerHTML = requests
+          .map((r) => {
+            const statusColor =
+              r.status === "confirmed"
+                ? "#2ecc71"
+                : r.status === "declined"
+                  ? "#e74c3c"
+                  : "#f39c12";
+            return `
+          <div class="notif-item" style="opacity:${r.status === "declined" ? 0.6 : 1};">
+            <div class="notif-title">${r.eventName}</div>
+            <div style="font-size:0.7rem; color:var(--text-muted);">${new Date(r.timestamp?.seconds ? r.timestamp.seconds * 1000 : r.timestamp).toLocaleString()}</div>
+            <div style="font-size:0.75rem; margin-top:0.2rem; color:${statusColor}; font-weight:600;">${r.status}</div>
+          </div>`;
+          })
+          .join("");
+      } catch (err) {
+        console.error("Error rendering requests dropdown:", err);
+        list.innerHTML =
+          '<p style="color:var(--danger); text-align:center; padding:1rem;">Failed to load requests.</p>';
+      }
+    }
+
+    // Event listeners
+    const requestsBell = document.getElementById("requestsBell");
+    const requestsDropdown = document.getElementById("requestsDropdown");
+    const refreshRequestsBtn = document.getElementById("refreshRequestsBtn");
+
+    if (requestsBell) {
+      requestsBell.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (requestsDropdown) {
+          requestsDropdown.classList.toggle("show");
+          if (requestsDropdown.classList.contains("show")) {
+            renderRequestsDropdown();
+          }
+        }
+      });
+    }
+
+    if (refreshRequestsBtn) {
+      refreshRequestsBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        updateRequestsBadge();
+        renderRequestsDropdown();
+      });
+    }
+
+    document.addEventListener("click", () => {
+      if (requestsDropdown) {
+        requestsDropdown.classList.remove("show");
+      }
+    });
+
+    // Update on storage change (if user logs in/out)
+    window.addEventListener("storage", (e) => {
+      if (e.key === SESSION_KEY) {
+        updateRequestsBadge();
+        if (requestsDropdown && requestsDropdown.classList.contains("show")) {
+          renderRequestsDropdown();
+        }
+      }
+    });
+
+    // Initial badge update
+    updateRequestsBadge();
+  }
+})();
+
+
+// ── Presence Heartbeat (Firestore) ─────────────────
+let presenceInterval = null;
+
+function startPresenceHeartbeat(email) {
+  if (!email || !window.db) return;
+  // Clear any existing interval to avoid duplicates
+  if (presenceInterval) clearInterval(presenceInterval);
+
+  // Update immediately, then every 15 seconds
+  const update = async () => {
+    try {
+      await window.updateDoc(window.doc(window.db, "users", email), {
+        lastActive: window.serverTimestamp ? window.serverTimestamp() : new Date()
+      });
+    } catch (e) {
+      // Silently fail – presence is not critical
+    }
+  };
+  update(); // first update now
+  presenceInterval = setInterval(update, 15000);
+
+  // Optional: set a final update before the user leaves the page
+  window.addEventListener('beforeunload', update, { once: true });
+}
+
+function stopPresenceHeartbeat() {
+  if (presenceInterval) {
+    clearInterval(presenceInterval);
+    presenceInterval = null;
+  }
+}
+
+// Automatically start/stop when the user session changes
+window.addEventListener('storage', (e) => {
+  if (e.key === 'reh_user') {
+    const user = JSON.parse(localStorage.getItem('reh_user') || '{}');
+    if (user.email) {
+      startPresenceHeartbeat(user.email);
+    } else {
+      stopPresenceHeartbeat();
+    }
+  }
+});
+
+// Start now if user already logged in (general.js loads after the session is set)
+(function () {
+  const user = JSON.parse(localStorage.getItem('reh_user') || '{}');
+  if (user.email) {
+    startPresenceHeartbeat(user.email);
+  }
+})();

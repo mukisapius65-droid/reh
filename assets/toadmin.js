@@ -263,29 +263,53 @@ function startNotificationSystem() {
     startListener();
 
     // ── Newsletter subscription (unchanged) ────
-    function subscribe() {
-        const email = document.getElementById("newsletterEmail")?.value.trim();
-        if (!email) {
-            window.showToast("🌸 Please enter a valid email.");
-            return;
-        }
-        const SUBSCRIBERS_KEY = "reh_newsletter_subscribers";
-        const subscribers = JSON.parse(localStorage.getItem(SUBSCRIBERS_KEY) || "[]");
-        if (subscribers.find(s => s.email === email)) {
-            window.showToast("📧 You are already subscribed!");
-            document.getElementById("newsletterEmail").value = "";
-            return;
-        }
-        subscribers.push({ email, subscribedAt: new Date().toISOString() });
-        localStorage.setItem(SUBSCRIBERS_KEY, JSON.stringify(subscribers));
-        window.showToast("📧 Subscribed! The admin will keep you updated with exclusive news.");
-        document.getElementById("newsletterEmail").value = "";
+    async function subscribeToNewsletter(email) {
+  if (!email) {
+    showToast('🌸 Please enter a valid email.');
+    return;
+  }
+  try {
+    // Check if already subscribed (optional – you can let Firestore handle duplicates)
+    const existing = await window.getDocs(
+      window.query(
+        window.collection(window.db, "newsletter_subscribers"),
+        window.where("email", "==", email.toLowerCase().trim())
+      )
+    );
+    if (!existing.empty) {
+      showToast('📧 You are already subscribed!');
+      return;
     }
 
-    const subscribeBtn = document.getElementById("subscribeBtn");
-    if (subscribeBtn) {
-        subscribeBtn.addEventListener("click", subscribe);
-    }
+    // Save to Firestore
+    await window.setDoc(
+      window.doc(window.db, "newsletter_subscribers", email.toLowerCase().trim()),
+      {
+        email: email.toLowerCase().trim(),
+        subscribedAt: window.serverTimestamp ? window.serverTimestamp() : new Date()
+      }
+    );
+
+    showToast('📧 Subscribed! You’ll receive exclusive news.');
+    // Clear the input field
+    const input = document.getElementById('newsletterEmail');
+    if (input) input.value = '';
+  } catch (error) {
+    console.error('Subscription error:', error);
+    showToast('Subscription failed. Please try again.');
+  }
+}
+
+// Bind to button click (replace old event listener)
+document.getElementById('subscribeBtn')?.addEventListener('click', () => {
+  const email = document.getElementById('newsletterEmail')?.value.trim();
+  subscribeToNewsletter(email);
+});
+
+    // const subscribeBtn = document.getElementById("subscribeBtn");
+    // if (subscribeBtn) {
+    //     subscribeBtn.addEventListener("click", subscribe);
+    // }
     const newsletterInput = document.getElementById("newsletterEmail");
     if (newsletterInput) {
         newsletterInput.addEventListener("keypress", (e) => {
