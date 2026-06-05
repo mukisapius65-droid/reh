@@ -727,221 +727,343 @@
         </div>
         <footer class="footer"></footer>
     </div>
-    
-    <script src="assets/general.js"></script>
-    <script type="module" src="assets/auth.js"></script>
-
-    <script>
-        (function() {
-            // ── auth.js simulation ──────────────────
-            const AUTH_KEY = 'reh_user';
-            const USERS_KEY = 'reh_users';
-
-            function getCurrentUser() {
-                const stored = localStorage.getItem(AUTH_KEY);
-                return stored ? JSON.parse(stored) : null;
-            }
-
-            function updateNavUI(user) {
-                const joinCta = document.getElementById('joinCta');
-                const profileArea = document.getElementById('profileArea');
-                const navAvatarImg = document.getElementById('navAvatarImg');
-                if (!joinCta || !profileArea) return;
-                if (user) {
-                    joinCta.style.display = 'none';
-                    profileArea.style.display = 'flex';
-                    if (navAvatarImg && user.avatar) navAvatarImg.src = user.avatar;
-                } else {
-                    joinCta.style.display = '';
-                    profileArea.style.display = 'none';
-                }
-            }
-
-            // ── Floating hearts ────────────────────
-            const heartsContainer = document.getElementById('heartsContainer');
-            const heartIcons = ['❤️', '💕', '💖', '💗', '💘', '✨', '🌸'];
-            const goldHearts = ['💛', '⭐', '🌟'];
-
-            function spawnHeart() {
-                const heart = document.createElement('span');
-                heart.className = 'floating-heart';
-                heart.textContent = (Math.random() > 0.6 ? goldHearts : heartIcons)[Math.floor(Math.random() * 4)];
-                heart.style.left = Math.random() * 100 + '%';
-                heart.style.animationDuration = (Math.random() * 8 + 6) + 's';
-                heartsContainer.appendChild(heart);
-                setTimeout(() => heart.remove(), 14000);
-            }
-            for (let i = 0; i < 10; i++) setTimeout(spawnHeart, i * 180);
-            setInterval(spawnHeart, 600);
-
-            // ── Toast ──────────────────────────────
-            const toast = document.getElementById('toast');
-            const toastMsg = document.getElementById('toastMessage');
-            let toastTimer;
-
-            function showToast(msg) {
-                if (toastTimer) clearTimeout(toastTimer);
-                toastMsg.textContent = msg;
-                toast.classList.add('show');
-                toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
-            }
-
-            function updateBoth(updatedUser) {
-    // 1. Update session
-    localStorage.setItem(AUTH_KEY, JSON.stringify(updatedUser));
-    // 2. Update master list (so Discover / Admin see the change)
-    const allUsers = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
-    const idx = allUsers.findIndex(u => u.email === updatedUser.email);
-    if (idx !== -1) {
-        allUsers[idx] = { ...allUsers[idx], ...updatedUser };
-        localStorage.setItem(USERS_KEY, JSON.stringify(allUsers));
+  <script src="assets/general.js"></script>
+<script type="module" src="assets/auth.js"></script>
+<script>
+  (function () {
+    // ── Wait for Firebase ────────────────────
+    function waitForFirebase(cb) {
+      if (window.db && window.collection && window.doc && window.getDoc && window.updateDoc && window.deleteDoc && window.setDoc) {
+        cb();
+      } else {
+        let tries = 0;
+        const timer = setInterval(() => {
+          if (window.db && window.collection && window.doc && window.getDoc && window.updateDoc && window.deleteDoc && window.setDoc) {
+            clearInterval(timer);
+            cb();
+          }
+          if (++tries > 100) { clearInterval(timer); console.error('Firebase not ready'); }
+        }, 100);
+      }
     }
-}
 
-            // ── Init user ──────────────────────────
-            const user = getCurrentUser();
-            if (!user) {
-                window.location.href = 'index.html?redirect=register.html';
-            } else {
-                updateNavUI(user);
-                // Pre‑fill current email from stored user data
-                if (user.email) {
-                    document.getElementById('currentEmail').value = user.email;
-                }
-            }
+    waitForFirebase(startApp);
 
-           // ── Change Email (now writes to localStorage) ──
-            document.getElementById('changeEmailBtn').addEventListener('click', () => {
-    const user = getCurrentUser();
-    const newEmail = document.getElementById('newEmail').value.trim();
-    const password = document.getElementById('emailPassword').value.trim();
-    if (!newEmail || !password) return showToast('🌸 Please enter both new email and password.');
-    if (user.password !== password) return showToast('❌ Current password is incorrect.');
-    user.email = newEmail;
-    updateBoth(user);   // This updates reh_user AND reh_users
-    document.getElementById('currentEmail').value = newEmail;
-    document.getElementById('newEmail').value = '';
-    document.getElementById('emailPassword').value = '';
-    showToast('✨ Email updated successfully.');
-});
+    function startApp() {
+      const AUTH_KEY = 'reh_user';
 
-            // ── Change Password ──────────────────────────
-            document.getElementById('changePasswordBtn').addEventListener('click', () => {
-                const user = getCurrentUser();
-                const currentPassword = document.getElementById('currentPassword').value;
-                const newPass = document.getElementById('newPassword').value;
-                const confirmPass = document.getElementById('confirmNewPassword').value;
-                if (!currentPassword || !newPass || !confirmPass) return showToast('🌸 Please fill all password fields.');
-                if (user.password !== currentPassword) return showToast('❌ Current password is incorrect.');
-                if (newPass.length < 8) return showToast('🔐 New password must be at least 8 characters.');
-                if (newPass !== confirmPass) return showToast('❌ Passwords do not match.');
-                user.password = newPass;
-                updateBoth(user);
-                document.getElementById('currentPassword').value = '';
-                document.getElementById('newPassword').value = '';
-                document.getElementById('confirmNewPassword').value = '';
-                showToast('🔑 Password changed successfully.');
-            });
+      // ── Helpers ────────────────────────────
+      function getCurrentUser() {
+        const stored = localStorage.getItem(AUTH_KEY);
+        return stored ? JSON.parse(stored) : null;
+      }
 
-            // ── Save Notification Preferences ───────
-            document.getElementById('saveNotificationsBtn').addEventListener('click', () => {
-    const user = getCurrentUser();
-    user.pref_matches = document.getElementById('notifyMatches').checked;
-    user.pref_messages = document.getElementById('notifyMessages').checked;
-    user.pref_events = document.getElementById('notifyEvents').checked;
-    user.pref_promos = document.getElementById('notifyPromos').checked;
-    updateBoth(user);
-    showToast('🔔 Notification preferences saved.');
-});
+      function saveSession(updatedUser) {
+        localStorage.setItem(AUTH_KEY, JSON.stringify(updatedUser));
+      }
 
-            // Load saved prefs on page load
-            const savedPrefs = localStorage.getItem('ss_notification_prefs');
-            if (savedPrefs) {
-                const prefs = JSON.parse(savedPrefs);
-                document.getElementById('notifyMatches').checked = prefs.matches !== false;
-                document.getElementById('notifyMessages').checked = prefs.messages !== false;
-                document.getElementById('notifyEvents').checked = prefs.events !== false;
-                document.getElementById('notifyPromos').checked = prefs.promos === true;
-                // security always on, skip
-            }
+      // ── Toast ──────────────────────────────
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toastMessage');
+      let toastTimer;
+      function showToast(msg) {
+        if (toastTimer) clearTimeout(toastTimer);
+        toastMsg.textContent = msg;
+        toast.classList.add('show');
+        toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+      }
 
-            // ── GDPR Data Export ───────────────────
-            document.getElementById('exportDataBtn').addEventListener('click', () => {
-                const userData = getCurrentUser();
-                const exportObj = {
-                    user: userData,
-                    notifications: JSON.parse(localStorage.getItem('ss_notification_prefs') || '{}'),
-                    exportedAt: new Date().toISOString(),
-                    message: 'Reh GDPR Data Export'
-                };
-                const dataStr = JSON.stringify(exportObj, null, 2);
-                const blob = new Blob([dataStr], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `Reh_data_${Date.now()}.json`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                showToast('📦 Your data has been downloaded.');
-            });
+      // ── Floating hearts ────────────────────
+      const heartsContainer = document.getElementById('heartsContainer');
+      const heartIcons = ['❤️', '💕', '💖', '💗', '💘', '✨', '🌸'];
+      const goldHearts = ['💛', '⭐', '🌟'];
+      function spawnHeart() {
+        const heart = document.createElement('span');
+        heart.className = 'floating-heart';
+        heart.textContent = (Math.random() > 0.6 ? goldHearts : heartIcons)[Math.floor(Math.random() * 4)];
+        heart.style.left = Math.random() * 100 + '%';
+        heart.style.animationDuration = (Math.random() * 8 + 6) + 's';
+        heartsContainer.appendChild(heart);
+        setTimeout(() => heart.remove(), 14000);
+      }
+      for (let i = 0; i < 10; i++) setTimeout(spawnHeart, i * 180);
+      setInterval(spawnHeart, 600);
 
-            // ── Account Deletion Modal ─────────────
-            const deleteModal = document.getElementById('deleteModal');
-            document.getElementById('openDeleteModal').addEventListener('click', () => {
-                deleteModal.classList.add('active');
-            });
-            document.getElementById('cancelDelete').addEventListener('click', () => {
-                deleteModal.classList.remove('active');
-            });
-            document.getElementById('confirmDelete').addEventListener('click', () => {
-    const user = getCurrentUser();
-    localStorage.removeItem(AUTH_KEY);                    // remove session
-    let allUsers = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
-    allUsers = allUsers.filter(u => u.email !== user.email); // remove from master
-    localStorage.setItem(USERS_KEY, JSON.stringify(allUsers));
-    updateNavUI(null);
-    deleteModal.classList.remove('active');
-    showToast('💔 Your account has been deleted. We will miss you.');
-    setTimeout(() => {
+      // ── Init ──────────────────────────────
+      const user = getCurrentUser();
+      if (!user) {
         window.location.href = 'index.html?redirect=register.html';
-    }, 2000);
-});
+        return;
+      }
 
-            // ── Dropdown & Mobile Nav ──────────────
-            const profileAreaEl = document.getElementById('profileArea');
-            const dropdownEl = document.getElementById('dropdownMenu');
-            if (profileAreaEl && dropdownEl) {
-                profileAreaEl.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    dropdownEl.classList.toggle('show');
-                });
-                document.addEventListener('click', () => dropdownEl.classList.remove('show'));
-            }
+      // Update nav UI (general.js already does this, but we keep it safe)
+      function updateNavUI(user) {
+        const joinCta = document.getElementById('joinCta');
+        const profileArea = document.getElementById('profileArea');
+        const navAvatarImg = document.getElementById('navAvatarImg');
+        if (!joinCta || !profileArea) return;
+        if (user) {
+          joinCta.style.display = 'none';
+          profileArea.style.display = 'flex';
+          if (navAvatarImg && user.avatar) navAvatarImg.src = user.avatar;
+        } else {
+          joinCta.style.display = '';
+          profileArea.style.display = 'none';
+        }
+      }
+      updateNavUI(user);
 
-            const hamburgerBtn = document.getElementById('hamburgerBtn');
-            const navLinksEl = document.getElementById('navLinks');
-            if (hamburgerBtn && navLinksEl) {
-                hamburgerBtn.addEventListener('click', () => navLinksEl.classList.toggle('open'));
-                navLinksEl.querySelectorAll('a').forEach(link => {
-                    link.addEventListener('click', () => navLinksEl.classList.remove('open'));
-                });
-                document.addEventListener('click', (e) => {
-                    if (!hamburgerBtn.contains(e.target) && !navLinksEl.contains(e.target)) {
-                        navLinksEl.classList.remove('open');
-                    }
-                });
-            }
+      // ── Load user from Firestore ───────────
+      async function loadUserFromFirestore() {
+        try {
+          const docRef = window.doc(window.db, 'users', user.email);
+          const docSnap = await window.getDoc(docRef);
+          if (!docSnap.exists()) {
+            showToast('Your profile data could not be found. Please log in again.');
+            setTimeout(() => window.location.href = 'index.html?redirect=login.html', 2000);
+            return null;
+          }
+          const profile = docSnap.data();
+          // Merge with session so we have the latest data
+          const merged = { ...user, ...profile };
+          saveSession(merged);
+          return merged;
+        } catch (err) {
+          console.error('Error loading user:', err);
+          showToast('Failed to load your data. Please refresh.');
+          return null;
+        }
+      }
 
-            // ── Logout ────────────────────────────
-            document.getElementById('logoutBtn').addEventListener('click', () => {
-                localStorage.removeItem(AUTH_KEY);
-                updateNavUI(null);
-                window.location.href = 'index.html?redirect=register.html';
-            });
-        })();
-    </script>
+      async function init() {
+        const freshUser = await loadUserFromFirestore();
+        if (!freshUser) return;
+
+        // Pre-fill current email
+        document.getElementById('currentEmail').value = freshUser.email || '';
+
+        // Load notification prefs from Firestore
+        document.getElementById('notifyMatches').checked = freshUser.notifMatches !== false;
+        document.getElementById('notifyMessages').checked = freshUser.notifMessages !== false;
+        document.getElementById('notifyEvents').checked = freshUser.notifEvents !== false;
+        document.getElementById('notifyPromos').checked = freshUser.notifPromos === true;
+        // Security toggle always on
+        document.getElementById('notifySecurity').checked = true;
+      }
+
+      init();
+
+      // ── Change Email ───────────────────────
+      document.getElementById('changeEmailBtn').addEventListener('click', async () => {
+        const currentUser = getCurrentUser();
+        const newEmail = document.getElementById('newEmail').value.trim();
+        const password = document.getElementById('emailPassword').value.trim();
+        if (!newEmail || !password) return showToast('🌸 Please enter both new email and password.');
+        if (currentUser.password !== password) return showToast('❌ Current password is incorrect.');
+
+        const btn = document.getElementById('changeEmailBtn');
+        const origHTML = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Updating…';
+
+        try {
+          // Create new document with new email as ID
+          const oldRef = window.doc(window.db, 'users', currentUser.email);
+          const oldSnap = await window.getDoc(oldRef);
+          if (!oldSnap.exists()) throw new Error('Old user not found');
+
+          const userData = oldSnap.data();
+          // Remove old document
+          await window.deleteDoc(oldRef);
+
+          // Write new document with new email
+          userData.email = newEmail;
+          await window.setDoc(window.doc(window.db, 'users', newEmail), userData);
+
+          // Update session
+          const updated = { ...currentUser, email: newEmail };
+          saveSession(updated);
+          document.getElementById('currentEmail').value = newEmail;
+          document.getElementById('newEmail').value = '';
+          document.getElementById('emailPassword').value = '';
+          showToast('✨ Email updated successfully. You may need to log in again with your new email.');
+          // Optional: force re-login after email change
+          setTimeout(() => {
+            localStorage.removeItem(AUTH_KEY);
+            window.location.href = 'index.html?redirect=login.html';
+          }, 3000);
+        } catch (err) {
+          console.error(err);
+          showToast('❌ Failed to update email. Please try again.');
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = origHTML;
+        }
+      });
+
+      // ── Change Password ───────────────────
+      document.getElementById('changePasswordBtn').addEventListener('click', async () => {
+        const currentUser = getCurrentUser();
+        const currentPassword = document.getElementById('currentPassword').value;
+        const newPass = document.getElementById('newPassword').value;
+        const confirmPass = document.getElementById('confirmNewPassword').value;
+        if (!currentPassword || !newPass || !confirmPass) return showToast('🌸 Please fill all password fields.');
+        if (currentUser.password !== currentPassword) return showToast('❌ Current password is incorrect.');
+        if (newPass.length < 8) return showToast('🔐 New password must be at least 8 characters.');
+        if (newPass !== confirmPass) return showToast('❌ Passwords do not match.');
+
+        const btn = document.getElementById('changePasswordBtn');
+        const origHTML = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Updating…';
+
+        try {
+          await window.updateDoc(window.doc(window.db, 'users', currentUser.email), { password: newPass });
+          // Update session
+          const updated = { ...currentUser, password: newPass };
+          saveSession(updated);
+          document.getElementById('currentPassword').value = '';
+          document.getElementById('newPassword').value = '';
+          document.getElementById('confirmNewPassword').value = '';
+          showToast('🔑 Password changed successfully.');
+        } catch (err) {
+          console.error(err);
+          showToast('❌ Failed to update password.');
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = origHTML;
+        }
+      });
+
+      // ── Save Notification Preferences ──────
+      document.getElementById('saveNotificationsBtn').addEventListener('click', async () => {
+        const currentUser = getCurrentUser();
+        const prefs = {
+          notifMatches: document.getElementById('notifyMatches').checked,
+          notifMessages: document.getElementById('notifyMessages').checked,
+          notifEvents: document.getElementById('notifyEvents').checked,
+          notifPromos: document.getElementById('notifyPromos').checked,
+        };
+
+        const btn = document.getElementById('saveNotificationsBtn');
+        const origHTML = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving…';
+
+        try {
+          await window.updateDoc(window.doc(window.db, 'users', currentUser.email), prefs);
+          // Update session
+          const updated = { ...currentUser, ...prefs };
+          saveSession(updated);
+          showToast('🔔 Notification preferences saved.');
+        } catch (err) {
+          console.error(err);
+          showToast('❌ Failed to save preferences.');
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = origHTML;
+        }
+      });
+
+      // ── GDPR Data Export ───────────────────
+      document.getElementById('exportDataBtn').addEventListener('click', async () => {
+        const currentUser = getCurrentUser();
+        try {
+          // Re-fetch the latest user data from Firestore
+          const docSnap = await window.getDoc(window.doc(window.db, 'users', currentUser.email));
+          const userData = docSnap.exists() ? docSnap.data() : currentUser;
+          const exportObj = {
+            user: userData,
+            exportedAt: new Date().toISOString(),
+            message: 'Reh GDPR Data Export'
+          };
+          const dataStr = JSON.stringify(exportObj, null, 2);
+          const blob = new Blob([dataStr], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `Reh_data_${Date.now()}.json`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          showToast('📦 Your data has been downloaded.');
+        } catch (err) {
+          console.error(err);
+          showToast('❌ Could not export data.');
+        }
+      });
+
+      // ── Account Deletion ───────────────────
+      const deleteModal = document.getElementById('deleteModal');
+      document.getElementById('openDeleteModal').addEventListener('click', () => {
+        deleteModal.classList.add('active');
+      });
+      document.getElementById('cancelDelete').addEventListener('click', () => {
+        deleteModal.classList.remove('active');
+      });
+      document.getElementById('confirmDelete').addEventListener('click', async () => {
+        const currentUser = getCurrentUser();
+        const btn = document.getElementById('confirmDelete');
+        const origHTML = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Deleting…';
+
+        try {
+          // Delete user document from Firestore
+          await window.deleteDoc(window.doc(window.db, 'users', currentUser.email));
+          // Note: subcollections (bookmarks, admirations) are not deleted automatically.
+          // For a full cleanup, you would need to recursively delete them.
+          // Clear session
+          localStorage.removeItem(AUTH_KEY);
+          updateNavUI(null);
+          deleteModal.classList.remove('active');
+          showToast('💔 Your account has been deleted. We will miss you.');
+          setTimeout(() => {
+            window.location.href = 'index.html?redirect=register.html';
+          }, 2000);
+        } catch (err) {
+          console.error(err);
+          showToast('❌ Failed to delete account. Please try again.');
+          btn.disabled = false;
+          btn.innerHTML = origHTML;
+        }
+      });
+
+      // ── Dropdown & Mobile Nav (from general.js) ──
+      const profileAreaEl = document.getElementById('profileArea');
+      const dropdownEl = document.getElementById('dropdownMenu');
+      if (profileAreaEl && dropdownEl) {
+        profileAreaEl.addEventListener('click', (e) => {
+          e.stopPropagation();
+          dropdownEl.classList.toggle('show');
+        });
+        document.addEventListener('click', () => dropdownEl.classList.remove('show'));
+      }
+
+      const hamburgerBtn = document.getElementById('hamburgerBtn');
+      const navLinksEl = document.getElementById('navLinks');
+      if (hamburgerBtn && navLinksEl) {
+        hamburgerBtn.addEventListener('click', () => navLinksEl.classList.toggle('open'));
+        navLinksEl.querySelectorAll('a').forEach(link => {
+          link.addEventListener('click', () => navLinksEl.classList.remove('open'));
+        });
+        document.addEventListener('click', (e) => {
+          if (!hamburgerBtn.contains(e.target) && !navLinksEl.contains(e.target)) {
+            navLinksEl.classList.remove('open');
+          }
+        });
+      }
+
+      // ── Logout ────────────────────────────
+      document.getElementById('logoutBtn').addEventListener('click', () => {
+        localStorage.removeItem(AUTH_KEY);
+        updateNavUI(null);
+        window.location.href = 'index.html?redirect=register.html';
+      });
+    }
+  })();
+</script>
 <script src="assets/toadmin.js"></script>
 </body>
 </html>

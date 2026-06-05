@@ -873,42 +873,41 @@
           line1.classList.add('active');
           line2.classList.add('active');
 
-          // ── Referral handling (unchanged) ─────
-          const urlParams = new URLSearchParams(window.location.search);
-          const referrerEmail = decodeURIComponent(urlParams.get('ref') || '');
-          if (referrerEmail) {
-            // (keep existing referral logic)
-            const referrals = JSON.parse(localStorage.getItem('reh_referrals') || '[]');
-            referrals.push({
-              referrer: referrerEmail,
-              referred: email,
-              referredName: userData.name,
-              timestamp: Date.now(),
-              status: 'joined'
-            });
-            localStorage.setItem('reh_referrals', JSON.stringify(referrals));
+// ── Referral tracking (Firestore) ──────────────
+const urlParams = new URLSearchParams(window.location.search);
+const referrerEmail = decodeURIComponent(urlParams.get('ref') || '');
+if (referrerEmail) {
+    try {
+        // 1. Save referral record
+        await window.addDoc(window.collection(window.db, 'referrals'), {
+            referrer: referrerEmail,
+            referred: userData.email,
+            referredName: userData.name,
+            timestamp: window.serverTimestamp ? window.serverTimestamp() : new Date(),
+            status: 'joined'
+        });
 
-            const gifts = JSON.parse(localStorage.getItem('reh_gifts') || '[]');
-            gifts.push({
-              from: 'Reh Team',
-              fromName: 'Reh Concierge',
-              to: referrerEmail,
-              giftType: 'diamond_rose',
-              timestamp: Date.now(),
-              message: `${userData.name} joined using your referral link!`
-            });
-            localStorage.setItem('reh_gifts', JSON.stringify(gifts));
+        // 2. Reward the referrer with a Diamond Rose
+        await window.addDoc(window.collection(window.db, 'gifts'), {
+            from: 'Reh Team',
+            fromName: 'Reh Concierge',
+            to: referrerEmail,
+            giftType: 'diamond_rose',
+            timestamp: window.serverTimestamp ? window.serverTimestamp() : new Date()
+        });
 
-            const notifications = JSON.parse(localStorage.getItem('ss_global_notifications') || '[]');
-            notifications.push({
-              id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
-              title: '🎉 New Referral!',
-              body: `${userData.name} signed up using your link. A Diamond Rose has been added to your vault.`,
-              timestamp: Date.now(),
-              targetEmail: referrerEmail
-            });
-            localStorage.setItem('ss_global_notifications', JSON.stringify(notifications));
-          }
+        // 3. Notify the referrer (already using Firestore notifications)
+        await window.addDoc(window.collection(window.db, 'notifications'), {
+            title: '🎉 New Referral!',
+            body: `${userData.name} signed up using your link. A Diamond Rose has been added to your vault.`,
+            timestamp: window.serverTimestamp ? window.serverTimestamp() : new Date(),
+            targetEmail: referrerEmail,
+            readBy: []
+        });
+    } catch (err) {
+        console.error('Failed to record referral/gift:', err);
+    }
+}
 
           if (submitCancelled) return;
 

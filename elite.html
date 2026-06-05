@@ -1,1609 +1,1993 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Crown Elite | Reh</title>
 
     <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500&family=Great+Vibes&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500&family=Great+Vibes&display=swap"
+      rel="stylesheet"
+    />
 
     <!-- Font Awesome 6 -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="assets/main.css">
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+    <link rel="stylesheet" href="assets/main.css" />
 
-        <script type="module" src="assets/firebase.js"></script>
+    <script type="module" src="assets/firebase.js"></script>
 
     <style>
-        :root {
-            --deep-navy: #080c24;
-            --sapphire: #0f1b4a;
-            --royal-blue: #162464;
-            --crimson: #8b1a2b;
-            --ruby: #a82035;
-            --rose: #c0394b;
-            --gold: #c9a84c;
-            --gold-light: #dfc278;
-            --champagne: #f0e4c8;
-            --cream: #faf7f0;
-            --love-pink: #ff6b8a;
-            --pure-white: #ffffff;
-            --glass-bg: rgba(255, 255, 255, 0.03);
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --glass-bg-card: rgba(15, 20, 50, 0.55);
-            --card-border-glow: rgba(200, 160, 70, 0.25);
-            --text-primary: #f0ece6;
-            --text-secondary: #c5bfb3;
-            --text-muted: #8a857a;
-            --shadow-gold: 0 0 40px rgba(200, 155, 60, 0.15);
-            --shadow-crimson: 0 0 30px rgba(180, 30, 50, 0.2);
-            --shadow-sapphire: 0 0 35px rgba(30, 50, 140, 0.25);
-            --transition-smooth: cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            --transition-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
-            --transition-card: 0.7s cubic-bezier(0.22, 0.61, 0.36, 1);
-        }
+      :root {
+        --deep-navy: #080c24;
+        --sapphire: #0f1b4a;
+        --royal-blue: #162464;
+        --crimson: #8b1a2b;
+        --ruby: #a82035;
+        --rose: #c0394b;
+        --gold: #c9a84c;
+        --gold-light: #dfc278;
+        --champagne: #f0e4c8;
+        --cream: #faf7f0;
+        --love-pink: #ff6b8a;
+        --pure-white: #ffffff;
+        --glass-bg: rgba(255, 255, 255, 0.03);
+        --glass-border: rgba(255, 255, 255, 0.08);
+        --glass-bg-card: rgba(15, 20, 50, 0.55);
+        --card-border-glow: rgba(200, 160, 70, 0.25);
+        --text-primary: #f0ece6;
+        --text-secondary: #c5bfb3;
+        --text-muted: #8a857a;
+        --shadow-gold: 0 0 40px rgba(200, 155, 60, 0.15);
+        --shadow-crimson: 0 0 30px rgba(180, 30, 50, 0.2);
+        --shadow-sapphire: 0 0 35px rgba(30, 50, 140, 0.25);
+        --transition-smooth: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        --transition-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+        --transition-card: 0.7s cubic-bezier(0.22, 0.61, 0.36, 1);
+      }
 
-        *,
-        *::before,
-        *::after {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+      *,
+      *::before,
+      *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-        html {
-            scroll-behavior: smooth;
-            font-size: 16px;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
+      html {
+        scroll-behavior: smooth;
+        font-size: 16px;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
 
-        body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background: var(--deep-navy);
-            color: var(--text-primary);
-            min-height: 100vh;
-            overflow-x: hidden;
-            line-height: 1.6;
-            letter-spacing: 0.01em;
-            position: relative;
-            -webkit-tap-highlight-color: transparent;
-        }
+      body {
+        font-family:
+          "Inter",
+          system-ui,
+          -apple-system,
+          sans-serif;
+        background: var(--deep-navy);
+        color: var(--text-primary);
+        min-height: 100vh;
+        overflow-x: hidden;
+        line-height: 1.6;
+        letter-spacing: 0.01em;
+        position: relative;
+        -webkit-tap-highlight-color: transparent;
+      }
 
-        ::selection {
-            color: var(--champagne);
-            background: rgba(180, 30, 50, 0.4);
-        }
+      ::selection {
+        color: var(--champagne);
+        background: rgba(180, 30, 50, 0.4);
+      }
 
-        /* ── Animated Background ─────────────────────── */
-        .bg-orbit {
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            z-index: 0;
-            overflow: hidden;
-        }
+      /* ── Animated Background ─────────────────────── */
+      .bg-orbit {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 0;
+        overflow: hidden;
+      }
 
-        .bg-orbit::before {
-            content: '';
-            position: absolute;
-            top: -30%;
-            left: -20%;
-            width: 140%;
-            height: 160%;
-            background:
-                radial-gradient(ellipse at 28% 22%, rgba(25, 40, 120, 0.35) 0%, transparent 55%),
-                radial-gradient(ellipse at 72% 65%, rgba(160, 25, 40, 0.28) 0%, transparent 55%),
-                radial-gradient(ellipse at 50% 50%, rgba(200, 160, 60, 0.06) 0%, transparent 70%),
-                radial-gradient(ellipse at 85% 15%, rgba(20, 35, 100, 0.3) 0%, transparent 50%),
-                radial-gradient(ellipse at 15% 80%, rgba(140, 20, 35, 0.22) 0%, transparent 50%);
-            animation: bgPulse 12s ease-in-out infinite;
-        }
+      .bg-orbit::before {
+        content: "";
+        position: absolute;
+        top: -30%;
+        left: -20%;
+        width: 140%;
+        height: 160%;
+        background:
+          radial-gradient(
+            ellipse at 28% 22%,
+            rgba(25, 40, 120, 0.35) 0%,
+            transparent 55%
+          ),
+          radial-gradient(
+            ellipse at 72% 65%,
+            rgba(160, 25, 40, 0.28) 0%,
+            transparent 55%
+          ),
+          radial-gradient(
+            ellipse at 50% 50%,
+            rgba(200, 160, 60, 0.06) 0%,
+            transparent 70%
+          ),
+          radial-gradient(
+            ellipse at 85% 15%,
+            rgba(20, 35, 100, 0.3) 0%,
+            transparent 50%
+          ),
+          radial-gradient(
+            ellipse at 15% 80%,
+            rgba(140, 20, 35, 0.22) 0%,
+            transparent 50%
+          );
+        animation: bgPulse 12s ease-in-out infinite;
+      }
 
-        @keyframes bgPulse {
-            0%,
-            100% {
-                opacity: 0.85;
-                transform: scale(1) rotate(0deg);
-            }
-            33% {
-                opacity: 1;
-                transform: scale(1.04) rotate(0.3deg);
-            }
-            66% {
-                opacity: 0.9;
-                transform: scale(0.97) rotate(-0.2deg);
-            }
+      @keyframes bgPulse {
+        0%,
+        100% {
+          opacity: 0.85;
+          transform: scale(1) rotate(0deg);
         }
-
-        /* ── Floating Particles ─────────────────────── */
-        .particles-container {
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            z-index: 1;
+        33% {
+          opacity: 1;
+          transform: scale(1.04) rotate(0.3deg);
         }
-
-        .particle {
-            position: absolute;
-            border-radius: 50%;
-            pointer-events: none;
-            animation: floatUp linear infinite;
-            opacity: 0;
+        66% {
+          opacity: 0.9;
+          transform: scale(0.97) rotate(-0.2deg);
         }
+      }
 
-        .particle.diamond {
-            border-radius: 2px;
-            transform: rotate(45deg);
+      /* ── Floating Particles ─────────────────────── */
+      .particles-container {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 1;
+      }
+
+      .particle {
+        position: absolute;
+        border-radius: 50%;
+        pointer-events: none;
+        animation: floatUp linear infinite;
+        opacity: 0;
+      }
+
+      .particle.diamond {
+        border-radius: 2px;
+        transform: rotate(45deg);
+      }
+
+      @keyframes floatUp {
+        0% {
+          transform: translateY(105vh) scale(0) rotate(0deg);
+          opacity: 0;
         }
-
-        @keyframes floatUp {
-            0% {
-                transform: translateY(105vh) scale(0) rotate(0deg);
-                opacity: 0;
-            }
-            5% {
-                opacity: 1;
-            }
-            40% {
-                opacity: 0.7;
-            }
-            90% {
-                opacity: 0.1;
-            }
-            100% {
-                transform: translateY(-15vh) scale(1.4) rotate(180deg);
-                opacity: 0;
-            }
+        5% {
+          opacity: 1;
         }
-
-        /* ── Main Wrapper ──────────────────────────── */
-        .main-wrapper {
-            position: relative;
-            z-index: 2;
+        40% {
+          opacity: 0.7;
         }
-
-        /* ── Navigation ────────────────────────────── */
-        .nav {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            background: rgba(8, 12, 36, 0.7);
-            backdrop-filter: blur(28px);
-            -webkit-backdrop-filter: blur(28px);
-            border-bottom: 1px solid var(--glass-border);
-            padding: 0 2rem;
-            transition: all 0.4s var(--transition-smooth);
+        90% {
+          opacity: 0.1;
         }
-
-        .nav-inner {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            height: 70px;
+        100% {
+          transform: translateY(-15vh) scale(1.4) rotate(180deg);
+          opacity: 0;
         }
+      }
 
-        .nav-brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            text-decoration: none;
-            color: var(--text-primary);
+      /* ── Main Wrapper ──────────────────────────── */
+      .main-wrapper {
+        position: relative;
+        z-index: 2;
+      }
+
+      /* ── Navigation ────────────────────────────── */
+      .nav {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: rgba(8, 12, 36, 0.7);
+        backdrop-filter: blur(28px);
+        -webkit-backdrop-filter: blur(28px);
+        border-bottom: 1px solid var(--glass-border);
+        padding: 0 2rem;
+        transition: all 0.4s var(--transition-smooth);
+      }
+
+      .nav-inner {
+        max-width: 1400px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 70px;
+      }
+
+      .nav-brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        text-decoration: none;
+        color: var(--text-primary);
+      }
+
+      .nav-brand-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--crimson), var(--royal-blue));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        color: var(--gold-light);
+        box-shadow: 0 0 25px rgba(180, 40, 55, 0.4);
+        animation: iconGlow 3s ease-in-out infinite;
+      }
+
+      @keyframes iconGlow {
+        0%,
+        100% {
+          box-shadow:
+            0 0 25px rgba(180, 40, 55, 0.4),
+            0 0 50px rgba(20, 40, 120, 0.2);
         }
-
-        .nav-brand-icon {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--crimson), var(--royal-blue));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.3rem;
-            color: var(--gold-light);
-            box-shadow: 0 0 25px rgba(180, 40, 55, 0.4);
-            animation: iconGlow 3s ease-in-out infinite;
+        50% {
+          box-shadow:
+            0 0 40px rgba(200, 50, 65, 0.6),
+            0 0 70px rgba(25, 50, 140, 0.35);
         }
+      }
 
-        @keyframes iconGlow {
-            0%,
-            100% {
-                box-shadow: 0 0 25px rgba(180, 40, 55, 0.4), 0 0 50px rgba(20, 40, 120, 0.2);
-            }
-            50% {
-                box-shadow: 0 0 40px rgba(200, 50, 65, 0.6), 0 0 70px rgba(25, 50, 140, 0.35);
-            }
+      .nav-brand-text {
+        font-family: "Playfair Display", serif;
+        font-size: 1.5rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        background: linear-gradient(
+          135deg,
+          var(--gold-light),
+          var(--champagne),
+          var(--gold)
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+        list-style: none;
+      }
+
+      .nav-links a {
+        text-decoration: none;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        font-weight: 500;
+        letter-spacing: 0.03em;
+        transition: color 0.3s;
+        position: relative;
+      }
+
+      .nav-links a::after {
+        content: "";
+        position: absolute;
+        bottom: -6px;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background: var(--gold);
+        transition: width 0.35s var(--transition-smooth);
+      }
+
+      .nav-links a:hover,
+      .nav-links a.active {
+        color: var(--champagne);
+      }
+
+      .nav-links a.active::after {
+        width: 100%;
+      }
+
+      .nav-links a:hover::after {
+        width: 100%;
+      }
+
+      /* Notification Bell */
+      .notification-bell {
+        position: relative;
+        cursor: pointer;
+        margin-right: 1rem;
+        font-size: 1.3rem;
+        color: var(--text-secondary);
+        transition: color 0.3s;
+      }
+      .notification-bell:hover {
+        color: var(--champagne);
+      }
+      .notification-bell .badge {
+        position: absolute;
+        top: -6px;
+        right: -10px;
+        background: var(--ruby);
+        color: white;
+        border-radius: 50%;
+        width: 18px;
+        height: 18px;
+        font-size: 0.65rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        box-shadow: 0 0 8px rgba(180, 30, 45, 0.6);
+      }
+      .notif-dropdown {
+        position: absolute;
+        top: 40px;
+        right: 0;
+        width: 320px;
+        max-height: 400px;
+        overflow-y: scroll;
+        background: rgba(15, 20, 50, 0.95);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--gold);
+        border-radius: 16px;
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+        padding: 1rem;
+        display: none;
+        z-index: 300;
+      }
+      .notif-dropdown::-webkit-scrollbar {
+        width: 2px;
+        background-color: pink;
+        border-radius: 10px;
+      }
+      .notif-dropdown::-webkit-scrollbar-thumb {
+        width: 3px;
+        background-color: rgba(15, 20, 50, 0.95);
+      }
+      .notif-dropdown::-webkit-scrollbar-track {
+        background-color: gold;
+      }
+      .notif-dropdown.show {
+        display: block;
+      }
+      .notif-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.8rem;
+      }
+      .notif-header h4 {
+        color: var(--gold-light);
+        font-family: "Playfair Display", serif;
+        font-size: 1rem;
+      }
+      .notif-header button {
+        background: none;
+        border: 1px solid var(--glass-border);
+        color: var(--text-secondary);
+        padding: 4px 10px;
+        border-radius: 15px;
+        font-size: 0.7rem;
+        cursor: pointer;
+        transition: 0.2s;
+      }
+      .notif-header button:hover {
+        border-color: var(--gold);
+        color: var(--champagne);
+      }
+      .notif-item {
+        padding: 0.6rem 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+      }
+      .notif-item:last-child {
+        border-bottom: none;
+      }
+      .notif-item .notif-title {
+        color: var(--champagne);
+        font-weight: 600;
+        margin-bottom: 0.2rem;
+      }
+      .notif-item .notif-time {
+        font-size: 0.65rem;
+        color: var(--text-muted);
+        margin-top: 0.2rem;
+      }
+      .notif-item .mark-read {
+        background: none;
+        border: none;
+        color: var(--gold-light);
+        cursor: pointer;
+        font-size: 0.7rem;
+        margin-left: 0.5rem;
+      }
+
+      .nav-cta {
+        background: linear-gradient(135deg, var(--crimson), var(--ruby));
+        color: var(--pure-white);
+        border: none;
+        padding: 10px 26px;
+        border-radius: 50px;
+        font-family: "Inter", sans-serif;
+        font-weight: 600;
+        font-size: 0.85rem;
+        letter-spacing: 0.04em;
+        cursor: pointer;
+        transition: all 0.35s var(--transition-smooth);
+        box-shadow: 0 4px 20px rgba(180, 30, 45, 0.35);
+        white-space: nowrap;
+      }
+
+      .nav-cta:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(200, 40, 55, 0.5);
+        background: linear-gradient(135deg, #a01e30, #c03040);
+      }
+      /* ── Logged‑in Avatar & Dropdown ─────────── */
+      .nav-profile {
+        position: relative;
+        cursor: pointer;
+      }
+      .nav-avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        border: 2px solid var(--gold-light);
+        box-shadow: 0 0 20px rgba(200, 160, 60, 0.4);
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: 0.3s;
+        background: #1a1e35;
+      }
+      .nav-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .nav-avatar:hover {
+        box-shadow: 0 0 30px rgba(200, 160, 60, 0.8);
+        transform: scale(1.05);
+      }
+      .dropdown-menu {
+        position: absolute;
+        top: 55px;
+        right: 0;
+        background: rgba(15, 20, 50, 0.9);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--gold);
+        border-radius: 16px;
+        padding: 0.8rem;
+        width: 180px;
+        display: none;
+        flex-direction: column;
+        gap: 0.5rem;
+        z-index: 200;
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+      }
+      .dropdown-menu.show {
+        display: flex;
+      }
+      .dropdown-menu a,
+      .dropdown-menu button {
+        background: none;
+        border: none;
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-size: 0.85rem;
+        padding: 8px 12px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: 0.2s;
+        text-align: left;
+        width: 100%;
+      }
+      .dropdown-menu a:hover,
+      .dropdown-menu button:hover {
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--champagne);
+      }
+
+      .nav-hamburger {
+        display: none;
+        background: none;
+        border: none;
+        color: var(--text-primary);
+        font-size: 1.5rem;
+        cursor: pointer;
+        padding: 8px;
+      }
+
+      /* ── Elite Hero ────────────────────────────── */
+      .elite-hero {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 3.5rem 2rem 2.5rem;
+        text-align: center;
+        position: relative;
+        animation: fadeInUp 0.9s var(--transition-smooth);
+      }
+
+      .elite-badge {
+        display: inline-block;
+        background: rgba(200, 160, 60, 0.15);
+        border: 1px solid var(--gold);
+        color: var(--gold-light);
+        padding: 10px 28px;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        margin-bottom: 1.5rem;
+        backdrop-filter: blur(10px);
+      }
+
+      .elite-title {
+        font-family: "Playfair Display", serif;
+        font-size: clamp(2.8rem, 5vw, 4.4rem);
+        font-weight: 700;
+        line-height: 1.15;
+        letter-spacing: 0.02em;
+        margin-bottom: 1rem;
+        background: linear-gradient(
+          180deg,
+          #ffffff 0%,
+          #e8dfd0 40%,
+          #c9a84c 100%
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        filter: drop-shadow(0 2px 8px rgba(200, 155, 50, 0.3));
+      }
+
+      .elite-subtitle {
+        font-family: "Cormorant Garamond", serif;
+        font-size: clamp(1.1rem, 1.8vw, 1.4rem);
+        font-weight: 400;
+        font-style: italic;
+        color: var(--text-secondary);
+        max-width: 680px;
+        margin: 0 auto 2rem;
+        letter-spacing: 0.03em;
+      }
+
+      /* ── Elite Stats Bar ──────────────────────── */
+      .elite-stats {
+        max-width: 1000px;
+        margin: 1rem auto 2rem;
+        display: flex;
+        justify-content: center;
+        gap: 3rem;
+        flex-wrap: wrap;
+        padding: 1.8rem 2rem;
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        backdrop-filter: blur(16px);
+        animation: fadeInUp 1.1s var(--transition-smooth);
+      }
+
+      .stat-item {
+        text-align: center;
+      }
+
+      .stat-value {
+        font-family: "Playfair Display", serif;
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--gold-light);
+        letter-spacing: 0.03em;
+      }
+
+      .stat-label {
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        margin-top: 2px;
+      }
+
+      /* ── Elite Card Grid ──────────────────────── */
+      .elite-grid {
+        max-width: 1400px;
+        margin: 2rem auto 4rem;
+        padding: 0 2rem;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        gap: 2rem;
+      }
+
+      .elite-card {
+        position: relative;
+        border-radius: 24px;
+        overflow: hidden;
+        background: var(--glass-bg-card);
+        border: 1px solid var(--glass-border);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        cursor: pointer;
+        transition: all 0.5s var(--transition-card);
+        box-shadow: 0 8px 40px rgba(0, 0, 0, 0.35);
+        opacity: 0;
+        transform: translateY(60px) scale(0.92);
+        will-change: transform, opacity;
+      }
+
+      .elite-card.card-visible {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+
+      .elite-card:hover {
+        transform: translateY(-10px) scale(1.025);
+        border-color: var(--card-border-glow);
+        box-shadow:
+          0 20px 60px rgba(0, 0, 0, 0.5),
+          0 0 30px rgba(200, 155, 60, 0.3);
+      }
+
+      .elite-card::before {
+        content: "";
+        position: absolute;
+        inset: -1px;
+        border-radius: 24px;
+        padding: 1.5px;
+        background: linear-gradient(
+          160deg,
+          rgba(220, 180, 70, 0.7) 0%,
+          rgba(200, 40, 55, 0.4) 30%,
+          rgba(20, 45, 130, 0.4) 60%,
+          rgba(200, 160, 70, 0.5) 100%
+        );
+        -webkit-mask:
+          linear-gradient(#fff 0 0) content-box,
+          linear-gradient(#fff 0 0);
+        mask:
+          linear-gradient(#fff 0 0) content-box,
+          linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        pointer-events: none;
+        opacity: 0.8;
+        z-index: 1;
+      }
+
+      .elite-card:hover::before {
+        opacity: 1;
+      }
+
+      .elite-card-image {
+        position: relative;
+        width: 100%;
+        height: 360px;
+        overflow: hidden;
+        z-index: 2;
+      }
+
+      .elite-card-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.6s var(--transition-smooth);
+        filter: brightness(0.95) contrast(1.05);
+      }
+
+      .elite-card:hover .elite-card-image img {
+        transform: scale(1.07);
+        filter: brightness(1.05) contrast(1.08);
+      }
+
+      .crown-badge {
+        position: absolute;
+        top: 16px;
+        left: 16px;
+        background: linear-gradient(135deg, #c9a84c, #f0e4c8);
+        color: #0a0f25;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+        z-index: 5;
+        box-shadow: 0 0 25px rgba(200, 160, 40, 0.7);
+        border: 2px solid rgba(255, 255, 255, 0.6);
+      }
+
+      .status-badge {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(10px);
+        padding: 6px 14px;
+        border-radius: 50px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        z-index: 5;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+      }
+
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #4cfa7c;
+        box-shadow: 0 0 12px #4cfa7c;
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          box-shadow: 0 0 8px #4cfa7c;
         }
-
-        .nav-brand-text {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.5rem;
-            font-weight: 700;
-            letter-spacing: 0.04em;
-            background: linear-gradient(135deg, var(--gold-light), var(--champagne), var(--gold));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+        50% {
+          box-shadow:
+            0 0 20px #4cfa7c,
+            0 0 35px #4cfa7c;
         }
+      }
 
+      /* ── Card Interactions (overlay on image, right side) ── */
+      .card-interactions {
+        position: absolute;
+        right: 12px;
+        bottom: 60px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        z-index: 6;
+      }
+
+      .card-interactions .interaction-btn {
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        width: 42px;
+        height: 42px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.25s;
+        color: white;
+        font-size: 1.1rem;
+        padding: 0;
+      }
+
+      .card-interactions .interaction-btn:hover {
+        background: rgba(255, 107, 138, 0.3);
+        border-color: var(--love-pink);
+        transform: scale(1.1);
+      }
+
+      .card-interactions .admirer-count {
+        color: white;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-shadow: 0 0 8px rgba(0, 0, 0, 0.8);
+        line-height: 1;
+        margin-top: -6px;
+        text-align: center;
+        min-width: 20px;
+      }
+
+      .card-interactions .bookmark-btn {
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        width: 38px;
+        height: 38px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.25s;
+        color: var(--gold-light);
+        font-size: 1rem;
+        padding: 0;
+      }
+
+      .card-interactions .bookmark-btn:hover {
+        background: rgba(200, 160, 60, 0.3);
+        border-color: var(--gold-light);
+        transform: scale(1.1);
+      }
+
+      /* Viewed badge */
+      .viewed-badge {
+        position: absolute;
+        top: 58px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(10px);
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        color: var(--gold-light);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        z-index: 5;
+      }
+
+      .elite-card-body {
+        padding: 1.5rem;
+        position: relative;
+        z-index: 2;
+      }
+
+      .elite-name-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+      }
+
+      .elite-name {
+        font-family: "Playfair Display", serif;
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: var(--pure-white);
+        letter-spacing: 0.03em;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .verified-badge {
+        color: #3498db;
+        font-size: 0.95rem;
+        filter: drop-shadow(0 0 6px rgba(52, 152, 219, 0.6));
+      }
+
+      .elite-age {
+        background: rgba(200, 155, 60, 0.2);
+        color: var(--gold-light);
+        padding: 4px 12px;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        border: 1px solid rgba(200, 155, 60, 0.3);
+      }
+
+      .elite-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin: 0.8rem 0;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+      }
+
+      .elite-meta span {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+
+      .net-worth {
+        background: rgba(200, 160, 60, 0.08);
+        padding: 6px 14px;
+        border-radius: 50px;
+        color: var(--gold-light);
+        font-weight: 600;
+        letter-spacing: 0.03em;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin: 0.5rem 0;
+        font-size: 0.75rem;
+        border: 1px solid rgba(200, 160, 60, 0.3);
+      }
+
+      .elite-contact {
+        width: 100%;
+        padding: 12px;
+        margin-top: 1rem;
+        background: linear-gradient(135deg, var(--crimson), var(--royal-blue));
+        border: none;
+        border-radius: 12px;
+        color: white;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        box-shadow: 0 4px 20px rgba(180, 30, 45, 0.3);
+      }
+
+      .elite-contact:hover {
+        background: linear-gradient(135deg, #a01e30, #1a3a80);
+        box-shadow: 0 8px 30px rgba(200, 40, 55, 0.5);
+        transform: translateY(-2px);
+      }
+
+      /* ── Success Stories ──────────────────────── */
+      .success-section {
+        max-width: 1400px;
+        margin: 4rem auto 2rem;
+        padding: 0 2rem;
+      }
+
+      .section-heading {
+        font-family: "Playfair Display", serif;
+        font-size: 2.5rem;
+        text-align: center;
+        color: var(--gold-light);
+        margin-bottom: 2rem;
+        letter-spacing: 0.03em;
+      }
+
+      .stories-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 2rem;
+      }
+
+      .story-card {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        padding: 2rem 1.5rem;
+        backdrop-filter: blur(12px);
+        text-align: center;
+        transition: all 0.4s;
+        opacity: 0;
+        transform: translateY(40px);
+      }
+
+      .story-card.card-visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .story-card:hover {
+        border-color: var(--card-border-glow);
+        box-shadow: var(--shadow-gold);
+      }
+
+      .story-img {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid var(--gold);
+        margin-bottom: 1rem;
+        box-shadow: 0 0 25px rgba(200, 160, 60, 0.4);
+      }
+
+      .story-quote {
+        font-style: italic;
+        color: var(--text-secondary);
+        margin-bottom: 0.8rem;
+        font-size: 0.9rem;
+      }
+
+      .story-name {
+        font-weight: 600;
+        color: var(--champagne);
+      }
+
+      /* ── Elite Lounge CTA ─────────────────────── */
+      .lounge-cta {
+        max-width: 800px;
+        margin: 4rem auto 3rem;
+        padding: 2.5rem;
+        background: rgba(200, 160, 60, 0.05);
+        border: 1px solid rgba(200, 160, 60, 0.3);
+        border-radius: 28px;
+        backdrop-filter: blur(20px);
+        text-align: center;
+        position: relative;
+      }
+
+      .lounge-cta i {
+        font-size: 2.5rem;
+        color: var(--gold-light);
+        margin-bottom: 1rem;
+      }
+
+      .lounge-cta h3 {
+        font-family: "Playfair Display", serif;
+        font-size: 1.8rem;
+        color: var(--gold-light);
+        margin-bottom: 0.5rem;
+      }
+
+      .lounge-cta p {
+        color: var(--text-secondary);
+        margin-bottom: 1.5rem;
+      }
+
+      .btn-lounge {
+        background: linear-gradient(135deg, #c9a84c, #dfc278);
+        color: #080c24;
+        border: none;
+        padding: 14px 36px;
+        border-radius: 50px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        cursor: pointer;
+        transition: 0.3s;
+        box-shadow: 0 6px 25px rgba(200, 160, 60, 0.4);
+      }
+
+      .btn-lounge:hover {
+        transform: scale(1.05);
+        box-shadow: 0 10px 35px rgba(200, 160, 60, 0.6);
+      }
+
+      /* ── Footer ──────────────────────────────── */
+      .footer {
+        text-align: center;
+        padding: 2.5rem 2rem;
+        border-top: 1px solid var(--glass-border);
+        color: var(--text-muted);
+        font-size: 0.78rem;
+        letter-spacing: 0.04em;
+      }
+
+      .footer span {
+        color: var(--gold-light);
+        font-weight: 600;
+      }
+
+      /* ── Toast ────────────────────────────────── */
+      .toast {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%) translateY(100px);
+        background: rgba(20, 30, 60, 0.9);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--gold);
+        color: var(--champagne);
+        padding: 14px 28px;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        z-index: 999;
+        transition: transform 0.4s var(--transition-bounce);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        pointer-events: none;
+      }
+
+      .toast.show {
+        transform: translateX(-50%) translateY(0);
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(40px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* ── Responsive ──────────────────────────── */
+      @media (max-width: 768px) {
         .nav-links {
-            display: flex;
-            align-items: center;
-            gap: 2rem;
-            list-style: none;
+          display: none;
         }
-
-        .nav-links a {
-            text-decoration: none;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            font-weight: 500;
-            letter-spacing: 0.03em;
-            transition: color 0.3s;
-            position: relative;
-        }
-
-        .nav-links a::after {
-            content: '';
-            position: absolute;
-            bottom: -6px;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background: var(--gold);
-            transition: width 0.35s var(--transition-smooth);
-        }
-
-        .nav-links a:hover,
-        .nav-links a.active {
-            color: var(--champagne);
-        }
-
-        .nav-links a.active::after {
-            width: 100%;
-        }
-
-        .nav-links a:hover::after {
-            width: 100%;
-        }
-
-        
-        /* Notification Bell */
-.notification-bell {
-    position: relative;
-    cursor: pointer;
-    margin-right: 1rem;
-    font-size: 1.3rem;
-    color: var(--text-secondary);
-    transition: color 0.3s;
-}
-.notification-bell:hover {
-    color: var(--champagne);
-}
-.notification-bell .badge {
-    position: absolute;
-    top: -6px;
-    right: -10px;
-    background: var(--ruby);
-    color: white;
-    border-radius: 50%;
-    width: 18px;
-    height: 18px;
-    font-size: 0.65rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    box-shadow: 0 0 8px rgba(180,30,45,0.6);
-}
-.notif-dropdown {
-    position: absolute;
-    top: 40px;
-    right: 0;
-    width: 320px;
-    max-height: 400px;
-    overflow-y: scroll;
-    background: rgba(15, 20, 50, 0.95);
-    backdrop-filter: blur(20px);
-    border: 1px solid var(--gold);
-    border-radius: 16px;
-    box-shadow: 0 15px 40px rgba(0,0,0,0.6);
-    padding: 1rem;
-    display: none;
-    z-index: 300;
-}
-.notif-dropdown::-webkit-scrollbar {
-    width: 2px;
-    background-color: pink;
-    border-radius: 10px;
-}
-.notif-dropdown::-webkit-scrollbar-thumb {
-    width: 3px;
-    background-color: rgba(15, 20, 50, 0.95);
-}
-.notif-dropdown::-webkit-scrollbar-track {
-    background-color: gold;
-}
-.notif-dropdown.show {
-    display: block;
-}
-.notif-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.8rem;
-}
-.notif-header h4 {
-    color: var(--gold-light);
-    font-family: 'Playfair Display', serif;
-    font-size: 1rem;
-}
-.notif-header button {
-    background: none;
-    border: 1px solid var(--glass-border);
-    color: var(--text-secondary);
-    padding: 4px 10px;
-    border-radius: 15px;
-    font-size: 0.7rem;
-    cursor: pointer;
-    transition: 0.2s;
-}
-.notif-header button:hover {
-    border-color: var(--gold);
-    color: var(--champagne);
-}
-.notif-item {
-    padding: 0.6rem 0;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-}
-.notif-item:last-child {
-    border-bottom: none;
-}
-.notif-item .notif-title {
-    color: var(--champagne);
-    font-weight: 600;
-    margin-bottom: 0.2rem;
-}
-.notif-item .notif-time {
-    font-size: 0.65rem;
-    color: var(--text-muted);
-    margin-top: 0.2rem;
-}
-.notif-item .mark-read {
-    background: none;
-    border: none;
-    color: var(--gold-light);
-    cursor: pointer;
-    font-size: 0.7rem;
-    margin-left: 0.5rem;
-}
-
-        .nav-cta {
-            background: linear-gradient(135deg, var(--crimson), var(--ruby));
-            color: var(--pure-white);
-            border: none;
-            padding: 10px 26px;
-            border-radius: 50px;
-            font-family: 'Inter', sans-serif;
-            font-weight: 600;
-            font-size: 0.85rem;
-            letter-spacing: 0.04em;
-            cursor: pointer;
-            transition: all 0.35s var(--transition-smooth);
-            box-shadow: 0 4px 20px rgba(180, 30, 45, 0.35);
-            white-space: nowrap;
-        }
-
-        .nav-cta:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(200, 40, 55, 0.5);
-            background: linear-gradient(135deg, #a01e30, #c03040);
-        }
-        /* ── Logged‑in Avatar & Dropdown ─────────── */
-        .nav-profile {
-            position: relative;
-            cursor: pointer;
-        }
-        .nav-avatar {
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            border: 2px solid var(--gold-light);
-            box-shadow: 0 0 20px rgba(200, 160, 60, 0.4);
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: 0.3s;
-            background: #1a1e35;
-        }
-        .nav-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .nav-avatar:hover {
-            box-shadow: 0 0 30px rgba(200, 160, 60, 0.8);
-            transform: scale(1.05);
-        }
-        .dropdown-menu {
-            position: absolute;
-            top: 55px;
-            right: 0;
-            background: rgba(15, 20, 50, 0.9);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--gold);
-            border-radius: 16px;
-            padding: 0.8rem;
-            width: 180px;
-            display: none;
-            flex-direction: column;
-            gap: 0.5rem;
-            z-index: 200;
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
-        }
-        .dropdown-menu.show {
-            display: flex;
-        }
-        .dropdown-menu a,
-        .dropdown-menu button {
-            background: none;
-            border: none;
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-size: 0.85rem;
-            padding: 8px 12px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            transition: 0.2s;
-            text-align: left;
-            width: 100%;
-        }
-        .dropdown-menu a:hover,
-        .dropdown-menu button:hover {
-            background: rgba(255, 255, 255, 0.06);
-            color: var(--champagne);
-        }
-
         .nav-hamburger {
-            display: none;
-            background: none;
-            border: none;
-            color: var(--text-primary);
-            font-size: 1.5rem;
-            cursor: pointer;
-            padding: 8px;
+          display: block;
         }
-
-        /* ── Elite Hero ────────────────────────────── */
-        .elite-hero {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 3.5rem 2rem 2.5rem;
-            text-align: center;
-            position: relative;
-            animation: fadeInUp 0.9s var(--transition-smooth);
-        }
-
-        .elite-badge {
-            display: inline-block;
-            background: rgba(200, 160, 60, 0.15);
-            border: 1px solid var(--gold);
-            color: var(--gold-light);
-            padding: 10px 28px;
-            border-radius: 50px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            margin-bottom: 1.5rem;
-            backdrop-filter: blur(10px);
-        }
-
-        .elite-title {
-            font-family: 'Playfair Display', serif;
-            font-size: clamp(2.8rem, 5vw, 4.4rem);
-            font-weight: 700;
-            line-height: 1.15;
-            letter-spacing: 0.02em;
-            margin-bottom: 1rem;
-            background: linear-gradient(180deg, #ffffff 0%, #e8dfd0 40%, #c9a84c 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            filter: drop-shadow(0 2px 8px rgba(200, 155, 50, 0.3));
-        }
-
-        .elite-subtitle {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: clamp(1.1rem, 1.8vw, 1.4rem);
-            font-weight: 400;
-            font-style: italic;
-            color: var(--text-secondary);
-            max-width: 680px;
-            margin: 0 auto 2rem;
-            letter-spacing: 0.03em;
-        }
-
-        /* ── Elite Stats Bar ──────────────────────── */
-        .elite-stats {
-            max-width: 1000px;
-            margin: 1rem auto 2rem;
-            display: flex;
-            justify-content: center;
-            gap: 3rem;
-            flex-wrap: wrap;
-            padding: 1.8rem 2rem;
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            backdrop-filter: blur(16px);
-            animation: fadeInUp 1.1s var(--transition-smooth);
-        }
-
-        .stat-item {
-            text-align: center;
-        }
-
-        .stat-value {
-            font-family: 'Playfair Display', serif;
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--gold-light);
-            letter-spacing: 0.03em;
-        }
-
-        .stat-label {
-            font-size: 0.78rem;
-            color: var(--text-muted);
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            margin-top: 2px;
-        }
-
-        /* ── Elite Card Grid ──────────────────────── */
         .elite-grid {
-            max-width: 1400px;
-            margin: 2rem auto 4rem;
-            padding: 0 2rem;
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-            gap: 2rem;
+          grid-template-columns: 1fr;
         }
-
-        .elite-card {
-            position: relative;
-            border-radius: 24px;
-            overflow: hidden;
-            background: var(--glass-bg-card);
-            border: 1px solid var(--glass-border);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            cursor: pointer;
-            transition: all 0.5s var(--transition-card);
-            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.35);
-            opacity: 0;
-            transform: translateY(60px) scale(0.92);
-            will-change: transform, opacity;
+        .elite-stats {
+          flex-direction: column;
+          gap: 1rem;
         }
-
-        .elite-card.card-visible {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-        }
-
-        .elite-card:hover {
-            transform: translateY(-10px) scale(1.025);
-            border-color: var(--card-border-glow);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 30px rgba(200, 155, 60, 0.3);
-        }
-
-        .elite-card::before {
-            content: '';
-            position: absolute;
-            inset: -1px;
-            border-radius: 24px;
-            padding: 1.5px;
-            background: linear-gradient(160deg, rgba(220,180,70,0.7) 0%, rgba(200,40,55,0.4) 30%, rgba(20,45,130,0.4) 60%, rgba(200,160,70,0.5) 100%);
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            pointer-events: none;
-            opacity: 0.8;
-            z-index: 1;
-        }
-
-        .elite-card:hover::before {
-            opacity: 1;
-        }
-
-        .elite-card-image {
-            position: relative;
-            width: 100%;
-            height: 360px;
-            overflow: hidden;
-            z-index: 2;
-        }
-
-        .elite-card-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.6s var(--transition-smooth);
-            filter: brightness(0.95) contrast(1.05);
-        }
-
-        .elite-card:hover .elite-card-image img {
-            transform: scale(1.07);
-            filter: brightness(1.05) contrast(1.08);
-        }
-
-        .crown-badge {
-            position: absolute;
-            top: 16px;
-            left: 16px;
-            background: linear-gradient(135deg, #c9a84c, #f0e4c8);
-            color: #0a0f25;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.9rem;
-            z-index: 5;
-            box-shadow: 0 0 25px rgba(200, 160, 40, 0.7);
-            border: 2px solid rgba(255,255,255,0.6);
-        }
-
-        .status-badge {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(10px);
-            padding: 6px 14px;
-            border-radius: 50px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            letter-spacing: 0.04em;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            z-index: 5;
-            border: 1px solid rgba(255,255,255,0.15);
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #4cfa7c;
-            box-shadow: 0 0 12px #4cfa7c;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%,100%{ box-shadow:0 0 8px #4cfa7c; }
-            50%{ box-shadow:0 0 20px #4cfa7c, 0 0 35px #4cfa7c; }
-        }
-
-        .elite-card-body {
-            padding: 1.5rem;
-            position: relative;
-            z-index: 2;
-        }
-
-        .elite-name-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 0.5rem;
-        }
-
-        .elite-name {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.4rem;
-            font-weight: 600;
-            color: var(--pure-white);
-            letter-spacing: 0.03em;
-        }
-
-        .card-admire {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    margin-top: 0.5rem;
-    font-size: 0.8rem;
-}
-.btn-admire {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.15);
-    border-radius: 20px;
-    padding: 6px 14px;
-    color: var(--text-secondary);
-    cursor: pointer;
-    transition: all 0.3s;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-weight: 600;
-}
-.btn-admire i {
-    color: var(--love-pink);
-}
-.btn-admire:hover:not(:disabled) {
-    background: rgba(255,107,138,0.2);
-    border-color: var(--love-pink);
-    color: white;
-}
-.btn-admire:disabled {
-    opacity: 0.8;
-    cursor: not-allowed;
-    background: rgba(255,107,138,0.15);
-    color: var(--love-pink);
-    border-color: rgba(255,107,138,0.5);
-}
-.admirer-count {
-    color: var(--love-pink);
-    font-weight: 600;
-}
-
-        .elite-age {
-            background: rgba(200,155,60,0.2);
-            color: var(--gold-light);
-            padding: 4px 12px;
-            border-radius: 50px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            border: 1px solid rgba(200,155,60,0.3);
-        }
-
-        .elite-meta {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 16px;
-            margin: 0.8rem 0;
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-        }
-
-        .elite-meta span {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .net-worth {
-            background: rgba(200,160,60,0.08);
-            padding: 6px 14px;
-            border-radius: 50px;
-            color: var(--gold-light);
-            font-weight: 600;
-            letter-spacing: 0.03em;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            margin: 0.5rem 0;
-            font-size: 0.75rem;
-            border: 1px solid rgba(200,160,60,0.3);
-        }
-
-        .elite-contact {
-            width: 100%;
-            padding: 12px;
-            margin-top: 1rem;
-            background: linear-gradient(135deg, var(--crimson), var(--royal-blue));
-            border: none;
-            border-radius: 12px;
-            color: white;
-            font-weight: 600;
-            letter-spacing: 0.05em;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            box-shadow: 0 4px 20px rgba(180,30,45,0.3);
-        }
-
-        .elite-contact:hover {
-            background: linear-gradient(135deg, #a01e30, #1a3a80);
-            box-shadow: 0 8px 30px rgba(200,40,55,0.5);
-            transform: translateY(-2px);
-        }
-
-        /* ── Success Stories ──────────────────────── */
-        .success-section {
-            max-width: 1400px;
-            margin: 4rem auto 2rem;
-            padding: 0 2rem;
-        }
-
-        .section-heading {
-            font-family: 'Playfair Display', serif;
-            font-size: 2.5rem;
-            text-align: center;
-            color: var(--gold-light);
-            margin-bottom: 2rem;
-            letter-spacing: 0.03em;
-        }
-
-        .stories-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 2rem;
-        }
-
-        .story-card {
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            padding: 2rem 1.5rem;
-            backdrop-filter: blur(12px);
-            text-align: center;
-            transition: all 0.4s;
-            opacity: 0;
-            transform: translateY(40px);
-        }
-
-        .story-card.card-visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .story-card:hover {
-            border-color: var(--card-border-glow);
-            box-shadow: var(--shadow-gold);
-        }
-
-        .story-img {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid var(--gold);
-            margin-bottom: 1rem;
-            box-shadow: 0 0 25px rgba(200,160,60,0.4);
-        }
-
-        .story-quote {
-            font-style: italic;
-            color: var(--text-secondary);
-            margin-bottom: 0.8rem;
-            font-size: 0.9rem;
-        }
-
-        .story-name {
-            font-weight: 600;
-            color: var(--champagne);
-        }
-
-        /* ── Elite Lounge CTA ─────────────────────── */
-        .lounge-cta {
-            max-width: 800px;
-            margin: 4rem auto 3rem;
-            padding: 2.5rem;
-            background: rgba(200,160,60,0.05);
-            border: 1px solid rgba(200,160,60,0.3);
-            border-radius: 28px;
-            backdrop-filter: blur(20px);
-            text-align: center;
-            position: relative;
-        }
-
-        .lounge-cta i {
-            font-size: 2.5rem;
-            color: var(--gold-light);
-            margin-bottom: 1rem;
-        }
-
-        .lounge-cta h3 {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.8rem;
-            color: var(--gold-light);
-            margin-bottom: 0.5rem;
-        }
-
-        .lounge-cta p {
-            color: var(--text-secondary);
-            margin-bottom: 1.5rem;
-        }
-
-        .btn-lounge {
-            background: linear-gradient(135deg, #c9a84c, #dfc278);
-            color: #080c24;
-            border: none;
-            padding: 14px 36px;
-            border-radius: 50px;
-            font-weight: 700;
-            letter-spacing: 0.06em;
-            cursor: pointer;
-            transition: 0.3s;
-            box-shadow: 0 6px 25px rgba(200,160,60,0.4);
-        }
-
-        .btn-lounge:hover {
-            transform: scale(1.05);
-            box-shadow: 0 10px 35px rgba(200,160,60,0.6);
-        }
-
-        /* ── Footer ──────────────────────────────── */
-        .footer {
-            text-align: center;
-            padding: 2.5rem 2rem;
-            border-top: 1px solid var(--glass-border);
-            color: var(--text-muted);
-            font-size: 0.78rem;
-            letter-spacing: 0.04em;
-        }
-
-        .footer span {
-            color: var(--gold-light);
-            font-weight: 600;
-        }
-
-        /* ── Toast ────────────────────────────────── */
-        .toast {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: rgba(20,30,60,0.9);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--gold);
-            color: var(--champagne);
-            padding: 14px 28px;
-            border-radius: 50px;
-            font-size: 0.85rem;
-            z-index: 999;
-            transition: transform 0.4s var(--transition-bounce);
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-            pointer-events: none;
-        }
-
-        .toast.show {
-            transform: translateX(-50%) translateY(0);
-        }
-
-        /* ── Responsive ──────────────────────────── */
-        @media (max-width: 768px) {
-            .nav-links {
-                display: none;
-            }
-            .nav-hamburger {
-                display: block;
-            }
-            .elite-grid {
-                grid-template-columns: 1fr;
-            }
-            .elite-stats {
-                flex-direction: column;
-                gap: 1rem;
-            }
-        }
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="bg-orbit"></div>
     <div class="particles-container" id="particlesContainer"></div>
     <div class="toast" id="toast"></div>
 
     <div class="main-wrapper">
-        <!-- Navigation -->
-        <nav class="nav"></nav>
+      <!-- Navigation -->
+      <nav class="nav"></nav>
 
-        <!-- Sidebar -->
-    <aside class="sidebar invisible" id="sidebar"></aside>
+      <!-- Sidebar -->
+      <aside class="sidebar invisible" id="sidebar"></aside>
 
-        <!-- Elite Hero -->
-        <section class="elite-hero">
-            <div class="elite-badge"><i class="fa-solid fa-crown"></i> The Inner Circle</div>
-            <h1 class="elite-title">The Crown Elite</h1>
-            <p class="elite-subtitle">A meticulously verified collection of the world's most exceptional individuals — where background, ambition, and elegance converge.</p>
-        </section>
-
-        <!-- Elite Stats -->
-        <div class="elite-stats">
-            <div class="stat-item"><div class="stat-value">100%</div><div class="stat-label">Identity Verified</div></div>
-            <div class="stat-item"><div class="stat-value">Top 1%</div><div class="stat-label">Income Brackets</div></div>
-            <div class="stat-item"><div class="stat-value">24K+</div><div class="stat-label">Elite Members</div></div>
-            <div class="stat-item"><div class="stat-value">Privacy</div><div class="stat-label">Military‑Grade</div></div>
+      <!-- Elite Hero -->
+      <section class="elite-hero">
+        <div class="elite-badge">
+          <i class="fa-solid fa-crown"></i> The Inner Circle
         </div>
+        <h1 class="elite-title">The Crown Elite</h1>
+        <p class="elite-subtitle">
+          A meticulously verified collection of the world's most exceptional
+          individuals — where background, ambition, and elegance converge.
+        </p>
+      </section>
 
-        <!-- Elite Profile Grid -->
-        <div class="elite-grid" id="eliteGrid"></div>
-
-        <!-- Success Stories -->
-        <div class="success-section">
-            <h2 class="section-heading">Love, Elevated</h2>
-            <div class="stories-grid" id="storiesGrid"></div>
+      <!-- Elite Stats -->
+      <div class="elite-stats">
+        <div class="stat-item">
+          <div class="stat-value">100%</div>
+          <div class="stat-label">Identity Verified</div>
         </div>
-
-        <!-- Elite Lounge CTA -->
-        <div class="lounge-cta">
-            <i class="fa-solid fa-lock"></i>
-            <h3>Elite Members' Lounge</h3>
-            <p>Private salon for approved members — curated introductions, exclusive events, and personal matchmakers await behind these doors.</p>
-            <button class="btn-lounge" id="applyLoungeBtn">Apply for Access</button>
+        <div class="stat-item">
+          <div class="stat-value">Top 1%</div>
+          <div class="stat-label">Income Brackets</div>
         </div>
+        <div class="stat-item">
+          <div class="stat-value">24K+</div>
+          <div class="stat-label">Elite Members</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">Privacy</div>
+          <div class="stat-label">Military‑Grade</div>
+        </div>
+      </div>
 
-        <footer class="footer"></footer>
+      <div style="max-width: 1400px; margin: 1rem auto 0; padding: 0 2rem">
+        <input
+          type="text"
+          id="searchInput"
+          placeholder="Search elite members…"
+          style="
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            display: block;
+            padding: 0.8rem 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 50px;
+            color: white;
+            outline: none;
+            backdrop-filter: blur(10px);
+          "
+        />
+      </div>
+
+      <!-- Elite Profile Grid -->
+      <div class="elite-grid" id="eliteGrid"></div>
+
+      <!-- Success Stories -->
+      <div class="success-section">
+        <h2 class="section-heading">Love, Elevated</h2>
+        <div class="stories-grid" id="storiesGrid"></div>
+      </div>
+
+      <!-- Elite Lounge CTA -->
+      <div class="lounge-cta">
+        <i class="fa-solid fa-lock"></i>
+        <h3>Elite Members' Lounge</h3>
+        <p>
+          Private salon for approved members — curated introductions, exclusive
+          events, and personal matchmakers await behind these doors.
+        </p>
+        <button class="btn-lounge" id="applyLoungeBtn">Apply for Access</button>
+      </div>
+
+      <footer class="footer"></footer>
     </div>
-    
+
     <script src="assets/general.js"></script>
     <script src="assets/auth.js"></script>
-
-<script>
-(function() {
-  // ── Firebase readiness helper ──────────────
-  function waitForFirebase(callback) {
-    if (window.db && window.collection && window.getDocs && window.query && window.where && window.orderBy && window.limit && window.doc && window.setDoc && window.deleteDoc && window.updateDoc) {
-      callback();
-    } else {
-      let attempts = 0;
-      const check = setInterval(() => {
-        if (window.db && window.collection && window.getDocs && window.query && window.where && window.orderBy && window.limit && window.doc && window.setDoc && window.deleteDoc && window.updateDoc) {
-          clearInterval(check);
-          callback();
+    <script>
+      (function () {
+        // ── Firebase readiness helper ──────────────
+        function waitForFirebase(callback) {
+          if (
+            window.db &&
+            window.collection &&
+            window.getDocs &&
+            window.query &&
+            window.where &&
+            window.orderBy &&
+            window.limit &&
+            window.doc &&
+            window.setDoc &&
+            window.deleteDoc &&
+            window.updateDoc &&
+            window.serverTimestamp &&
+            window.addDoc
+          ) {
+            callback();
+          } else {
+            let attempts = 0;
+            const check = setInterval(() => {
+              if (
+                window.db &&
+                window.collection &&
+                window.getDocs &&
+                window.query &&
+                window.where &&
+                window.orderBy &&
+                window.limit &&
+                window.doc &&
+                window.setDoc &&
+                window.deleteDoc &&
+                window.updateDoc &&
+                window.serverTimestamp &&
+                window.addDoc
+              ) {
+                clearInterval(check);
+                callback();
+              }
+              attempts++;
+              if (attempts > 50) {
+                clearInterval(check);
+                console.error("Firebase not ready for Elite");
+              }
+            }, 100);
+          }
         }
-        attempts++;
-        if (attempts > 50) {
-          clearInterval(check);
-          console.error('Firebase not ready for Elite page');
-        }
-      }, 100);
-    }
-  }
 
-  function startApp() {
-    // ── Audio context (for notification sounds) ──
-    let audioCtx = null;
-    function getAudioContext() {
-      if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      }
-      if (audioCtx.state === 'suspended') audioCtx.resume();
-      return audioCtx;
-    }
-    document.addEventListener('click', () => getAudioContext(), { once: true });
+        function startApp() {
+          // ── Global caches & constants ────────────
+          const SESSION_KEY = "reh_user";
+          const VIEWS_KEY = "reh_profile_views";
+          let bookmarkedEmails = new Set();
+          let admiredEmails = new Set();
+          let searchTerm = "";
 
-    const SESSION_KEY = 'reh_user';
-    const ADMIRATIONS_KEY = 'reh_admirations';
-    const NOTIF_KEY = 'ss_global_notifications';   // still localStorage for now
+          // ── Toast (global) ────────────────────────
+          const toast = document.getElementById("toast");
+          let toastTimer;
+          function showToast(msg) {
+            if (toastTimer) clearTimeout(toastTimer);
+            toast.textContent = msg;
+            toast.classList.add("show");
+            toastTimer = setTimeout(() => toast.classList.remove("show"), 2200);
+          }
+          window.showToast = showToast;
 
-    // ── Global cache ───────────────────────────
-    let bookmarkedEmails = new Set();
-
-    async function loadBookmarkCache() {
-      const session = JSON.parse(localStorage.getItem(SESSION_KEY) || '{}');
-      if (!session.email) return;
-      const bookmarksRef = window.collection(window.db, "users", session.email, "bookmarks");
-      const snapshot = await window.getDocs(bookmarksRef);
-      bookmarkedEmails.clear();
-      snapshot.forEach(doc => bookmarkedEmails.add(doc.id));
-    }
-
-    // ── Toast ──────────────────────────────────
-    const toast = document.getElementById('toast');
-    function showToast(msg) {
-      toast.textContent = msg;
-      toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), 2200);
-    }
-    window.showToast = showToast;
-
-    // ── Navigation UI ──────────────────────────
-    function updateNavUI() {
-      const joinCta = document.getElementById('joinCta');
-      const profileArea = document.getElementById('profileArea');
-      const navAvatarImg = document.getElementById('navAvatarImg');
-      if (!joinCta || !profileArea) return;
-      const user = JSON.parse(localStorage.getItem(SESSION_KEY) || '{}');
-      if (user && user.email) {
-        joinCta.style.display = 'none';
-        profileArea.style.display = 'flex';
-        if (navAvatarImg && user.avatar) navAvatarImg.src = user.avatar;
-      } else {
-        joinCta.style.display = '';
-        profileArea.style.display = 'none';
-      }
-    }
-    updateNavUI();
-
-    // ── Logout ─────────────────────────────────
-    document.getElementById('logoutBtn')?.addEventListener('click', () => {
-      localStorage.removeItem(SESSION_KEY);
-      updateNavUI();
-      window.location.href = 'index.html?redirect=login.html';
-    });
-
-    // ── Dropdown toggle ────────────────────────
-    const navProfile = document.getElementById('profileArea');
-    const dropdownMenu = document.getElementById('dropdownMenu');
-    if (navProfile && dropdownMenu) {
-      navProfile.addEventListener('click', (e) => {
-        e.stopPropagation();
-        dropdownMenu.classList.toggle('show');
-      });
-      document.addEventListener('click', () => dropdownMenu.classList.remove('show'));
-    }
-
-    // ── Firestore: fetch elite users ───────────
-    async function getEliteUsers() {
-      const q = window.query(
-        window.collection(window.db, "users"),
-        window.where("plan", "==", "elite-annual"),
-        window.where("banned", "==", false),
-        window.orderBy("lastActive", "desc"),
-        window.limit(50)
-      );
-      const snapshot = await window.getDocs(q);
-      const users = [];
-      snapshot.forEach(doc => {
-        const u = doc.data();
-        u.id = doc.id;
-        users.push(u);
-      });
-      return users;
-    }
-
-    // ── Presence (online check) ────────────────
-    function isUserOnline(email) {
-      if (!email) return false;
-      const presence = JSON.parse(localStorage.getItem('reh_presence') || '{}');
-      const lastBeat = presence[email] || 0;
-      return (Date.now() - lastBeat) < 20000;
-    }
-
-    // ── Admire helpers (localStorage) ──────────
-    function hasAlreadyAdmired(targetEmail) {
-      const session = JSON.parse(localStorage.getItem(SESSION_KEY) || '{}');
-      if (!session.email) return false;
-      const admirations = JSON.parse(localStorage.getItem(ADMIRATIONS_KEY) || '[]');
-      return admirations.some(a => a.from === session.email && a.to === targetEmail);
-    }
-
-    function getAdmirersCount(targetEmail) {
-      if (!targetEmail) return 0;
-      const admirations = JSON.parse(localStorage.getItem(ADMIRATIONS_KEY) || '[]');
-      return admirations.filter(a => a.to === targetEmail).length;
-    }
-
-    // ── Optimistic Admire (no full re‑render) ──
-    async function admireUser(targetEmail, buttonElement) {
-      const session = JSON.parse(localStorage.getItem(SESSION_KEY) || '{}');
-      if (!session.email) {
-        window.location.href = 'index.html?redirect=login.html';
-        return;
-      }
-      if (hasAlreadyAdmired(targetEmail)) return;
-
-      // Optimistic UI
-      const heartIcon = buttonElement.querySelector('i.fa-heart');
-      const countSpan = buttonElement.querySelector('span.admirer-count');
-      if (heartIcon) {
-        heartIcon.classList.remove('fa-regular');
-        heartIcon.classList.add('fa-solid');
-      }
-      if (countSpan) {
-        const current = parseInt(countSpan.textContent, 10) || 0;
-        countSpan.textContent = current + 1;
-      }
-      buttonElement.disabled = true;
-      buttonElement.style.opacity = '0.6';
-      buttonElement.style.cursor = 'not-allowed';
-      buttonElement.innerHTML = `<i class="fa-heart fa-solid"></i> Admired`;
-
-      // Save admiration
-      const admirations = JSON.parse(localStorage.getItem(ADMIRATIONS_KEY) || '[]');
-      admirations.push({
-        from: session.email,
-        fromName: (session.firstName + ' ' + session.lastName).trim() || session.email,
-        to: targetEmail,
-        timestamp: Date.now()
-      });
-      localStorage.setItem(ADMIRATIONS_KEY, JSON.stringify(admirations));
-
-      // Firestore notification (reuse the new system)
-      try {
-        await window.addDoc(window.collection(window.db, "notifications"), {
-          title: "Someone admires you!",
-          body: `${session.firstName || "Someone"} just admired you ❤️`,
-          timestamp: window.serverTimestamp ? window.serverTimestamp() : new Date(),
-          targetEmail: targetEmail,
-          readBy: []
-        });
-      } catch(e) { console.error(e); }
-
-      showToast('❤️ You admired this profile!');
-    }
-
-    // ── Optimistic Bookmark Toggle ─────────────
-    async function toggleBookmark(targetEmail, buttonElement) {
-      const session = JSON.parse(localStorage.getItem(SESSION_KEY) || '{}');
-      if (!session.email) {
-        window.location.href = 'index.html?redirect=login.html';
-        return;
-      }
-
-      const bookmarkIcon = buttonElement.querySelector('i.fa-bookmark');
-      const currentlyBookmarked = bookmarkIcon && bookmarkIcon.classList.contains('fa-solid');
-
-      if (bookmarkIcon) {
-        bookmarkIcon.classList.toggle('fa-solid');
-        bookmarkIcon.classList.toggle('fa-regular');
-      }
-      if (currentlyBookmarked) {
-        bookmarkedEmails.delete(targetEmail);
-      } else {
-        bookmarkedEmails.add(targetEmail);
-      }
-
-      const bookmarkRef = window.doc(window.db, "users", session.email, "bookmarks", targetEmail);
-      try {
-        if (currentlyBookmarked) {
-          await window.deleteDoc(bookmarkRef);
-          showToast('🔖 Bookmark removed.');
-        } else {
-          const targetDoc = await window.getDoc(window.doc(window.db, "users", targetEmail));
-          if (!targetDoc.exists()) {
-            showToast('User not found.');
-            // revert
-            bookmarkIcon.classList.toggle('fa-solid');
-            bookmarkIcon.classList.toggle('fa-regular');
-            if (currentlyBookmarked) bookmarkedEmails.add(targetEmail);
-            else bookmarkedEmails.delete(targetEmail);
+          // ── Get logged in user ────────────────────
+          const user = JSON.parse(localStorage.getItem(SESSION_KEY) || "{}");
+          if (!user.email) {
+            window.location.href = "index.html?redirect=login.html";
             return;
           }
-          const target = targetDoc.data();
-          await window.setDoc(bookmarkRef, {
-            email: targetEmail,
-            firstName: target.firstName || '',
-            lastName: target.lastName || '',
-            age: target.age || '',
-            avatar: target.avatar || '',
-            location: target.location || '',
-            addedAt: window.serverTimestamp ? window.serverTimestamp() : new Date()
-          });
-          showToast('🔖 Profile bookmarked.');
-        }
-      } catch(err) {
-        console.error(err);
-        // revert
-        bookmarkIcon.classList.toggle('fa-solid');
-        bookmarkIcon.classList.toggle('fa-regular');
-        if (currentlyBookmarked) bookmarkedEmails.add(targetEmail);
-        else bookmarkedEmails.delete(targetEmail);
-      }
-    }
 
-    // ── Distance helpers (same as Discover) ────
-    function getUserPosition() {
-      return new Promise((resolve, reject) => {
-        if (!navigator.geolocation) reject(new Error("Geolocation not supported"));
-        else navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: true, timeout: 10000, maximumAge: 300000
-        });
-      });
-    }
-
-    async function geocodeLocation(locationName) {
-      const cacheKey = `geo_${locationName}`;
-      const cached = localStorage.getItem(cacheKey);
-      if (cached) return JSON.parse(cached);
-      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationName)}&limit=1`;
-      try {
-        const res = await fetch(url);
-        const data = await res.json();
-        if (data.length > 0) {
-          const coords = { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
-          localStorage.setItem(cacheKey, JSON.stringify(coords));
-          return coords;
-        }
-      } catch(e) {}
-      return null;
-    }
-
-    function computeDistance(lat1, lon1, lat2, lon2) {
-      const R = 6371;
-      const dLat = (lat2 - lat1) * Math.PI / 180;
-      const dLon = (lon2 - lon1) * Math.PI / 180;
-      const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
-      return (R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))).toFixed(1);
-    }
-
-    // ── Load & Render Elite Profiles ───────────
-    async function loadEliteProfiles() {
-      const grid = document.getElementById('eliteGrid');
-      grid.innerHTML = '<div style="text-align:center; padding:3rem; color:var(--muted);"><i class="fa-solid fa-spinner fa-spin"></i> Summoning the extraordinary…</div>';
-
-      const eliteUsers = await getEliteUsers();
-      const session = JSON.parse(localStorage.getItem(SESSION_KEY) || '{}');
-
-      // Filter out logged‑in user, invisible, blocked
-      const displayUsers = eliteUsers.filter(u => {
-        if (u.visibility === false) return false;
-        if (session.email && u.email === session.email) return false;
-        // can also check blocked, but keep simple
-        return true;
-      });
-
-      if (displayUsers.length === 0) {
-        grid.innerHTML = '<div style="text-align:center; padding:3rem; color:var(--text-muted);"><i class="fa-solid fa-crown"></i><p>No Elite members available at the moment.</p></div>';
-        return;
-      }
-
-      grid.innerHTML = displayUsers.map((u, i) => {
-        const fullName = `${u.firstName || ''} ${u.lastName || ''}`.trim() || 'Elite Member';
-        const online = isUserOnline(u.email) ? 'Active now' : 'Recently';
-        const phone = u.phone || 'Private';
-        return `
-        <div class="elite-card" data-index="${i}" style="transition-delay:${i*0.08}s">
-          <div class="elite-card-image">
-            <img src="${u.avatar || 'https://randomuser.me/api/portraits/women/44.jpg'}" alt="${fullName}" loading="lazy">
-            <div class="crown-badge"><i class="fa-solid fa-crown"></i></div>
-            <div class="status-badge"><span class="status-dot"></span> ${online}</div>
-          </div>
-          <div class="elite-card-body">
-            <div class="elite-name-row">
-              <span class="elite-name">${fullName}</span>
-              <span class="elite-age">${u.age || ''}</span>
-            </div>
-            <div class="elite-meta">
-              <span><i class="fa-solid fa-location-dot"></i> ${u.location || 'Unknown'}</span>
-              ${u.profession ? `<span><i class="fa-solid fa-briefcase"></i> ${u.profession}</span>` : ''}
-            </div>
-            ${u.distance !== false ? `<div class="card-distance" data-location="${u.location || ''}"><i class="fa-solid fa-route"></i> <span class="dist-text">— km</span></div>` : ''}
-            <div class="card-phone" data-phone="${phone}" style="cursor:pointer; color:var(--text-secondary); margin:0.5rem 0;"><i class="fa-solid fa-phone"></i> ${phone}</div>
-            <div class="net-worth"><i class="fa-solid fa-gem"></i> Net Worth: ${u.netWorth || 'Private'}</div>
-            <div style="color:#c5bfb3; font-size:0.8rem; margin:0.3rem 0;">Annual Income: ${u.income || 'Confidential'}</div>
-            <div class="card-interactions" style="display:flex; gap:0.5rem; align-items:center; margin-top:1rem;">
-              <button class="btn-admire" data-target-email="${u.email}">
-                <i class="fa-heart ${hasAlreadyAdmired(u.email) ? 'fa-solid' : 'fa-regular'}"></i> ${hasAlreadyAdmired(u.email) ? 'Admired' : 'Admire'}
-              </button>
-              <span class="admirer-count">${getAdmirersCount(u.email)}</span>
-              <button class="btn-bookmark" data-target-email="${u.email}" style="background:none; border:none; cursor:pointer; color:var(--gold-light);">
-                <i class="fa-bookmark ${bookmarkedEmails.has(u.email) ? 'fa-solid' : 'fa-regular'}"></i>
-              </button>
-            </div>
-            <button class="elite-contact btn-elite-intro" data-target-email="${u.email}" data-target-name="${fullName}">
-              ${getEliteIntroStatus(u.email)}
-            </button>
-          </div>
-        </div>`;
-      }).join('');
-
-      // Attach handlers
-      attachInteractionHandlers();
-      initObservers();
-      updateDistances();
-    }
-
-    // ── Attach click handlers (optimistic) ─────
-    function attachInteractionHandlers() {
-      // Admire
-      document.querySelectorAll('.btn-admire').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-          e.stopPropagation();
-          admireUser(this.dataset.targetEmail, this);
-        });
-      });
-      // Bookmark
-      document.querySelectorAll('.btn-bookmark').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-          e.stopPropagation();
-          toggleBookmark(this.dataset.targetEmail, this);
-        });
-      });
-      // Phone copy
-      document.querySelectorAll('.card-phone').forEach(el => {
-        el.addEventListener('click', function(e) {
-          e.stopPropagation();
-          const phone = this.getAttribute('data-phone');
-          navigator.clipboard?.writeText(phone).then(() => showToast('📋 Phone copied: ' + phone))
-            .catch(() => showToast('Copy failed'));
-        });
-      });
-      // Elite intro (unchanged)
-      document.querySelectorAll('.btn-elite-intro').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-          e.stopPropagation();
-          // your existing logic
-        });
-      });
-      // Card click -> navigate to view-profile
-      document.querySelectorAll('.elite-card').forEach(card => {
-        card.addEventListener('click', function(e) {
-          if (e.target.closest('.btn-admire, .btn-bookmark, .card-phone, .btn-elite-intro')) return;
-          const email = card.querySelector('.btn-admire')?.dataset.targetEmail;
-          if (email) window.location.href = `view-profile.html?email=${email}`;
-        });
-      });
-    }
-
-    // ── Intersection Observer ──────────────────
-    function initObservers() {
-      const cards = document.querySelectorAll('.elite-card, .story-card');
-      if (!('IntersectionObserver' in window)) {
-        cards.forEach(c => c.classList.add('card-visible'));
-        return;
-      }
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('card-visible');
-            observer.unobserve(entry.target);
+          // ── Navigation UI (re‑use general.js) ─────
+          function updateNavUI() {
+            const joinCta = document.getElementById("joinCta");
+            const profileArea = document.getElementById("profileArea");
+            const navAvatarImg = document.getElementById("navAvatarImg");
+            if (!joinCta || !profileArea) return;
+            if (user && user.email) {
+              joinCta.style.display = "none";
+              profileArea.style.display = "flex";
+              if (navAvatarImg && user.avatar) navAvatarImg.src = user.avatar;
+            } else {
+              joinCta.style.display = "";
+              profileArea.style.display = "none";
+            }
           }
-        });
-      }, { threshold: 0.15 });
-      cards.forEach(card => observer.observe(card));
-    }
+          updateNavUI();
 
-    // ── Distance update ────────────────────────
-    async function updateDistances() {
-      let userPos;
-      try {
-        const pos = await getUserPosition();
-        userPos = { lat: pos.coords.latitude, lon: pos.coords.longitude };
-      } catch(e) { return; }
-      document.querySelectorAll('.card-distance').forEach(async el => {
-        const loc = el.getAttribute('data-location');
-        if (!loc || loc === 'Unknown') return;
-        const coords = await geocodeLocation(loc);
-        if (coords) {
-          const dist = computeDistance(userPos.lat, userPos.lon, coords.lat, coords.lon);
-          const span = el.querySelector('.dist-text');
-          if (span) span.textContent = `${dist} km`;
-        }
-      });
-    }
 
-    // ── Elite intro status helper ──────────────
-    function getEliteIntroStatus(targetEmail) {
-      const session = JSON.parse(localStorage.getItem(SESSION_KEY) || '{}');
-      if (!session.email) return 'Exclusive Introduction';
-      if (session.plan !== 'premium-monthly' && session.plan !== 'elite-annual') {
-        return '<i class="fa-solid fa-lock"></i> Upgrade to Unlock';
-      }
-      const requests = JSON.parse(localStorage.getItem('reh_concierge_requests') || '[]');
-      const existing = requests.find(r =>
-        r.fromEmail === session.email &&
-        r.occasion === 'Exclusive Introduction' &&
-        r.destination === targetEmail
-      );
-      return existing ? 'Request Sent' : 'Exclusive Introduction';
-    }
+          // ── Firestore loaders ────────────────────
+          async function loadBookmarkCache() {
+            if (!user.email) return;
+            const ref = window.collection(
+              window.db,
+              "users",
+              user.email,
+              "bookmarks",
+            );
+            const snap = await window.getDocs(ref);
+            bookmarkedEmails.clear();
+            snap.forEach((doc) => bookmarkedEmails.add(doc.id));
+          }
+          async function loadAdmirationCache() {
+            if (!user.email) return;
+            const ref = window.collection(
+              window.db,
+              "users",
+              user.email,
+              "admirations",
+            );
+            const snap = await window.getDocs(ref);
+            admiredEmails.clear();
+            snap.forEach((doc) => admiredEmails.add(doc.id));
+          }
 
-    // ── Particles ──────────────────────────────
-    function createParticles() {
-      const container = document.getElementById('particlesContainer');
-      const colors = [
-        'rgba(200,160,60,0.5)', 'rgba(220,180,70,0.4)',
-        'rgba(180,35,50,0.4)', 'rgba(30,55,150,0.4)', 'rgba(255,255,255,0.3)'
-      ];
-      const frag = document.createDocumentFragment();
-      for (let i = 0; i < 35; i++) {
-        const p = document.createElement('div');
-        p.className = 'particle' + (Math.random() > 0.65 ? ' diamond' : '');
-        const size = Math.random() * 6 + 2;
-        p.style.width = size + 'px'; p.style.height = size + 'px';
-        p.style.left = Math.random() * 100 + '%';
-        p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-        p.style.animationDuration = (Math.random() * 18 + 10) + 's';
-        p.style.animationDelay = (Math.random() * 15) + 's';
-        if (p.classList.contains('diamond')) {
-          p.style.backgroundColor = 'transparent';
-          p.style.border = '1px solid ' + colors[Math.floor(Math.random() * colors.length)];
-        }
-        frag.appendChild(p);
-      }
-      container.appendChild(frag);
-    }
+          // ── Optimistic interactions ──────────────
+          async function toggleBookmark(targetEmail, buttonElement) {
+            const session = JSON.parse(
+              localStorage.getItem(SESSION_KEY) || "{}",
+            );
+            if (!session.email) {
+              window.location.href = "index.html?redirect=login.html";
+              return;
+            }
 
-    // ── Success stories (static) ───────────────
-    const successStories = [
-      { quote: "We met at a Reh gala in Tuscany. He proposed six months later — the concierge helped plan everything.", name: "Elena & Alexander", img: "https://randomuser.me/api/portraits/women/30.jpg" },
-      { quote: "The elite verification gave me confidence. I found a partner who shares my vision — we're building a future together.", name: "Isabella & Matteo", img: "https://randomuser.me/api/portraits/women/33.jpg" },
-      { quote: "I never believed in curated dating until the Elite Lounge introduced us. Now we travel the world, hand in hand.", name: "Charlotte & Rafael", img: "https://randomuser.me/api/portraits/women/35.jpg" }
-    ];
+            const icon = buttonElement.querySelector("i.fa-bookmark");
+            const currently = icon && icon.classList.contains("fa-solid");
 
-    function renderStories() {
-      const storiesGrid = document.getElementById('storiesGrid');
-      storiesGrid.innerHTML = successStories.map((s, i) => `
+            if (icon) {
+              icon.classList.toggle("fa-solid");
+              icon.classList.toggle("fa-regular");
+            }
+            if (currently) bookmarkedEmails.delete(targetEmail);
+            else bookmarkedEmails.add(targetEmail);
+
+            const ref = window.doc(
+              window.db,
+              "users",
+              session.email,
+              "bookmarks",
+              targetEmail,
+            );
+            try {
+              if (currently) {
+                await window.deleteDoc(ref);
+                showToast("🔖 Bookmark removed.");
+              } else {
+                const targetDoc = await window.getDoc(
+                  window.doc(window.db, "users", targetEmail),
+                );
+                if (!targetDoc.exists()) throw new Error("User not found");
+                const t = targetDoc.data();
+                await window.setDoc(ref, {
+                  email: targetEmail,
+                  firstName: t.firstName || "",
+                  lastName: t.lastName || "",
+                  age: t.age || "",
+                  avatar: t.avatar || "",
+                  location: t.location || "",
+                  addedAt: window.serverTimestamp
+                    ? window.serverTimestamp()
+                    : new Date(),
+                });
+                showToast("🔖 Profile bookmarked.");
+              }
+            } catch (err) {
+              console.error(err);
+              if (icon) {
+                icon.classList.toggle("fa-solid");
+                icon.classList.toggle("fa-regular");
+              }
+              if (currently) bookmarkedEmails.add(targetEmail);
+              else bookmarkedEmails.delete(targetEmail);
+              showToast("Could not update bookmark.");
+            }
+          }
+
+          async function admireUser(targetEmail, buttonElement) {
+            const session = JSON.parse(
+              localStorage.getItem(SESSION_KEY) || "{}",
+            );
+            if (!session.email) {
+              window.location.href = "index.html?redirect=login.html";
+              return;
+            }
+            if (admiredEmails.has(targetEmail)) return;
+
+            const heart = buttonElement.querySelector("i.fa-heart");
+            const countSpan =
+              buttonElement.parentElement.querySelector(".admirer-count");
+            if (heart) {
+              heart.classList.remove("fa-regular");
+              heart.classList.add("fa-solid");
+            }
+            if (countSpan) {
+              countSpan.textContent =
+                (parseInt(countSpan.textContent, 10) || 0) + 1;
+            }
+            buttonElement.disabled = true;
+            buttonElement.style.opacity = "0.7";
+            buttonElement.style.cursor = "not-allowed";
+
+            admiredEmails.add(targetEmail);
+
+            try {
+              await window.setDoc(
+                window.doc(
+                  window.db,
+                  "users",
+                  session.email,
+                  "admirations",
+                  targetEmail,
+                ),
+                {
+                  timestamp: window.serverTimestamp
+                    ? window.serverTimestamp()
+                    : new Date(),
+                },
+              );
+              const targetRef = window.doc(window.db, "users", targetEmail);
+              const targetSnap = await window.getDoc(targetRef);
+              const currentCount = targetSnap.data()?.admirersCount || 0;
+              await window.updateDoc(targetRef, {
+                admirersCount: currentCount + 1,
+              });
+              await window.addDoc(
+                window.collection(window.db, "notifications"),
+                {
+                  title: "Someone admires you!",
+                  body: `${session.firstName || "Someone"} just admired you ❤️`,
+                  timestamp: window.serverTimestamp
+                    ? window.serverTimestamp()
+                    : new Date(),
+                  targetEmail: targetEmail,
+                  readBy: [],
+                },
+              );
+              showToast("❤️ You admired this profile!");
+            } catch (err) {
+              console.error(err);
+              if (heart) {
+                heart.classList.remove("fa-solid");
+                heart.classList.add("fa-regular");
+              }
+              if (countSpan) {
+                countSpan.textContent =
+                  (parseInt(countSpan.textContent, 10) || 1) - 1;
+              }
+              admiredEmails.delete(targetEmail);
+              showToast("Could not admire this profile.");
+            }
+          }
+
+          function getRelativeStatus(lastMs) {
+            if (!lastMs) return "Offline";
+            const diff = Date.now() - lastMs;
+            const minutes = Math.floor(diff / 60000);
+            if (diff < 30000) return "Active now";
+            if (diff < 60000) return "Just now";
+            if (minutes === 1) return "1 min ago";
+            if (minutes < 60) return `${minutes} min ago`;
+            const hours = Math.floor(minutes / 60);
+            if (hours === 1) return "1 hour ago";
+            if (hours < 24) return `${hours} hours ago`;
+            const days = Math.floor(hours / 24);
+            if (days === 1) return "Yesterday";
+            if (days < 7) return `${days} days ago`;
+            return "Offline";
+          }
+
+          // ── Viewed helper ─────────────────────────
+          function hasViewed(targetEmail) {
+            const views = JSON.parse(localStorage.getItem(VIEWS_KEY) || "[]");
+            return views.some(
+              (v) => v.viewer === user.email && v.viewed === targetEmail,
+            );
+          }
+
+          // ── Get elite users from Firestore ────────
+          async function getEliteUsers() {
+            const q = window.query(
+              window.collection(window.db, "users"),
+              window.where("plan", "==", "elite-annual"),
+              window.where("banned", "==", false),
+              window.orderBy("lastActive", "desc"),
+              window.limit(50),
+            );
+            const snap = await window.getDocs(q);
+            const users = [];
+            snap.forEach((doc) => {
+              const u = doc.data();
+              u.id = doc.id;
+              users.push(u);
+            });
+            return users;
+          }
+
+          // ── Render Elite Cards ────────────────────
+          async function renderEliteCards() {
+            const grid = document.getElementById("eliteGrid");
+            grid.innerHTML =
+              '<div style="text-align:center;padding:3rem;color:var(--muted);"><i class="fa-solid fa-spinner fa-spin"></i> Summoning the extraordinary…</div>';
+
+            const eliteUsers = await getEliteUsers();
+            const filtered = eliteUsers.filter((u) => {
+              if (u.visibility === false) return false;
+              if (user.email && u.email === user.email) return false;
+              return true;
+            });
+
+            if (filtered.length === 0) {
+              grid.innerHTML =
+                '<div style="text-align:center;padding:3rem;color:var(--text-muted);"><i class="fa-solid fa-crown"></i><p>No Elite members available at the moment.</p></div>';
+              return;
+            }
+
+            grid.innerHTML = filtered
+              .map((u, i) => {
+                const fullName =
+                  `${u.firstName || ""} ${u.lastName || ""}`.trim() ||
+                  "Elite Member";
+                const lastMs = u.lastActive?.seconds ? u.lastActive.seconds * 1000 : u.lastActive || 0;
+                const online = (Date.now() - lastMs) < 20000;
+
+                // Respect showLastActive preference
+                const hideLastActive = u.showLastActive === false;
+                const statusText = hideLastActive
+                  ? (online ? "Online" : "Offline")
+                  : (online ? "Online" : getRelativeStatus(lastMs));
+                const statusClass = online ? "online" : "offline";
+                const phone = u.phone || "Private";
+                const viewedMark = hasViewed(u.email)
+                  ? '<div class="viewed-badge"><i class="fa-solid fa-eye"></i> Viewed</div>'
+                  : "";
+                return `
+          <div class="elite-card" data-index="${i}" style="transition-delay:${i * 0.08}s">
+            <div class="elite-card-image">
+              <img src="${u.avatar || "https://randomuser.me/api/portraits/women/44.jpg"}" alt="${fullName}" loading="lazy">
+              <div class="crown-badge"><i class="fa-solid fa-crown"></i></div>
+              <div class="status-badge"><span class="status-dot ${statusClass}"></span> ${statusText}</div>
+              ${viewedMark}
+              <!-- Interaction bar (TikTok‑style, on image right side) -->
+              <div class="card-interactions">
+                <button class="interaction-btn admire-btn" data-target-email="${u.email || ""}" ${admiredEmails.has(u.email) ? 'disabled style="opacity:0.7;cursor:not-allowed;"' : ""}>
+                  <i class="fa-heart ${admiredEmails.has(u.email) ? "fa-solid" : "fa-regular"}"></i>
+                </button>
+                <span class="admirer-count">${u.admirersCount || 0}</span>
+                <button class="bookmark-btn" data-target-email="${u.email || ""}">
+                  <i class="fa-bookmark ${bookmarkedEmails.has(u.email) ? "fa-solid" : "fa-regular"}"></i>
+                </button>
+              </div>
+            </div>
+            <div class="elite-card-body">
+              <div class="elite-name-row">
+                <span class="elite-name">${fullName} <i class="fa-solid fa-circle-check verified-badge" title="Verified Elite"></i></span>
+                <span class="elite-age">${u.age || ""}</span>
+              </div>
+              <div class="elite-meta">
+                <span><i class="fa-solid fa-location-dot"></i> ${u.location || "Unknown"}</span>
+                ${u.profession ? `<span><i class="fa-solid fa-briefcase"></i> ${u.profession}</span>` : ""}
+              </div>
+              ${u.distance !== false ? `<div class="card-distance" data-location="${u.location || ""}"><i class="fa-solid fa-route"></i> <span class="dist-text">— km</span></div>` : ""}
+              <div class="net-worth"><i class="fa-solid fa-gem"></i> Net Worth: ${u.netWorth || "Private"}</div>
+              <div style="color:#c5bfb3;font-size:0.8rem;margin:0.3rem 0;">Annual Income: ${u.income || "Confidential"}</div>
+              <button class="elite-contact btn-elite-intro" data-target-email="${u.email}" data-target-name="${fullName}">
+                ${getEliteIntroStatus(u.email)}
+              </button>
+            </div>
+          </div>`;
+              })
+              .join("");
+
+            attachInteractionHandlers();
+            initObservers();
+            updateDistances();
+          }
+
+          // ── Interaction handlers ──────────────────
+          function attachInteractionHandlers() {
+            // Admire
+            document.querySelectorAll(".admire-btn").forEach((btn) => {
+              btn.addEventListener("click", function (e) {
+                e.stopPropagation();
+                admireUser(this.dataset.targetEmail, this);
+              });
+            });
+            // Bookmark
+            document.querySelectorAll(".bookmark-btn").forEach((btn) => {
+              btn.addEventListener("click", function (e) {
+                e.stopPropagation();
+                toggleBookmark(this.dataset.targetEmail, this);
+              });
+            });
+            // Phone copy
+            document.querySelectorAll(".card-phone").forEach((el) => {
+              el.addEventListener("click", function (e) {
+                e.stopPropagation();
+                const phone = this.getAttribute("data-phone");
+                navigator.clipboard
+                  ?.writeText(phone)
+                  .then(() => showToast("📋 Phone copied: " + phone))
+                  .catch(() => showToast("Copy failed"));
+              });
+            });
+            // Elite intro → Firestore concierge_requests
+            document.querySelectorAll(".btn-elite-intro").forEach((btn) => {
+              btn.addEventListener("click", async function (e) {
+                e.stopPropagation();
+                const session = JSON.parse(
+                  localStorage.getItem(SESSION_KEY) || "{}",
+                );
+                if (!session.email) {
+                  window.location.href = "index.html?redirect=login.html";
+                  return;
+                }
+                if (!isEligible("premium-monthly")) {
+                  showToast(
+                    "🔒 Upgrade to Premium or Elite to request an introduction.",
+                  );
+                  return;
+                }
+                const targetEmail = this.dataset.targetEmail;
+                const targetName = this.dataset.targetName;
+                if (this.disabled || this.textContent.trim() === "Request Sent")
+                  return;
+
+                // Disable button optimistically
+                this.textContent = "Request Sent";
+                this.disabled = true;
+                this.style.opacity = "0.6";
+                this.style.cursor = "not-allowed";
+
+                try {
+                  await window.addDoc(
+                    window.collection(window.db, "concierge_requests"),
+                    {
+                      fromEmail: session.email,
+                      fromName:
+                        (session.firstName + " " + session.lastName).trim() ||
+                        session.email,
+                      occasion: "Exclusive Introduction",
+                      destination: targetEmail,
+                      budget: "Elite",
+                      special: `Requesting a personal introduction to ${targetName}.`,
+                      timestamp: window.serverTimestamp
+                        ? window.serverTimestamp()
+                        : new Date(),
+                      status: "new",
+                    },
+                  );
+                  showToast(
+                    "✨ Your exclusive introduction request has been sent to the concierge.",
+                  );
+                } catch (err) {
+                  console.error(err);
+                  this.textContent = "Exclusive Introduction";
+                  this.disabled = false;
+                  this.style.opacity = "1";
+                  this.style.cursor = "pointer";
+                  showToast("Failed to send request. Please try again.");
+                }
+              });
+            });
+            // Card click → navigate
+            document.querySelectorAll(".elite-card").forEach((card) => {
+              card.addEventListener("click", function (e) {
+                if (
+                  e.target.closest(
+                    ".card-interactions, .card-phone, .btn-elite-intro",
+                  )
+                )
+                  return;
+                const email =
+                  card.querySelector(".admire-btn")?.dataset.targetEmail;
+                if (email)
+                  window.location.href = `view-profile.html?email=${email}`;
+              });
+            });
+          }
+
+          // ── Search handler ────────────────────────
+          document
+            .getElementById("searchInput")
+            ?.addEventListener("input", function () {
+              searchTerm = this.value.trim().toLowerCase();
+              const cards = document.querySelectorAll(".elite-card");
+              cards.forEach((card) => {
+                const text =
+                  (card.querySelector(".elite-name")?.textContent || "") +
+                  (card.querySelector(".elite-meta")?.textContent || "") +
+                  (card.querySelector(".net-worth")?.textContent || "") +
+                  (card.querySelector(".card-body div:last-child")
+                    ?.textContent || "");
+                card.style.display = text.toLowerCase().includes(searchTerm)
+                  ? ""
+                  : "none";
+              });
+            });
+
+          // ── Distance & geolocation ────────────────
+          async function updateDistances() {
+            let userPos;
+            try {
+              const pos = await getUserPosition();
+              userPos = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+            } catch (e) {
+              return;
+            }
+            document.querySelectorAll(".card-distance").forEach(async (el) => {
+              const loc = el.getAttribute("data-location");
+              if (!loc || loc === "Unknown") return;
+              const coords = await geocodeLocation(loc);
+              if (coords) {
+                const dist = computeDistance(
+                  userPos.lat,
+                  userPos.lon,
+                  coords.lat,
+                  coords.lon,
+                );
+                const span = el.querySelector(".dist-text");
+                if (span) span.textContent = `${dist} km`;
+              }
+            });
+          }
+
+          function getUserPosition() {
+            return new Promise((resolve, reject) => {
+              if (!navigator.geolocation)
+                reject(new Error("Geolocation not supported"));
+              else
+                navigator.geolocation.getCurrentPosition(resolve, reject, {
+                  enableHighAccuracy: true,
+                  timeout: 10000,
+                  maximumAge: 300000,
+                });
+            });
+          }
+          async function geocodeLocation(name) {
+            const cacheKey = `geo_${name}`;
+            const cached = localStorage.getItem(cacheKey);
+            if (cached) return JSON.parse(cached);
+            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(name)}&limit=1`;
+            try {
+              const res = await fetch(url);
+              const data = await res.json();
+              if (data.length > 0) {
+                const coords = {
+                  lat: parseFloat(data[0].lat),
+                  lon: parseFloat(data[0].lon),
+                };
+                localStorage.setItem(cacheKey, JSON.stringify(coords));
+                return coords;
+              }
+            } catch (e) {}
+            return null;
+          }
+          function computeDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371;
+            const dLat = ((lat2 - lat1) * Math.PI) / 180;
+            const dLon = ((lon2 - lon1) * Math.PI) / 180;
+            const a =
+              Math.sin(dLat / 2) ** 2 +
+              Math.cos((lat1 * Math.PI) / 180) *
+                Math.cos((lat2 * Math.PI) / 180) *
+                Math.sin(dLon / 2) ** 2;
+            return (R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))).toFixed(
+              1,
+            );
+          }
+
+          // ── Intersection observer ─────────────────
+          function initObservers() {
+            const cards = document.querySelectorAll(".elite-card, .story-card");
+            if (!("IntersectionObserver" in window)) {
+              cards.forEach((c) => c.classList.add("card-visible"));
+              return;
+            }
+            const observer = new IntersectionObserver(
+              (entries) => {
+                entries.forEach((entry) => {
+                  if (entry.isIntersecting) {
+                    entry.target.classList.add("card-visible");
+                    observer.unobserve(entry.target);
+                  }
+                });
+              },
+              { threshold: 0.15 },
+            );
+            cards.forEach((c) => observer.observe(c));
+          }
+
+          // ── Particles ─────────────────────────────
+          function createParticles() {
+            const container = document.getElementById("particlesContainer");
+            const colors = [
+              "rgba(200,160,60,0.5)",
+              "rgba(220,180,70,0.4)",
+              "rgba(180,35,50,0.4)",
+              "rgba(30,55,150,0.4)",
+              "rgba(255,255,255,0.3)",
+            ];
+            const frag = document.createDocumentFragment();
+            for (let i = 0; i < 35; i++) {
+              const p = document.createElement("div");
+              p.className =
+                "particle" + (Math.random() > 0.65 ? " diamond" : "");
+              const size = Math.random() * 6 + 2;
+              p.style.width = size + "px";
+              p.style.height = size + "px";
+              p.style.left = Math.random() * 100 + "%";
+              p.style.backgroundColor =
+                colors[Math.floor(Math.random() * colors.length)];
+              p.style.animationDuration = Math.random() * 18 + 10 + "s";
+              p.style.animationDelay = Math.random() * 15 + "s";
+              if (p.classList.contains("diamond")) {
+                p.style.backgroundColor = "transparent";
+                p.style.border =
+                  "1px solid " +
+                  colors[Math.floor(Math.random() * colors.length)];
+              }
+              frag.appendChild(p);
+            }
+            container.appendChild(frag);
+          }
+
+          // ── Success stories ───────────────────────
+          const stories = [
+            {
+              quote:
+                "We met at a Reh gala in Tuscany. He proposed six months later — the concierge helped plan everything.",
+              name: "Elena & Alexander",
+              img: "https://randomuser.me/api/portraits/women/30.jpg",
+            },
+            {
+              quote:
+                "The elite verification gave me confidence. I found a partner who shares my vision — we're building a future together.",
+              name: "Isabella & Matteo",
+              img: "https://randomuser.me/api/portraits/women/33.jpg",
+            },
+            {
+              quote:
+                "I never believed in curated dating until the Elite Lounge introduced us. Now we travel the world, hand in hand.",
+              name: "Charlotte & Rafael",
+              img: "https://randomuser.me/api/portraits/women/35.jpg",
+            },
+          ];
+          function renderStories() {
+            const grid = document.getElementById("storiesGrid");
+            grid.innerHTML = stories
+              .map(
+                (s, i) => `
         <div class="story-card" data-index="${i}">
           <img src="${s.img}" alt="${s.name}" class="story-img" loading="lazy">
-          <p class="story-quote">“${s.quote}”</p>
+          <p class="story-quote">"${s.quote}"</p>
           <div class="story-name">${s.name}</div>
         </div>
-      `).join('');
-      initObservers(); // reuse observer
-    }
+      `,
+              )
+              .join("");
+            initObservers();
+          }
 
-    // ── Elite Lounge application (unchanged) ───
-    const LOUNGE_KEY = 'reh_concierge_requests';
-    let loungeApplication = null;
-    function checkExistingLoungeApplication() {
-      const session = JSON.parse(localStorage.getItem(SESSION_KEY) || '{}');
-      if (!session.email) return;
-      const requests = JSON.parse(localStorage.getItem(LOUNGE_KEY) || '[]');
-      loungeApplication = requests.find(r =>
-        r.fromEmail === session.email && r.occasion === 'Elite Lounge Application'
-      );
-      updateLoungeButton();
-    }
-    function updateLoungeButton() {
-      const btn = document.getElementById('applyLoungeBtn');
-      if (!btn) return;
-      if (loungeApplication) {
-        btn.textContent = loungeApplication.status === 'new' ? 'Pending' :
-                         loungeApplication.status === 'in-progress' ? 'Under Review' : 'Approved';
-        btn.disabled = true;
-        btn.style.opacity = '0.7';
-        btn.style.cursor = 'not-allowed';
-      } else {
-        btn.textContent = 'Apply for Access';
-        btn.disabled = false;
-        btn.style.opacity = '1';
-        btn.style.cursor = 'pointer';
-      }
-    }
-    document.getElementById('applyLoungeBtn').addEventListener('click', () => {
-      const session = JSON.parse(localStorage.getItem(SESSION_KEY) || '{}');
-      if (!session.email) { window.location.href = 'index.html?redirect=login.html'; return; }
-      if (session.plan !== 'elite-annual') { showToast('🔒 Elite Lounge is for Elite Annual members only.'); return; }
-      if (loungeApplication) { showToast(`Your status: ${loungeApplication.status}.`); return; }
-      const request = {
-        id: Date.now().toString(36) + Math.random().toString(36).substr(2,5),
-        fromEmail: session.email,
-        fromName: (session.firstName + ' ' + session.lastName).trim() || session.email,
-        occasion: 'Elite Lounge Application',
-        destination: 'Elite Lounge Access',
-        budget: 'Elite Annual',
-        special: 'Requesting access to the Elite Members Lounge.',
-        timestamp: Date.now(),
-        status: 'new'
-      };
-      const requests = JSON.parse(localStorage.getItem(LOUNGE_KEY) || '[]');
-      requests.push(request);
-      localStorage.setItem(LOUNGE_KEY, JSON.stringify(requests));
-      loungeApplication = request;
-      updateLoungeButton();
-      showToast('✨ Your application has been submitted.');
-    });
-    checkExistingLoungeApplication();
+          // ── Elite Lounge (Firestore) ──────────────
+          let loungeApp = null;
+          async function checkLounge() {
+            const session = JSON.parse(localStorage.getItem(SESSION_KEY) || {});
+            if (!session.email) return;
+            try {
+              const q = window.query(
+                window.collection(window.db, "concierge_requests"),
+                window.where("fromEmail", "==", session.email),
+                window.where("occasion", "==", "Elite Lounge Application"),
+              );
+              const snap = await window.getDocs(q);
+              loungeApp = snap.empty
+                ? null
+                : { id: snap.docs[0].id, ...snap.docs[0].data() };
+            } catch (e) {
+              console.error(e);
+            }
+            updateLoungeBtn();
+          }
+          function updateLoungeBtn() {
+            const btn = document.getElementById("applyLoungeBtn");
+            if (!btn) return;
+            btn.textContent = loungeApp
+              ? loungeApp.status === "new"
+                ? "Pending"
+                : loungeApp.status === "in-progress"
+                  ? "Under Review"
+                  : "Approved"
+              : "Apply for Access";
+            btn.disabled = !!loungeApp;
+            btn.style.opacity = loungeApp ? "0.7" : "1";
+            btn.style.cursor = loungeApp ? "not-allowed" : "pointer";
+          }
+          document
+            .getElementById("applyLoungeBtn")
+            .addEventListener("click", async () => {
+              const session = JSON.parse(
+                localStorage.getItem(SESSION_KEY) || {},
+              );
+              if (!session.email) {
+                window.location.href = "index.html?redirect=login.html";
+                return;
+              }
+              if (session.plan !== "elite-annual") {
+                showToast("🔒 Elite Lounge is for Elite Annual members only.");
+                return;
+              }
+              if (loungeApp) {
+                showToast(`Your status: ${loungeApp.status}.`);
+                return;
+              }
+              try {
+                await window.addDoc(
+                  window.collection(window.db, "concierge_requests"),
+                  {
+                    fromEmail: session.email,
+                    fromName:
+                      (session.firstName + " " + session.lastName).trim() ||
+                      session.email,
+                    occasion: "Elite Lounge Application",
+                    destination: "Elite Lounge Access",
+                    budget: "Elite Annual",
+                    special: "Requesting access to the Elite Members Lounge.",
+                    timestamp: window.serverTimestamp
+                      ? window.serverTimestamp()
+                      : new Date(),
+                    status: "new",
+                  },
+                );
+                loungeApp = { status: "new" };
+                updateLoungeBtn();
+                showToast("✨ Your application has been submitted.");
+              } catch (e) {
+                console.error(e);
+                showToast("Failed to submit application.");
+              }
+            });
+          checkLounge();
 
-    // ── Notification bell (kept from original) ──
-    // (The original notification system is retained, but now we can add Firestore listener in future)
-    // For now, we'll just keep it as is; no changes needed.
+          // ── Elite intro status helper ─────────────
+          function getEliteIntroStatus(targetEmail) {
+            const session = JSON.parse(localStorage.getItem(SESSION_KEY) || {});
+            if (!session.email) return "Exclusive Introduction";
+            if (!isEligible("premium-monthly"))
+              return '<i class="fa-solid fa-lock"></i> Upgrade to Unlock';
+            // We can't check Firestore synchronously here, so we'll rely on button state after click.
+            // For now, show "Exclusive Introduction" — the button will disable after first request.
+            return "Exclusive Introduction";
+          }
 
-    // ── Initialise ─────────────────────────────
-    async function init() {
-      createParticles();
-      await loadBookmarkCache();
-      loadEliteProfiles();
-      renderStories();
-      updateNavUI();
-    }
-    init();
-  }
+          // ── Initialise ───────────────────────────
+          async function init() {
+            createParticles();
+            await loadBookmarkCache();
+            await loadAdmirationCache();
+            renderEliteCards();
+            renderStories();
+            updateNavUI();
+          }
+          init();
+        }
 
-  // ── Wait for Firebase, then start ──────────
-  waitForFirebase(startApp);
-})();
-</script>
+        waitForFirebase(startApp);
+      })();
+    </script>
     <script src="assets/toadmin.js"></script>
-</body>
+  </body>
 </html>

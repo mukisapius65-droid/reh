@@ -149,7 +149,6 @@ async function loadBookmarkCache() {
   const AUTH_KEY = "rehw_user"; // old login system
   const USER_KEY = "reh_user";
   let searchTerm = ""
-  const PRESENCE_KEY = "reh_presence";
   const VIEWS_KEY = 'reh_profile_views';
 
 function hasViewed(targetEmail) {
@@ -572,6 +571,8 @@ function attachInteractionHandlers() {
     }
 
     const grid = document.getElementById("cardGrid");
+    grid.innerHTML =
+              '<div style="text-align:center;padding:3rem;color:var(--muted);"><i class="fa-solid fa-spinner fa-spin"></i> Summoning the extraordinary…</div>';
     if (filtered.length === 0) {
       grid.innerHTML = `<div style="text-align:center; padding:3rem; color:var(--text-muted);"><i class="fa-solid fa-users-slash"></i><p style="margin-top:1rem;">No profiles match this filter.</p></div>`;
       return;
@@ -579,11 +580,11 @@ function attachInteractionHandlers() {
 
     grid.innerHTML = filtered
       .map((u, i) => {
-        const online = isUserOnline(u.email);
+        const now = Date.now();
+        const lastMs = u.lastActive?.seconds ? u.lastActive.seconds * 1000 : u.lastActive || 0;
+        const online = (now - lastMs) < 20000;
+        const statusText = online ? "Online" : getRelativeStatus(lastMs);   // ✅ pass a number
         const hideLastActive = u.showLastActive === false;   // false = hide
-        const statusText = hideLastActive 
-          ? (online ? "Online" : "Offline") 
-          : (online ? "Online" : getRelativeStatus(u.lastActive));
         const statusClass = online ? "online" : "offline";
         const phone = u.phone || "Private";
         const admirersCount = u.admirersCount || 0;
@@ -697,10 +698,9 @@ function attachInteractionHandlers() {
     // Update distances (asynchronously)
 
     function isUserOnline(email) {
-      if (!email) return false;
-      const presence = JSON.parse(localStorage.getItem("reh_presence") || "{}");
-      const lastBeat = presence[email] || 0;
-      return Date.now() - lastBeat < 20000; // online if heartbeat within 20 seconds
+      // This is now handled per‑user by checking their lastActive field.
+      // We don't need a separate lookup – the user object already contains lastActive.
+      return false; // placeholder; we actually compute online status per user below
     }
   }
 

@@ -631,1685 +631,1844 @@
     </style>
   </head>
   <body>
-    <div class="bg-orbit"></div>
-    <div class="hearts-container" id="heartsContainer"></div>
-    <div class="toast" id="toast">
-      <i class="fa-solid fa-circle-info"></i> <span id="toastMsg"></span>
+    <!-- Admin Login Overlay -->
+    <div
+      id="adminLoginOverlay"
+      style="
+        position: fixed;
+        inset: 0;
+        background: rgba(8, 12, 36, 0.95);
+        backdrop-filter: blur(20px);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 1rem;
+      "
+    >
+      <h2
+        style="
+          font-family: &quot;Playfair Display&quot;, serif;
+          color: var(--gold-light);
+        "
+      >
+        <i class="fa-solid fa-lock"></i> Admin Access
+      </h2>
+      <input
+        type="password"
+        id="adminLoginPassword"
+        placeholder="Enter admin password"
+        style="
+          width: 280px;
+          padding: 0.8rem 1.2rem;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid var(--glass-border);
+          border-radius: 50px;
+          color: white;
+          outline: none;
+          text-align: center;
+        "
+      />
+      <button
+        id="adminLoginBtn"
+        class="btn btn-primary"
+        style="width: 280px"
+        onclick="window.attemptLogin()"
+      >
+        Unlock Panel
+      </button>
+      <p
+        id="adminLoginError"
+        style="color: var(--danger); font-size: 0.8rem; display: none"
+      >
+        Incorrect password.
+      </p>
     </div>
 
-    <!-- Mobile sidebar toggle -->
-    <button class="mobile-toggle" id="mobileToggle">
-      <i class="fa-solid fa-bars"></i>
-    </button>
+    <!-- <div class="bg-orbit"></div> -->
+    <!-- <div class="hearts-container" id="heartsContainer"></div> -->
 
-    <!-- Sidebar -->
-    <aside class="sidebar" id="sidebar">
-      <div class="sidebar-brand">
-        <i class="fa-solid fa-gem"></i>
-        <span>Rehuma's Panel</span>
-      </div>
-      <nav>
-        <a href="#" class="active" data-page="dashboard"
-          ><i class="fa-solid fa-chart-pie"></i> Dashboard</a
-        >
-        <a href="#" data-page="users"
-          ><i class="fa-solid fa-users"></i> Users</a
-        >
-        <a href="#" data-page="events"
-          ><i class="fa-solid fa-calendar-star"></i> Events</a
-        >
-        <a href="#" data-page="event-invitations"
-          ><i class="fa-solid fa-envelope-open-text"></i> Event Invites</a
-        >
-        <a href="#" data-page="messages"
-          ><i class="fa-solid fa-envelope"></i> Messages</a
-        >
-        <a href="#" data-page="concierge">
-          <i class="fa-solid fa-clipboard-list"></i> Concierge
-          <span id="conciergeBadge" class="sidebar-badge" style="display: none"
-            >0</span
-          >
-        </a>
-        <a href="#" data-page="notifications"
-          ><i class="fa-solid fa-bell"></i> Notifications</a
-        >
-        <a href="#" data-page="newsletter"><i class="fa-solid fa-newspaper"></i> Newsletter</a>
-        <a href="#" data-page="settings"
-          ><i class="fa-solid fa-gear"></i> Admin Settings</a
-        >
-      </nav>
-      <div class="sidebar-footer">
-        <button id="logoutAdmin">
-          <i class="fa-solid fa-arrow-right-from-bracket"></i> Exit Panel
-        </button>
-      </div>
-    </aside>
+    <!-- Main admin content (initially hidden if not authenticated) -->
+    <div id="adminMainContent" style="display: none">
+      <!-- all your existing sidebar, main, modals etc. go inside this wrapper -->
 
-    <!-- Main Content -->
-    <main class="main" id="mainContent">
-      <!-- Dashboard -->
-      <div id="page-dashboard" class="page active">
-        <div class="page-header">
-          <h2 class="page-title">
-            <i class="fa-solid fa-chart-pie"></i> Dashboard Overview
-          </h2>
+      <div class="toast" id="toast">
+        <i class="fa-solid fa-circle-info"></i> <span id="toastMsg"></span>
+      </div>
+
+      <!-- Mobile sidebar toggle -->
+      <button class="mobile-toggle" id="mobileToggle">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+
+      <!-- Sidebar -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+          <i class="fa-solid fa-gem"></i>
+          <span>Rehuma's Panel</span>
         </div>
-        <div class="stat-cards" id="statsContainer"></div>
-        <div class="table-container" style="margin-top: 2rem">
-          <h3
+        <nav>
+          <a href="#" class="active" data-page="dashboard"
+            ><i class="fa-solid fa-chart-pie"></i> Dashboard</a
+          >
+          <a href="#" data-page="users"
+            ><i class="fa-solid fa-users"></i> Users</a
+          >
+          <a href="#" data-page="events"
+            ><i class="fa-solid fa-calendar-star"></i> Events</a
+          >
+          <a href="#" data-page="event-invitations"
+            ><i class="fa-solid fa-envelope-open-text"></i> Event Invites</a
+          >
+          <a href="#" data-page="messages"
+            ><i class="fa-solid fa-envelope"></i> Messages</a
+          >
+          <a href="#" data-page="concierge">
+            <i class="fa-solid fa-clipboard-list"></i> Concierge
+            <span
+              id="conciergeBadge"
+              class="sidebar-badge"
+              style="display: none"
+              >0</span
+            >
+          </a>
+          <a href="#" data-page="notifications"
+            ><i class="fa-solid fa-bell"></i> Notifications</a
+          >
+          <a href="#" data-page="newsletter"
+            ><i class="fa-solid fa-newspaper"></i> Newsletter</a
+          >
+          <a href="#" data-page="settings"
+            ><i class="fa-solid fa-gear"></i> Admin Settings</a
+          >
+          <a href="#" id="lockPanelBtn"
+            ><i class="fa-solid fa-lock"></i> Lock Panel</a
+          >
+        </nav>
+        <div class="sidebar-footer">
+          <button id="logoutAdmin">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i> Exit Panel
+          </button>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main" id="mainContent">
+        <!-- Dashboard -->
+        <div id="page-dashboard" class="page active">
+          <div class="page-header">
+            <h2 class="page-title">
+              <i class="fa-solid fa-chart-pie"></i> Dashboard Overview
+            </h2>
+          </div>
+          <div class="stat-cards" id="statsContainer"></div>
+          <div class="table-container" style="margin-top: 2rem">
+            <h3
+              style="
+                color: var(--gold-light);
+                margin-bottom: 1rem;
+                font-family: &quot;Playfair Display&quot;, serif;
+              "
+            >
+              Recent Registrations
+            </h3>
+            <table id="recentUsersTable">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Plan</th>
+                  <th>Joined</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Users -->
+        <div id="page-users" class="page">
+          <div class="page-header">
+            <h2 class="page-title">
+              <i class="fa-solid fa-users"></i> User Management
+            </h2>
+            <button class="btn btn-primary" id="addUserBtn">
+              <i class="fa-solid fa-plus"></i> Add User
+            </button>
+          </div>
+          <div class="table-container">
+            <table id="usersTable">
+              <thead>
+                <tr>
+                  <th>Avatar</th>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Location</th>
+                  <th>Plan</th>
+                  <th>Banned</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Events -->
+        <div id="page-events" class="page">
+          <div class="page-header">
+            <h2 class="page-title">
+              <i class="fa-solid fa-calendar-star"></i> Event Management
+            </h2>
+            <button class="btn btn-primary" id="addEventBtn">
+              <i class="fa-solid fa-plus"></i> Add Event
+            </button>
+          </div>
+          <div class="table-container">
+            <table id="eventsTable">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Date</th>
+                  <th>Type</th>
+                  <th>Location</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="page-event-invitations" class="page">
+          <div class="page-header">
+            <h2 class="page-title">
+              <i class="fa-solid fa-envelope-open-text"></i> Event Invitations
+            </h2>
+          </div>
+          <div class="table-container">
+            <table id="eventInvitesTable">
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Event</th>
+                  <th>Date</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Messages -->
+        <div id="page-messages" class="page">
+          <div class="page-header">
+            <h2 class="page-title">
+              <i class="fa-solid fa-envelope"></i> Messages from Users
+            </h2>
+          </div>
+          <div class="table-container">
+            <div id="messagesList"></div>
+          </div>
+        </div>
+
+        <div id="page-concierge" class="page">
+          <div class="page-header">
+            <h2 class="page-title">
+              <i class="fa-solid fa-clipboard-list"></i> Concierge Requests
+            </h2>
+          </div>
+          <div class="table-container">
+            <table id="conciergeTable">
+              <thead>
+                <tr>
+                  <th>From</th>
+                  <th>Occasion</th>
+                  <th>Destination</th>
+                  <th>Budget</th>
+                  <th>Special Requests</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Notifications -->
+        <div id="page-notifications" class="page">
+          <div class="page-header">
+            <h2 class="page-title">
+              <i class="fa-solid fa-bell"></i> Send Global Notification
+            </h2>
+          </div>
+          <div
             style="
-              color: var(--gold-light);
-              margin-bottom: 1rem;
-              font-family: &quot;Playfair Display&quot;, serif;
+              max-width: 600px;
+              background: var(--glass-bg-card);
+              border: 1px solid var(--glass-border);
+              border-radius: 20px;
+              padding: 2rem;
+              backdrop-filter: blur(15px);
             "
           >
-            Recent Registrations
-          </h3>
-          <table id="recentUsersTable">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Plan</th>
-                <th>Joined</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Users -->
-      <div id="page-users" class="page">
-        <div class="page-header">
-          <h2 class="page-title">
-            <i class="fa-solid fa-users"></i> User Management
-          </h2>
-          <button class="btn btn-primary" id="addUserBtn">
-            <i class="fa-solid fa-plus"></i> Add User
-          </button>
-        </div>
-        <div class="table-container">
-          <table id="usersTable">
-            <thead>
-              <tr>
-                <th>Avatar</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Location</th>
-                <th>Plan</th>
-                <th>Banned</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Events -->
-      <div id="page-events" class="page">
-        <div class="page-header">
-          <h2 class="page-title">
-            <i class="fa-solid fa-calendar-star"></i> Event Management
-          </h2>
-          <button class="btn btn-primary" id="addEventBtn">
-            <i class="fa-solid fa-plus"></i> Add Event
-          </button>
-        </div>
-        <div class="table-container">
-          <table id="eventsTable">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Date</th>
-                <th>Type</th>
-                <th>Location</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div id="page-event-invitations" class="page">
-        <div class="page-header">
-          <h2 class="page-title">
-            <i class="fa-solid fa-envelope-open-text"></i> Event Invitations
-          </h2>
-        </div>
-        <div class="table-container">
-          <table id="eventInvitesTable">
-            <thead>
-              <tr>
-                <th>User</th>
-                <th>Event</th>
-                <th>Date</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Messages -->
-      <div id="page-messages" class="page">
-        <div class="page-header">
-          <h2 class="page-title">
-            <i class="fa-solid fa-envelope"></i> Messages from Users
-          </h2>
-        </div>
-        <div class="table-container">
-          <div id="messagesList"></div>
-        </div>
-      </div>
-
-      <div id="page-concierge" class="page">
-        <div class="page-header">
-          <h2 class="page-title">
-            <i class="fa-solid fa-clipboard-list"></i> Concierge Requests
-          </h2>
-        </div>
-        <div class="table-container">
-          <table id="conciergeTable">
-            <thead>
-              <tr>
-                <th>From</th>
-                <th>Occasion</th>
-                <th>Destination</th>
-                <th>Budget</th>
-                <th>Special Requests</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Notifications -->
-      <div id="page-notifications" class="page">
-        <div class="page-header">
-          <h2 class="page-title">
-            <i class="fa-solid fa-bell"></i> Send Global Notification
-          </h2>
-        </div>
-        <div
-          style="
-            max-width: 600px;
-            background: var(--glass-bg-card);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            padding: 2rem;
-            backdrop-filter: blur(15px);
-          "
-        >
-          <div class="form-group">
-            <label>Title</label
-            ><input id="notifTitle" placeholder="Important announcement" />
-          </div>
-          <div class="form-group">
-            <label>Message</label
-            ><textarea
-              id="notifBody"
-              rows="4"
-              placeholder="Write your notification..."
-            ></textarea>
-          </div>
-          <button class="btn btn-primary" id="sendNotifBtn">
-            <i class="fa-solid fa-paper-plane"></i> Send to All Users
-          </button>
-          <div style="margin-top: 2rem">
-            <h4 style="color: var(--gold-light); margin-bottom: 1rem">
-              Sent Notifications
-            </h4>
-            <div id="notifHistory"></div>
+            <div class="form-group">
+              <label>Title</label
+              ><input id="notifTitle" placeholder="Important announcement" />
+            </div>
+            <div class="form-group">
+              <label>Message</label
+              ><textarea
+                id="notifBody"
+                rows="4"
+                placeholder="Write your notification..."
+              ></textarea>
+            </div>
+            <button class="btn btn-primary" id="sendNotifBtn">
+              <i class="fa-solid fa-paper-plane"></i> Send to All Users
+            </button>
+            <div style="margin-top: 2rem">
+              <h4 style="color: var(--gold-light); margin-bottom: 1rem">
+                Sent Notifications
+              </h4>
+              <div id="notifHistory"></div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div id="page-newsletter" class="page">
-    <div class="page-header">
-        <h2 class="page-title"><i class="fa-solid fa-newspaper"></i> Newsletter Subscribers</h2>
-    </div>
-    <div class="table-container">
-        <table id="newsletterTable">
-            <thead>
+        <div id="page-newsletter" class="page">
+          <div class="page-header">
+            <h2 class="page-title">
+              <i class="fa-solid fa-newspaper"></i> Newsletter Subscribers
+            </h2>
+          </div>
+          <div class="table-container">
+            <table id="newsletterTable">
+              <thead>
                 <tr>
-                    <th>Email</th>
-                    <th>Subscribed At</th>
-                    <th>Actions</th>
+                  <th>Email</th>
+                  <th>Subscribed At</th>
+                  <th>Actions</th>
                 </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    </div>
-</div>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
 
-      <!-- Admin Settings -->
-      <div id="page-settings" class="page">
-        <div class="page-header">
-          <h2 class="page-title">
-            <i class="fa-solid fa-gear"></i> Admin Settings
-          </h2>
-        </div>
-        <div
-          style="
-            max-width: 600px;
-            background: var(--glass-bg-card);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            padding: 2rem;
-            backdrop-filter: blur(15px);
-          "
-        >
-          <div class="form-group">
-            <label>Admin Password</label>
-            <input
-              type="password"
-              id="adminPassword"
-              placeholder="Set admin password"
-            />
+        <!-- Admin Settings -->
+        <div id="page-settings" class="page">
+          <div class="page-header">
+            <h2 class="page-title">
+              <i class="fa-solid fa-gear"></i> Admin Settings
+            </h2>
           </div>
-          <button class="btn btn-primary" id="saveAdminSettings">
-            <i class="fa-solid fa-floppy-disk"></i> Save Settings
-          </button>
-          <hr style="border-color: var(--glass-border); margin: 2rem 0" />
-          <h4 style="color: var(--danger); margin-bottom: 1rem">Danger Zone</h4>
-          <button class="btn btn-delete" id="resetAllData">
-            <i class="fa-solid fa-skull"></i> Reset All Data
-          </button>
-        </div>
-      </div>
-    </main>
-
-    <!-- User Edit Modal -->
-    <div class="modal-overlay" id="userModal">
-      <div class="modal">
-        <h3 id="userModalTitle">Edit User</h3>
-        <input type="hidden" id="editUserId" />
-        <div class="form-row">
-          <div class="form-group">
-            <label>First Name</label><input id="editFirstName" />
-          </div>
-          <div class="form-group">
-            <label>Last Name</label><input id="editLastName" />
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Email</label><input type="email" id="editEmail" />
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Age</label
-            ><input type="number" id="editAge" min="18" max="99" />
-          </div>
-          <div class="form-group">
-            <label>Location</label><input id="editLocation" />
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Phone</label><input id="editPhone" />
-        </div>
-        <div class="form-group">
-          <label>Bio</label><textarea id="editBio" rows="2"></textarea>
-        </div>
-        <div class="form-group">
-          <label>Interests</label><input id="editInterests" />
-        </div>
-        <div class="form-group">
-          <label>Profession</label><input id="editProfession" />
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Annual Income</label><input id="editIncome" />
-          </div>
-          <div class="form-group">
-            <label>Net Worth</label><input id="editNetWorth" />
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Avatar URL</label><input id="editAvatar" />
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Plan</label
-            ><select id="editPlan">
-              <option value="trial">Trial</option>
-              <option value="premium-monthly">Premium</option>
-              <option value="elite-annual">Elite Annual</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Password</label
-            ><input
-              type="text"
-              id="editPassword"
-              placeholder="(leave blank to keep)"
-            />
-          </div>
-        </div>
-        <div class="form-group">
-          <label
-            ><input type="checkbox" id="editBanned" /> Shadow Ban User</label
+          <div
+            style="
+              max-width: 600px;
+              background: var(--glass-bg-card);
+              border: 1px solid var(--glass-border);
+              border-radius: 20px;
+              padding: 2rem;
+              backdrop-filter: blur(15px);
+            "
           >
+            <div class="form-group">
+              <label>Admin Password</label>
+              <input
+                type="password"
+                id="adminPassword"
+                placeholder="Set admin password"
+              />
+            </div>
+            <button class="btn btn-primary" id="saveAdminSettings">
+              <i class="fa-solid fa-floppy-disk"></i> Save Settings
+            </button>
+            <hr style="border-color: var(--glass-border); margin: 2rem 0" />
+            <h4 style="color: var(--danger); margin-bottom: 1rem">
+              Danger Zone
+            </h4>
+            <button class="btn btn-delete" id="resetAllData">
+              <i class="fa-solid fa-skull"></i> Reset All Data
+            </button>
+          </div>
         </div>
-        <div class="modal-actions">
-          <button class="btn btn-secondary" id="closeUserModal">Cancel</button>
-          <button class="btn btn-primary" id="saveUserBtn">Save Changes</button>
+      </main>
+
+      <!-- User Edit Modal -->
+      <div class="modal-overlay" id="userModal">
+        <div class="modal">
+          <h3 id="userModalTitle">Edit User</h3>
+          <input type="hidden" id="editUserId" />
+          <div class="form-row">
+            <div class="form-group">
+              <label>First Name</label><input id="editFirstName" />
+            </div>
+            <div class="form-group">
+              <label>Last Name</label><input id="editLastName" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Email</label><input type="email" id="editEmail" />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Age</label
+              ><input type="number" id="editAge" min="18" max="99" />
+            </div>
+            <div class="form-group">
+              <label>Location</label><input id="editLocation" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Phone</label><input id="editPhone" />
+          </div>
+          <div class="form-group">
+            <label>Bio</label><textarea id="editBio" rows="2"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Interests</label><input id="editInterests" />
+          </div>
+          <div class="form-group">
+            <label>Profession</label><input id="editProfession" />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Annual Income</label><input id="editIncome" />
+            </div>
+            <div class="form-group">
+              <label>Net Worth</label><input id="editNetWorth" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Avatar URL</label><input id="editAvatar" />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Plan</label
+              ><select id="editPlan">
+                <option value="trial">Trial</option>
+                <option value="premium-monthly">Premium</option>
+                <option value="elite-annual">Elite Annual</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Password</label
+              ><input
+                type="text"
+                id="editPassword"
+                placeholder="(leave blank to keep)"
+              />
+            </div>
+          </div>
+          <div class="form-group">
+            <label
+              ><input type="checkbox" id="editBanned" /> Shadow Ban User</label
+            >
+          </div>
+          <div class="modal-actions">
+            <button class="btn btn-secondary" id="closeUserModal">
+              Cancel
+            </button>
+            <button class="btn btn-primary" id="saveUserBtn">
+              Save Changes
+            </button>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Event Edit Modal -->
-    <div class="modal-overlay" id="eventModalOverlay">
-      <div class="modal">
-        <h3 id="eventModalTitle">Add Event</h3>
-        <input type="hidden" id="editEventId" />
-        <div class="form-group">
-          <label>Event Name</label><input id="editEventName" />
-        </div>
-        <div class="form-row">
+      <!-- Event Edit Modal -->
+      <div class="modal-overlay" id="eventModalOverlay">
+        <div class="modal">
+          <h3 id="eventModalTitle">Add Event</h3>
+          <input type="hidden" id="editEventId" />
           <div class="form-group">
-            <label>Date</label
-            ><input id="editEventDate" placeholder="15 June 2026" />
+            <label>Event Name</label><input id="editEventName" />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Date</label
+              ><input id="editEventDate" placeholder="15 June 2026" />
+            </div>
+            <div class="form-group">
+              <label>Time</label
+              ><input id="editEventTime" placeholder="8:00 PM CET" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Type</label
+              ><select id="editEventType">
+                <option value="gala">Gala</option>
+                <option value="yacht">Yacht Party</option>
+                <option value="polo">Polo & Equestrian</option>
+                <option value="wine">Wine & Dine</option>
+                <option value="concert">Private Concert</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Location</label><input id="editEventLocation" />
+            </div>
           </div>
           <div class="form-group">
-            <label>Time</label
-            ><input id="editEventTime" placeholder="8:00 PM CET" />
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Type</label
-            ><select id="editEventType">
-              <option value="gala">Gala</option>
-              <option value="yacht">Yacht Party</option>
-              <option value="polo">Polo & Equestrian</option>
-              <option value="wine">Wine & Dine</option>
-              <option value="concert">Private Concert</option>
-            </select>
+            <label>Dress Code</label><input id="editEventDress" />
           </div>
           <div class="form-group">
-            <label>Location</label><input id="editEventLocation" />
+            <label>Description</label
+            ><textarea id="editEventDesc" rows="3"></textarea>
           </div>
-        </div>
-        <div class="form-group">
-          <label>Dress Code</label><input id="editEventDress" />
-        </div>
-        <div class="form-group">
-          <label>Description</label
-          ><textarea id="editEventDesc" rows="3"></textarea>
-        </div>
-        <div class="form-group">
-          <label>Image URL</label
-          ><input id="editEventImage" placeholder="https://..." />
-        </div>
-        <div class="modal-actions">
-          <button class="btn btn-secondary" id="closeEventModal">Cancel</button>
-          <button class="btn btn-primary" id="saveEventBtn">Save Event</button>
+          <div class="form-group">
+            <label>Image URL</label
+            ><input id="editEventImage" placeholder="https://..." />
+          </div>
+          <div class="modal-actions">
+            <button class="btn btn-secondary" id="closeEventModal">
+              Cancel
+            </button>
+            <button class="btn btn-primary" id="saveEventBtn">
+              Save Event
+            </button>
+          </div>
         </div>
       </div>
     </div>
 
     <script>
       (function () {
-        function waitForFirebase(callback) {
-        if (window.db) {
-            callback();
-        } else {
-            let attempts = 0;
-            const check = setInterval(() => {
-                if (window.db) {
-                    clearInterval(check);
-                    callback();
-                }
-                attempts++;
-                if (attempts > 50) {   // stop after 5 seconds
-                    clearInterval(check);
-                    console.error('Firebase failed to load');
-                }
-            }, 100);
-        }
-    }
-    function startAdminPanel() {
-        // ── Storage Keys ──────────────────────────
-        const USERS_KEY = "reh_users";
-        const EVENTS_KEY = "reh_events";
-        const MESSAGES_KEY = "reh_chat_messages";
-        const CHAT_KEY = 'reh_chat_messages';
-        const CONCIERGE_KEY = "reh_concierge_requests";
-        const EVENT_INVITES_KEY = "reh_event_invitations";
-        const NOTIF_KEY = "ss_global_notifications";
-        const SETTINGS_KEY = "ss_admin_settings";
-        // ── Firebase references ──────────
-        const usersCollection = window.collection(window.db, "users");
-
-        // ── Default Data ──────────────────────────
-        function getDefaultUsers() {
-          return [
-            {
-              id: "1",
-              firstName: "Isabella",
-              lastName: "Rossi",
-              email: "isabella@example.com",
-              password: "12345678",
-              age: 26,
-              location: "Milan, Italy",
-              phone: "+39 02 5550 1472",
-              bio: "Art curator passionate about Renaissance history.",
-              interests: "Art, Polo, Wine tasting",
-              avatar: "https://randomuser.me/api/portraits/women/44.jpg",
-              plan: "premium-monthly",
-              banned: false,
-              joined: "2026-05-01",
-              lastActive: Date.now(),
-            },
-            {
-              id: "2",
-              firstName: "Sophia",
-              lastName: "Laurent",
-              email: "sophia@example.com",
-              password: "12345678",
-              age: 28,
-              location: "Paris, France",
-              phone: "+33 1 42 68 53 09",
-              bio: "Fashion designer and lover of fine cuisine.",
-              interests: "Fashion, Cooking, Travel",
-              avatar: "https://randomuser.me/api/portraits/women/5.jpg",
-              plan: "elite-annual",
-              banned: false,
-              joined: "2026-05-10",
-              lastActive: Date.now() - 3600000,
-            },
-            {
-              id: "3",
-              firstName: "Valentina",
-              lastName: "Cruz",
-              email: "valentina@example.com",
-              password: "12345678",
-              age: 29,
-              location: "Barcelona, Spain",
-              phone: "+34 93 555 01 87",
-              bio: "Dancer and sunset chaser.",
-              interests: "Dance, Beach, Music",
-              avatar: "https://randomuser.me/api/portraits/women/12.jpg",
-              plan: "trial",
-              banned: true,
-              joined: "2026-05-15",
-              lastActive: Date.now() - 86400000,
-            },
-          ];
-        }
-
-        function getDefaultEvents() {
-          return [
-            {
-              id: "1",
-              name: "Venetian Masquerade Gala",
-              date: "15 June 2026",
-              type: "gala",
-              location: "Palazzo Pisani, Venice",
-              dress: "Black Tie & Mask",
-              description: "An enchanting evening of mystery and grandeur.",
-              image: "https://picsum.photos/seed/venicegala/400/250",
-            },
-            {
-              id: "2",
-              name: "Côte d'Azur Yacht Soirée",
-              date: "22 June 2026",
-              type: "yacht",
-              location: "Monaco Harbour",
-              dress: "Nautical Chic",
-              description: "Sunset cocktails aboard a 150‑ft superyacht.",
-              image: "https://picsum.photos/seed/yachtparty/400/250",
-            },
-          ];
-        }
-
-        function getDefaultMessages() {
-          return [
-            {
-              id: "1",
-              fromName: "Isabella Rossi",
-              fromEmail: "isabella@example.com",
-              text: "I would love to attend the Venetian Gala. Can you reserve a spot for me?",
-              timestamp: Date.now() - 7200000,
-              read: false,
-            },
-            {
-              id: "2",
-              fromName: "Sophia Laurent",
-              fromEmail: "sophia@example.com",
-              text: "How do I upgrade to Elite? I want the full experience!",
-              timestamp: Date.now() - 86400000,
-              read: true,
-            },
-          ];
-        }
-
-        function getDefaultNotifications() {
-          return [
-            {
-              id: "1",
-              title: "Welcome to Scarlet & Sapphire",
-              body: "Your exclusive journey begins now.",
-              sentAt: Date.now() - 604800000,
-            },
-          ];
-        }
-
-        // ── Data Helpers ──────────────────────────
-        function getData(key, defaults) {
-          const stored = localStorage.getItem(key);
-          if (stored) return JSON.parse(stored);
-          localStorage.setItem(key, JSON.stringify(defaults));
-          return defaults;
-        }
-
-        function saveData(key, data) {
-          localStorage.setItem(key, JSON.stringify(data));
-        }
-
-        let users = getData(USERS_KEY, getDefaultUsers());
-        let events = getData(EVENTS_KEY, getDefaultEvents());
-        let messages = getData(MESSAGES_KEY, getDefaultMessages());
-        let notifications = JSON.parse(localStorage.getItem(NOTIF_KEY) || "[]");
-
-        function refreshData() {
-          users = getData(USERS_KEY, getDefaultUsers());
-          events = getData(EVENTS_KEY, getDefaultEvents());
-          messages = getData(MESSAGES_KEY, getDefaultMessages());
-          // notifications = getData(NOTIF_KEY, getDefaultNotifications());
-        }
-
-        function generateId() {
-          return Date.now().toString(36) + Math.random().toString(36).substr(2);
-        }
-
-        // ── Toast ─────────────────────────────────
-        const toast = document.getElementById("toast");
-        const toastMsg = document.getElementById("toastMsg");
-        let toastTimer;
-
-        function showToast(msg) {
-          if (toastTimer) clearTimeout(toastTimer);
-          toastMsg.textContent = msg;
-          toast.classList.add("show");
-          toastTimer = setTimeout(() => toast.classList.remove("show"), 3000);
-        }
-
-        // ── Navigation ────────────────────────────
-        const sidebar = document.getElementById("sidebar");
-        const mobileToggle = document.getElementById("mobileToggle");
-
-        mobileToggle.addEventListener("click", () =>
-          sidebar.classList.toggle("open"),
-        );
-
-        document
-          .querySelectorAll(".sidebar nav a[data-page]")
-          .forEach((link) => {
-            link.addEventListener("click", function (e) {
-              e.preventDefault();
-              const page = this.dataset.page;
-              // Activate page
-              document
-                .querySelectorAll(".page")
-                .forEach((p) => p.classList.remove("active"));
-              document.getElementById("page-" + page).classList.add("active");
-              // Activate nav
-              document
-                .querySelectorAll(".sidebar nav a")
-                .forEach((a) => a.classList.remove("active"));
-              this.classList.add("active");
-              // Close mobile sidebar
-              sidebar.classList.remove("open");
-              // Load data
-              if (page === "dashboard") loadDashboard();
-              if (page === "users") loadUsers();
-              if (page === "events") loadEvents();
-              if (page === "messages") loadMessages();
-              if (page === "concierge") loadConciergeRequests();
-              if (page === "notifications") loadNotifications();
-              if (page === 'newsletter') loadNewsletterSubscribers();
-              if (page === "event-invitations") loadEventInvitations();
-            });
-          });
-
-        // ── Dashboard ─────────────────────────────
-        // function loadDashboard() {
-        async function loadDashboard() {
-          const recentUserstbody = document.querySelector("#recentUsersTable tbody");
-          recentUserstbody.innerHTML = `
-              <tr>
-                <td colspan="7" style="text-align:center; padding:3rem;">
-                  <i class="fa-solid fa-spinner fa-spin fa-2x" style="color:var(--gold-light);"></i>
-                  <p style="margin-top:0.5rem; color:var(--text-muted);">Loading stats…</p>
-                </td>
-              </tr>`;
-          refreshData();
-          // const totalUsers = users.length;
-
-          const usersSnapshot = await window.getDocs(usersCollection);
-          const users = [];
-          usersSnapshot.forEach(doc => users.push(doc.data()));
-          const totalUsers = users.length;
-
-          const onlineUsers = users.filter(
-            (u) => Date.now() - (u.lastActive || 0) < 120000,
-          ).length;
-          const totalEvents = events.length;
-          const bannedUsers = users.filter((u) => u.banned).length;
-          const unreadMessages = messages.filter((m) => !m.read).length;
-          const conciergeRequests = JSON.parse(
-            localStorage.getItem("reh_concierge_requests") || "[]",
-          );
-          const pendingRequests = conciergeRequests.filter(
-            (r) => r.status === "new",
-          ).length;
-          const eventInvites = JSON.parse(
-            localStorage.getItem(EVENT_INVITES_KEY) || "[]",
-          );
-          const pendingInvites = eventInvites.filter(
-            (inv) => inv.status === "pending",
-          ).length;
-          const totalSubscribers = JSON.parse(localStorage.getItem(SUBSCRIBERS_KEY) || '[]').length;
-          // Inside statsContainer innerHTML, add:
-
-
-          document.getElementById("statsContainer").innerHTML = `
-                    <div class="stat-card">
-                      <div class="stat-icon users"><i class="fa-solid fa-user"></i></div>
-                      <div class="stat-info">
-                        <h3>${totalUsers}</h3>
-                        <p>Total Users</p>
-                      </div>
-                    </div>
-                    <div class="stat-card">
-                      <div class="stat-icon events"><i class="fa-solid fa-circle"></i></div>
-                      <div class="stat-info">
-                        <h3>${onlineUsers}</h3>
-                        <p>Online Now</p>
-                      </div>
-                    </div>
-                    <div class="stat-card">
-                      <div
-                        class="stat-icon"
-                        style="background: rgba(255, 107, 74, 0.2); color: #ff6b4a"
-                      >
-                        <i class="fa-solid fa-envelope-open-text"></i>
-                      </div>
-                      <div class="stat-info">
-                        <h3 id="pendingInvitesCount">0</h3>
-                        <p>Pending Event Invitations</p>
-                      </div>
-                    </div>
-
-                    <div class="stat-card">
-                      <div class="stat-icon banned"><i class="fa-solid fa-ban"></i></div>
-                      <div class="stat-info">
-                        <h3>${bannedUsers}</h3>
-                        <p>Banned Users</p>
-                      </div>
-                    </div>
-                    <div class="stat-card">
-                      <div
-                        class="stat-icon"
-                        style="background: rgba(255, 107, 74, 0.2); color: #ff6b4a"
-                      >
-                        <i class="fa-solid fa-clipboard-list"></i>
-                      </div>
-                      <div class="stat-info">
-                        <h3 id="pendingRequestsCount">0</h3>
-                        <p>Pending Concierge Requests</p>
-                      </div>
-                    </div>
-                    <div class="stat-card">
-                      <div class="stat-icon users"><i class="fa-solid fa-newspaper"></i></div>
-                      <div class="stat-info">
-                        <h3>${totalSubscribers}</h3>
-                        <p>Newsletter Subscribers</p>
-                      </div>
-                    </div>
-                    <div class="stat-card">
-                      <div class="stat-icon messages"><i class="fa-solid fa-envelope"></i></div>
-                      <div class="stat-info">
-                        <h3>${unreadMessages}</h3>
-                        <p>Unread Messages</p>
-                      </div>
-                    </div>
-                    <div class="stat-card">
-                      <div class="stat-icon users"><i class="fa-solid fa-crown"></i></div>
-                      <div class="stat-info">
-                        <h3>${users.filter((u) => u.plan === "elite-annual").length}</h3>
-                        <p>Elite Members</p>
-                      </div>
-                    </div>
-
-                `;
-
-          document.getElementById("pendingRequestsCount").textContent =
-            pendingRequests;
-          document.getElementById("pendingInvitesCount").textContent =
-            pendingInvites;
-          const recentUsers = [...users]
-            .sort((a, b) => new Date(b.joined) - new Date(a.joined))
-            .slice(0, 5);
-          const tbody = document.querySelector("#recentUsersTable tbody");
-          tbody.innerHTML = recentUsers
-            .map(
-              (u) => `
-                    <tr>
-                        <td>${u.firstName} ${u.lastName}</td>
-                        <td>${u.email}</td>
-                        <td><span class="badge badge-${u.plan === "elite-annual" ? "success" : u.plan === "premium-monthly" ? "info" : "warning"}">${u.plan}</span></td>
-                        <td>${u.joined || "Unknown"}</td>
-                    </tr>
-                `,
-            )
-            .join("");
-        }
-
-        // ── Users ─────────────────────────────────
-        // function loadUsers() {
-        //   refreshData();
-        //   const tbody = document.querySelector("#usersTable tbody");
-        //   tbody.innerHTML = users
-        //     .map(
-        //       (u) => `
-        //             <tr>
-        //                 <td><img src="${u.avatar || "https://randomuser.me/api/portraits/women/44.jpg"}" style="width:35px;height:35px;border-radius:50%;object-fit:cover;"></td>
-        //                 <td>${u.firstName} ${u.lastName}</td>
-        //                 <td>${u.email}</td>
-        //                 <td>${u.location || "—"}</td>
-        //                 <td><span class="badge badge-${u.plan === "elite-annual" ? "success" : u.plan === "premium-monthly" ? "info" : "warning"}">${u.plan}</span></td>
-        //                 <td><span class="badge ${u.banned ? "badge-danger" : "badge-success"}">${u.banned ? "Yes" : "No"}</span></td>
-        //                 <td>
-        //                     <button class="btn-sm btn-edit" data-id="${u.id}">Edit</button>
-        //                     <button class="btn-sm ${u.banned ? "btn-unban" : "btn-ban"}" data-id="${u.id}">${u.banned ? "Unban" : "Ban"}</button>
-        //                     <button class="btn-sm btn-upgrade" data-id="${u.id}">Plan</button>
-        //                     <button class="btn-sm btn-delete" data-id="${u.id}">Del</button>
-        //                 </td>
-        //             </tr>
-        //         `,
-        //     )
-        //     .join("");
-        //   attachUserActions();
-        // }
-
-        async function loadUsers() {
-  const tbody = document.querySelector('#usersTable tbody');
-  tbody.innerHTML = `
-    <tr>
-      <td colspan="7" style="text-align:center; padding:3rem;">
-        <i class="fa-solid fa-spinner fa-spin fa-2x" style="color:var(--gold-light);"></i>
-        <p style="margin-top:0.5rem; color:var(--text-muted);">Loading users…</p>
-      </td>
-    </tr>`;
-
-  try {
-    const snapshot = await window.getDocs(usersCollection);
-    users = [];                             // ← reassign outer variable (no const!)
-    snapshot.forEach(doc => {
-      const u = doc.data();
-      u.id = doc.id;                        // ← use 'id' for consistency
-      users.push(u);
-    });
-
-    tbody.innerHTML = users.map(u => `
-      <tr>
-        <td><img src="${u.avatar || 'https://randomuser.me/api/portraits/women/44.jpg'}" style="width:35px;height:35px;border-radius:50%;object-fit:cover;"></td>
-        <td>${u.firstName} ${u.lastName}</td>
-        <td>${u.email}</td>
-        <td>${u.location || '—'}</td>
-        <td><span class="badge badge-${u.plan==='elite-annual'?'success':u.plan==='premium-monthly'?'info':'warning'}">${u.plan}</span></td>
-        <td><span class="badge ${u.banned?'badge-danger':'badge-success'}">${u.banned?'Yes':'No'}</span></td>
-        <td>
-          <button class="btn-sm btn-edit" data-id="${u.id}">Edit</button>
-          <button class="btn-sm ${u.banned?'btn-unban':'btn-ban'}" data-id="${u.id}">${u.banned?'Unban':'Ban'}</button>
-          <button class="btn-sm btn-upgrade" data-id="${u.id}">Plan</button>
-          <button class="btn-sm btn-delete" data-id="${u.id}">Del</button>
-        </td>
-      </tr>
-    `).join('');
-
-    attachUserActions();
-  } catch (error) {
-    console.error('Error loading users:', error);
-    tbody.innerHTML = '<tr><td colspan="7" style="color:var(--danger);">Failed to load users.</td></tr>';
-  }
-}
-
-        function attachUserActions() {
-          document
-            .querySelectorAll(".btn-edit")
-            .forEach((b) =>
-              b.addEventListener("click", () => openUserModal(b.dataset.id)),
-            );
-          document
-            .querySelectorAll(".btn-ban, .btn-unban")
-            .forEach((b) =>
-              b.addEventListener("click", () => toggleBan(b.dataset.id)),
-            );
-          document
-            .querySelectorAll(".btn-upgrade")
-            .forEach((b) =>
-              b.addEventListener("click", () => cyclePlan(b.dataset.id)),
-            );
-          document
-            .querySelectorAll(".btn-delete")
-            .forEach((b) =>
-              b.addEventListener("click", () => deleteUser(b.dataset.id)),
-            );
-        }
-
-        function openUserModal(id = null) {
-          const modal = document.getElementById("userModal");
-          if (id) {
-            const u = users.find((u) => u.id === id);
-            if (!u) return;
-            document.getElementById("editUserId").value = u.id;
-            document.getElementById("editFirstName").value = u.firstName || "";
-            document.getElementById("editLastName").value = u.lastName || "";
-            document.getElementById("editEmail").value = u.email || "";
-            document.getElementById("editAge").value = u.age || "";
-            document.getElementById("editLocation").value = u.location || "";
-            document.getElementById("editPhone").value = u.phone || "";
-            document.getElementById("editBio").value = u.bio || "";
-            document.getElementById("editInterests").value = u.interests || "";
-            document.getElementById("editProfession").value =
-              u.profession || "";
-            document.getElementById("editIncome").value = u.income || "";
-            document.getElementById("editNetWorth").value = u.netWorth || "";
-            document.getElementById("editAvatar").value = u.avatar || "";
-            document.getElementById("editPlan").value = u.plan || "trial";
-            document.getElementById("editPassword").value = "";
-            document.getElementById("editBanned").checked = u.banned || false;
-            document.getElementById("userModalTitle").textContent = "Edit User";
+        /* ---------- wait for Firebase ---------- */
+        function waitForFirebase(cb) {
+          if (
+            window.db &&
+            window.collection &&
+            window.getDocs &&
+            window.query &&
+            window.where &&
+            window.orderBy &&
+            window.limit &&
+            window.doc &&
+            window.setDoc &&
+            window.updateDoc &&
+            window.deleteDoc &&
+            window.addDoc &&
+            window.collectionGroup &&
+            window.writeBatch &&
+            window.serverTimestamp
+          ) {
+            cb();
           } else {
-            document.getElementById("editUserId").value = "";
-            document.getElementById("editFirstName").value = "";
-            document.getElementById("editLastName").value = "";
-            document.getElementById("editEmail").value = "";
-            document.getElementById("editAge").value = "";
-            document.getElementById("editLocation").value = "";
-            document.getElementById("editPhone").value = "";
-            document.getElementById("editBio").value = "";
-            document.getElementById("editInterests").value = "";
-            document.getElementById("editProfession").value = "";
-            document.getElementById("editIncome").value = "";
-            document.getElementById("editNetWorth").value = "";
-            document.getElementById("editAvatar").value = "";
-            document.getElementById("editPlan").value = "trial";
-            document.getElementById("editPassword").value = "";
-            document.getElementById("editBanned").checked = false;
-            document.getElementById("userModalTitle").textContent = "Add User";
-          }
-          modal.classList.add("active");
-        }
-
-        document
-          .getElementById("closeUserModal")
-          .addEventListener("click", () =>
-            document.getElementById("userModal").classList.remove("active"),
-          );
-        document
-          .getElementById("addUserBtn")
-          .addEventListener("click", () => openUserModal(null));
-
-        // document.getElementById("saveUserBtn").addEventListener("click", () => {
-        //   const id = document.getElementById("editUserId").value;
-        //   const userData = {
-        //     firstName: document.getElementById("editFirstName").value.trim(),
-        //     lastName: document.getElementById("editLastName").value.trim(),
-        //     email: document.getElementById("editEmail").value.trim(),
-        //     age: document.getElementById("editAge").value,
-        //     location: document.getElementById("editLocation").value.trim(),
-        //     phone: document.getElementById("editPhone").value.trim(),
-        //     bio: document.getElementById("editBio").value.trim(),
-        //     interests: document.getElementById("editInterests").value.trim(),
-        //     profession: document.getElementById("editProfession").value.trim(),
-        //     income: document.getElementById("editIncome").value.trim(),
-        //     netWorth: document.getElementById("editNetWorth").value.trim(),
-        //     avatar: document.getElementById("editAvatar").value.trim(),
-        //     plan: document.getElementById("editPlan").value,
-        //     banned: document.getElementById("editBanned").checked,
-        //   };
-        //   const password = document.getElementById("editPassword").value.trim();
-        //   if (password) userData.password = password;
-
-        //   if (id) {
-        //     const idx = users.findIndex((u) => u.id === id);
-        //     if (idx >= 0) {
-        //       users[idx] = { ...users[idx], ...userData };
-        //     }
-        //   } else {
-        //     users.push({
-        //       ...userData,
-        //       id: generateId(),
-        //       password: password || "12345678",
-        //       joined: new Date().toISOString().split("T")[0],
-        //       lastActive: Date.now(),
-        //     });
-        //   }
-        //   saveData(USERS_KEY, users);
-        //   document.getElementById("userModal").classList.remove("active");
-        //   loadUsers();
-        //   loadDashboard();
-        //   showToast("✅ User saved successfully.");
-        // });
-
-        document.getElementById('saveUserBtn').addEventListener('click', async () => {
-          const btn = this;
-          const originalHTML = btn.innerHTML;   // store original button content
-
-          // Disable and show spinner
-          btn.disabled = true;
-          btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving…';
-
-            const id = document.getElementById('editUserId').value.trim();   // this will be the Firestore document ID (email or uid)
-            const userData = {
-              firstName: document.getElementById('editFirstName').value.trim(),
-              lastName: document.getElementById('editLastName').value.trim(),
-              email: document.getElementById('editEmail').value.trim(),
-              age: document.getElementById('editAge').value,
-              location: document.getElementById('editLocation').value.trim(),
-              phone: document.getElementById('editPhone').value.trim(),
-              bio: document.getElementById('editBio').value.trim(),
-              interests: document.getElementById('editInterests').value.trim(),
-              profession: document.getElementById('editProfession').value.trim(),
-              income: document.getElementById('editIncome').value.trim(),
-              netWorth: document.getElementById('editNetWorth').value.trim(),
-              avatar: document.getElementById('editAvatar').value.trim(),
-              plan: document.getElementById('editPlan').value,
-              banned: document.getElementById('editBanned').checked,
-          };
-
-    // If password field isn't empty, add it (only for local storage compatibility; we shouldn't store plain passwords)
-    const password = document.getElementById('editPassword').value.trim();
-    if (password) userData.password = password;
-
-    try {
-        if (id) {
-            // Update existing user
-            await window.updateDoc(window.doc(window.db, "users", id), userData);
-        } else {
-            // Add new user – use email as document ID (or generate a new one)
-            const docId = userData.email || Date.now().toString(36);
-            // Also set a default password if none provided (demo only)
-            if (!password) userData.password = '12345678';
-            await window.setDoc(window.doc(window.db, "users", docId), {
-                ...userData,
-                createdAt: window.serverTimestamp(),
-                lastActive: window.serverTimestamp(),
-                uid: docId,
-                banned: false,
-                incognito: false,
-                visibility: true
-            });
-        }
-        document.getElementById('userModal').classList.remove('active');
-        loadUsers();
-        loadDashboard();
-        showToast('✅ User saved successfully.');
-    } catch (error) {
-        console.error('Error saving user:', error);
-        showToast('Failed to save user.');
-    } finally {
-    // Restore button
-    btn.disabled = false;
-    btn.innerHTML = originalHTML;
-  }
-});
-
-        // function toggleBan(id) {
-        //   const idx = users.findIndex((u) => u.id === id);
-        //   if (idx >= 0) {
-        //     users[idx].banned = !users[idx].banned;
-        //     saveData(USERS_KEY, users);
-        //     loadUsers();
-        //     loadDashboard();
-        //     showToast(`User ${users[idx].banned ? "banned" : "unbanned"}.`);
-        //   }
-        // }
-
-        async function toggleBan(id) {
-    try {
-        const docRef = window.doc(window.db, "users", id);
-        const snap = await window.getDoc(docRef);
-        if (snap.exists()) {
-            const current = snap.data().banned || false;
-            await window.updateDoc(docRef, { banned: !current });
-            loadUsers();
-            loadDashboard();
-            showToast(`User ${!current?'banned':'unbanned'}.`);
-        }
-    } catch (error) {
-        console.error(error);
-    }
-}
-
-        // function cyclePlan(id) {
-        //   const idx = users.findIndex((u) => u.id === id);
-        //   if (idx >= 0) {
-        //     const plans = ["trial", "premium-monthly", "elite-annual"];
-        //     const current = plans.indexOf(users[idx].plan);
-        //     users[idx].plan = plans[(current + 1) % plans.length];
-        //     saveData(USERS_KEY, users);
-        //     loadUsers();
-        //     loadDashboard();
-        //     showToast(`Plan updated to ${users[idx].plan}.`);
-        //   }
-        // }
-
-        async function cyclePlan(id) {
-    const plans = ['trial', 'premium-monthly', 'elite-annual'];
-    try {
-        const docRef = window.doc(window.db, "users", id);
-        const snap = await window.getDoc(docRef);
-        if (snap.exists()) {
-            const currentPlan = snap.data().plan || 'trial';
-            const nextIndex = (plans.indexOf(currentPlan) + 1) % plans.length;
-            await window.updateDoc(docRef, { plan: plans[nextIndex] });
-            loadUsers();
-            loadDashboard();
-            showToast(`Plan updated to ${plans[nextIndex]}.`);
-        }
-    } catch (error) {
-        console.error(error);
-    }
-}
-
-        // function deleteUser(id) {
-        //   if (
-        //     !confirm(
-        //       "Are you sure you want to delete this user? This cannot be undone.",
-        //     )
-        //   )
-        //     return;
-        //   users = users.filter((u) => u.id !== id);
-        //   saveData(USERS_KEY, users);
-        //   loadUsers();
-        //   loadDashboard();
-        //   showToast("🗑️ User deleted.");
-        // }
-
-        async function deleteUser(id) {
-    if (!confirm('Are you sure? This cannot be undone.')) return;
-    try {
-        await window.deleteDoc(window.doc(window.db, "users", id));
-        loadUsers();
-        loadDashboard();
-        showToast('🗑️ User deleted.');
-    } catch (error) {
-        console.error(error);
-        showToast('Failed to delete user.');
-    }
-}
-
-        // ── Events ────────────────────────────────
-        function loadEvents() {
-          refreshData();
-          const tbody = document.querySelector("#eventsTable tbody");
-          tbody.innerHTML = events
-            .map(
-              (e) => `
-                    <tr>
-                        <td>${e.name}</td>
-                        <td>${e.date}</td>
-                        <td><span class="badge badge-info">${e.type}</span></td>
-                        <td>${e.location || "—"}</td>
-                        <td>
-                            <button class="btn-sm btn-edit edit-event" data-id="${e.id}">Edit</button>
-                            <button class="btn-sm btn-delete delete-event" data-id="${e.id}">Del</button>
-                        </td>
-                    </tr>
-                `,
-            )
-            .join("");
-          attachEventActions();
-        }
-
-        function attachEventActions() {
-          document
-            .querySelectorAll(".edit-event")
-            .forEach((b) =>
-              b.addEventListener("click", () => openEventModal(b.dataset.id)),
-            );
-          document.querySelectorAll(".delete-event").forEach((b) =>
-            b.addEventListener("click", () => {
-              if (confirm("Delete this event?")) {
-                events = events.filter((e) => e.id !== b.dataset.id);
-                saveData(EVENTS_KEY, events);
-                loadEvents();
-                loadDashboard();
-                showToast("🗑️ Event deleted.");
+            let tries = 0;
+            const timer = setInterval(() => {
+              if (
+                window.db &&
+                window.collection &&
+                window.getDocs &&
+                window.query &&
+                window.where &&
+                window.orderBy &&
+                window.limit &&
+                window.doc &&
+                window.setDoc &&
+                window.updateDoc &&
+                window.deleteDoc &&
+                window.addDoc &&
+                window.collectionGroup &&
+                window.writeBatch &&
+                window.serverTimestamp
+              ) {
+                clearInterval(timer);
+                cb();
               }
-            }),
-          );
-        }
-
-        function openEventModal(id = null) {
-          const modal = document.getElementById("eventModalOverlay");
-          if (id) {
-            const e = events.find((e) => e.id === id);
-            if (!e) return;
-            document.getElementById("editEventId").value = e.id;
-            document.getElementById("editEventName").value = e.name || "";
-            document.getElementById("editEventDate").value = e.date || "";
-            document.getElementById("editEventType").value = e.type || "gala";
-            document.getElementById("editEventLocation").value =
-              e.location || "";
-            document.getElementById("editEventDress").value = e.dress || "";
-            // document.getElementById('editEventDesc').value = e.description || '';
-            // document.getElementById('editEventImage').value = e.image || '';
-            document.getElementById("eventModalTitle").textContent =
-              "Edit Event";
-            document.getElementById("editEventTime").value = e.time || "";
-            document.getElementById("editEventImage").value = e.image || "";
-            document.getElementById("editEventDesc").value =
-              e.description || "";
-          } else {
-            document.getElementById("editEventId").value = "";
-            document.getElementById("editEventName").value = "";
-            document.getElementById("editEventDate").value = "";
-            document.getElementById("editEventType").value = "gala";
-            document.getElementById("editEventLocation").value = "";
-            document.getElementById("editEventDress").value = "";
-            // document.getElementById('editEventDesc').value = '';
-            // document.getElementById('editEventImage').value = '';
-            document.getElementById("eventModalTitle").textContent =
-              "Add Event";
-            document.getElementById("editEventTime").value = "";
-            document.getElementById("editEventImage").value = "";
-            document.getElementById("editEventDesc").value = "";
+              if (++tries > 100) {
+                clearInterval(timer);
+                console.error("Firebase not ready");
+              }
+            }, 100);
           }
-          modal.classList.add("active");
         }
 
-        document
-          .getElementById("closeEventModal")
-          .addEventListener("click", () => {
-            document
-              .getElementById("eventModalOverlay")
-              .classList.remove("active");
-          });
-        document
-          .getElementById("addEventBtn")
-          .addEventListener("click", () => openEventModal(null));
-
-        document
-          .getElementById("saveEventBtn")
-          .addEventListener("click", () => {
-            const id = document.getElementById("editEventId").value;
-            const eventData = {
-              name: document.getElementById("editEventName").value.trim(),
-              date: document.getElementById("editEventDate").value.trim(),
-              time: document.getElementById("editEventTime").value.trim(), // required
-              type: document.getElementById("editEventType").value,
-              location: document
-                .getElementById("editEventLocation")
-                .value.trim(),
-              dress: document.getElementById("editEventDress").value.trim(),
-              description: document
-                .getElementById("editEventDesc")
-                .value.trim(),
-              image: document.getElementById("editEventImage").value.trim(),
-            };
-
-            if (!eventData.name || !eventData.date) {
-              showToast("Please fill at least the event name and date.");
-              return;
+        /* ---------- global login helper --------- */
+        window.attemptLogin = async function () {
+          var pw = document.getElementById("adminLoginPassword").value.trim();
+          var errEl = document.getElementById("adminLoginError");
+          if (!pw) {
+            errEl.style.display = "block";
+            return;
+          }
+          if (
+            window._adminCheckPassword &&
+            window._adminSetAuthenticated &&
+            window._adminInitializePanel
+          ) {
+            var ok = await window._adminCheckPassword(pw);
+            if (ok) {
+              window._adminSetAuthenticated();
+              document.getElementById("adminLoginOverlay").style.display =
+                "none";
+              document.getElementById("adminMainContent").style.display = "";
+              window._adminInitializePanel();
+            } else {
+              errEl.style.display = "block";
             }
+          } else {
+            console.error("Admin helpers not ready");
+          }
+        };
 
-            const EVENTS_KEY = "reh_events";
-            let events = JSON.parse(localStorage.getItem(EVENTS_KEY) || "[]");
+        /* ---------- main ---------- */
+        waitForFirebase(function () {
+          startAdminPanel();
+        });
 
+        function startAdminPanel() {
+          /* ===== AUTH ===== */
+          var ADMIN_SESSION_KEY = "admin_session";
+          var ADMIN_SETTINGS_KEY = "ss_admin_settings";
+
+          async function hashPassword(pw) {
+            var enc = new TextEncoder();
+            var data = enc.encode(pw);
+            var buf = await crypto.subtle.digest("SHA-256", data);
+            return Array.from(new Uint8Array(buf))
+              .map((b) => b.toString(16).padStart(2, "0"))
+              .join("");
+          }
+
+          function isAdminAuthenticated() {
+            return sessionStorage.getItem(ADMIN_SESSION_KEY) === "true";
+          }
+          function setAdminAuthenticated() {
+            sessionStorage.setItem(ADMIN_SESSION_KEY, "true");
+          }
+          function clearAdminAuthentication() {
+            sessionStorage.removeItem(ADMIN_SESSION_KEY);
+          }
+
+          async function checkAdminPassword(pw) {
+            var settings = JSON.parse(
+              localStorage.getItem(ADMIN_SETTINGS_KEY) || "{}",
+            );
+            if (!settings.passwordHash) {
+              var defaultHash = await hashPassword("admin123");
+              localStorage.setItem(
+                ADMIN_SETTINGS_KEY,
+                JSON.stringify({ passwordHash: defaultHash }),
+              );
+              return pw === "admin123";
+            }
+            return (await hashPassword(pw)) === settings.passwordHash;
+          }
+
+          function lockPanel() {
+            clearAdminAuthentication();
+            document.getElementById("adminLoginOverlay").style.display = "flex";
+            document.getElementById("adminMainContent").style.display = "none";
+            document.getElementById("adminLoginPassword").value = "";
+            document.getElementById("adminLoginError").style.display = "none";
+          }
+
+          document
+            .getElementById("lockPanelBtn")
+            .addEventListener("click", function (e) {
+              e.preventDefault();
+              lockPanel();
+            });
+
+          /* ===== TOAST ===== */
+          var toast = document.getElementById("toast");
+          var toastMsg = document.getElementById("toastMsg");
+          var toastTimer;
+          function showToast(msg) {
+            if (toastTimer) clearTimeout(toastTimer);
+            toastMsg.textContent = msg;
+            toast.classList.add("show");
+            toastTimer = setTimeout(function () {
+              toast.classList.remove("show");
+            }, 3000);
+          }
+
+          /* ===== FIREBASE REFS & HELPERS ===== */
+          var usersCollection = window.collection(window.db, "users");
+
+          async function deleteCollection(ref) {
+            var snap = await window.getDocs(ref);
+            if (snap.empty) return;
+            var batch = window.writeBatch(window.db);
+            var cnt = 0;
+            snap.forEach(function (doc) {
+              batch.delete(doc.ref);
+              cnt++;
+              if (cnt >= 500) {
+                batch.commit();
+                batch = window.writeBatch(window.db);
+                cnt = 0;
+              }
+            });
+            if (cnt > 0) batch.commit();
+          }
+
+          var NOTIF_KEY = "ss_global_notifications";
+          var SETTINGS_KEY = "ss_admin_settings";
+
+          /* ===== ALL LOAD FUNCTIONS (defined here so navigation can see them) ===== */
+          var users = []; // local cache for edit modal
+
+          async function loadDashboard() {
+            var tbody = document.querySelector("#recentUsersTable tbody");
+            tbody.innerHTML =
+              '<tr><td colspan="4" style="text-align:center;padding:3rem;"><i class="fa-solid fa-spinner fa-spin fa-2x" style="color:var(--gold-light);"></i></td></tr>';
+
+            var usersSnap = await window.getDocs(usersCollection);
+            var allUsers = [];
+            usersSnap.forEach(function (doc) {
+              allUsers.push(doc.data());
+            });
+            var totalUsers = allUsers.length;
+            var online = allUsers.filter(function (u) {
+              return Date.now() - (u.lastActive || 0) < 120000;
+            }).length;
+            var banned = allUsers.filter(function (u) {
+              return u.banned;
+            }).length;
+            var elite = allUsers.filter(function (u) {
+              return u.plan === "elite-annual";
+            }).length;
+
+            var totalEvents = 0;
+            try {
+              totalEvents = (
+                await window.getDocs(window.collection(window.db, "events"))
+              ).size;
+            } catch (e) {}
+
+            var pendingConcierge = 0;
+            try {
+              pendingConcierge = (
+                await window.getDocs(
+                  window.query(
+                    window.collection(window.db, "concierge_requests"),
+                    window.where("status", "==", "new"),
+                  ),
+                )
+              ).size;
+            } catch (e) {}
+
+            var pendingInvites = 0;
+            try {
+              pendingInvites = (
+                await window.getDocs(
+                  window.query(
+                    window.collection(window.db, "event_invitations"),
+                    window.where("status", "==", "pending"),
+                  ),
+                )
+              ).size;
+            } catch (e) {}
+
+            var subscribers = 0;
+            try {
+              subscribers = (
+                await window.getDocs(
+                  window.collection(window.db, "newsletter_subscribers"),
+                )
+              ).size;
+            } catch (e) {}
+
+            var msgs = 0;
+            try {
+              msgs = (
+                await window.getDocs(
+                  window.query(
+                    window.collectionGroup(window.db, "messages"),
+                    window.orderBy("timestamp", "desc"),
+                    window.limit(200),
+                  ),
+                )
+              ).size;
+            } catch (e) {}
+
+            document.getElementById("statsContainer").innerHTML =
+              '<div class="stat-card"><div class="stat-icon users"><i class="fa-solid fa-user"></i></div><div class="stat-info"><h3>' +
+              totalUsers +
+              "</h3><p>Total Users</p></div></div>" +
+              '<div class="stat-card"><div class="stat-icon events"><i class="fa-solid fa-circle"></i></div><div class="stat-info"><h3>' +
+              online +
+              "</h3><p>Online Now</p></div></div>" +
+              '<div class="stat-card"><div class="stat-icon banned"><i class="fa-solid fa-ban"></i></div><div class="stat-info"><h3>' +
+              banned +
+              "</h3><p>Banned</p></div></div>" +
+              '<div class="stat-card"><div class="stat-icon" style="background:rgba(255,107,74,0.2);color:#ff6b4a"><i class="fa-solid fa-envelope-open-text"></i></div><div class="stat-info"><h3>' +
+              pendingInvites +
+              "</h3><p>Pending Invites</p></div></div>" +
+              '<div class="stat-card"><div class="stat-icon" style="background:rgba(255,107,74,0.2);color:#ff6b4a"><i class="fa-solid fa-clipboard-list"></i></div><div class="stat-info"><h3>' +
+              pendingConcierge +
+              "</h3><p>Pending Concierge</p></div></div>" +
+              '<div class="stat-card"><div class="stat-icon users"><i class="fa-solid fa-newspaper"></i></div><div class="stat-info"><h3>' +
+              subscribers +
+              "</h3><p>Subscribers</p></div></div>" +
+              '<div class="stat-card"><div class="stat-icon messages"><i class="fa-solid fa-envelope"></i></div><div class="stat-info"><h3>' +
+              msgs +
+              "</h3><p>Messages</p></div></div>" +
+              '<div class="stat-card"><div class="stat-icon users"><i class="fa-solid fa-crown"></i></div><div class="stat-info"><h3>' +
+              elite +
+              "</h3><p>Elite Members</p></div></div>";
+
+            var recent = allUsers
+              .sort(function (a, b) {
+                return new Date(b.joined || 0) - new Date(a.joined || 0);
+              })
+              .slice(0, 5);
+            tbody.innerHTML = recent
+              .map(function (u) {
+                return (
+                  "<tr><td>" +
+                  u.firstName +
+                  " " +
+                  u.lastName +
+                  "</td><td>" +
+                  u.email +
+                  '</td><td><span class="badge badge-' +
+                  (u.plan === "elite-annual"
+                    ? "success"
+                    : u.plan === "premium-monthly"
+                      ? "info"
+                      : "warning") +
+                  '">' +
+                  u.plan +
+                  "</span></td><td>" +
+                  (u.joined || "Unknown") +
+                  "</td></tr>"
+                );
+              })
+              .join("");
+          }
+
+          async function loadUsers() {
+            var tbody = document.querySelector("#usersTable tbody");
+            tbody.innerHTML =
+              '<tr><td colspan="7" style="text-align:center;padding:3rem;"><i class="fa-solid fa-spinner fa-spin fa-2x" style="color:var(--gold-light);"></i></td></tr>';
+            try {
+              var snap = await window.getDocs(usersCollection);
+              users = [];
+              snap.forEach(function (doc) {
+                var u = doc.data();
+                u.id = doc.id;
+                users.push(u);
+              });
+              tbody.innerHTML = users
+                .map(function (u) {
+                  return (
+                    "<tr>" +
+                    '<td><img src="' +
+                    (u.avatar ||
+                      "https://randomuser.me/api/portraits/women/44.jpg") +
+                    '" style="width:35px;height:35px;border-radius:50%;object-fit:cover;"></td>' +
+                    "<td>" +
+                    u.firstName +
+                    " " +
+                    u.lastName +
+                    "</td><td>" +
+                    u.email +
+                    "</td><td>" +
+                    (u.location || "—") +
+                    "</td>" +
+                    '<td><span class="badge badge-' +
+                    (u.plan === "elite-annual"
+                      ? "success"
+                      : u.plan === "premium-monthly"
+                        ? "info"
+                        : "warning") +
+                    '">' +
+                    u.plan +
+                    "</span></td>" +
+                    '<td><span class="badge ' +
+                    (u.banned ? "badge-danger" : "badge-success") +
+                    '">' +
+                    (u.banned ? "Yes" : "No") +
+                    "</span></td>" +
+                    "<td>" +
+                    '<button class="btn-sm btn-edit" data-id="' +
+                    u.id +
+                    '">Edit</button>' +
+                    '<button class="btn-sm ' +
+                    (u.banned ? "btn-unban" : "btn-ban") +
+                    '" data-id="' +
+                    u.id +
+                    '">' +
+                    (u.banned ? "Unban" : "Ban") +
+                    "</button>" +
+                    '<button class="btn-sm btn-upgrade" data-id="' +
+                    u.id +
+                    '">Plan</button>' +
+                    '<button class="btn-sm btn-delete" data-id="' +
+                    u.id +
+                    '">Del</button>' +
+                    "</td></tr>"
+                  );
+                })
+                .join("");
+              attachUserActions();
+            } catch (e) {
+              console.error(e);
+              tbody.innerHTML =
+                '<tr><td colspan="7" style="color:var(--danger);">Failed to load users.</td></tr>';
+            }
+          }
+
+          function attachUserActions() {
+            document.querySelectorAll(".btn-edit").forEach(function (b) {
+              b.onclick = function () {
+                openUserModal(this.dataset.id);
+              };
+            });
+            document
+              .querySelectorAll(".btn-ban,.btn-unban")
+              .forEach(function (b) {
+                b.onclick = function () {
+                  toggleBan(this.dataset.id);
+                };
+              });
+            document.querySelectorAll(".btn-upgrade").forEach(function (b) {
+              b.onclick = function () {
+                cyclePlan(this.dataset.id);
+              };
+            });
+            document.querySelectorAll(".btn-delete").forEach(function (b) {
+              b.onclick = function () {
+                deleteUser(this.dataset.id);
+              };
+            });
+          }
+
+          function openUserModal(id) {
+            var modal = document.getElementById("userModal");
             if (id) {
-              // Update existing event
-              const idx = events.findIndex((e) => e.id === id);
-              if (idx !== -1) {
-                events[idx] = { ...events[idx], ...eventData };
+              var u = users.find(function (x) {
+                return x.id === id;
+              });
+              if (!u) return;
+              document.getElementById("editUserId").value = u.id;
+              document.getElementById("editFirstName").value =
+                u.firstName || "";
+              document.getElementById("editLastName").value = u.lastName || "";
+              document.getElementById("editEmail").value = u.email || "";
+              document.getElementById("editAge").value = u.age || "";
+              document.getElementById("editLocation").value = u.location || "";
+              document.getElementById("editPhone").value = u.phone || "";
+              document.getElementById("editBio").value = u.bio || "";
+              document.getElementById("editInterests").value =
+                u.interests || "";
+              document.getElementById("editProfession").value =
+                u.profession || "";
+              document.getElementById("editIncome").value = u.income || "";
+              document.getElementById("editNetWorth").value = u.netWorth || "";
+              document.getElementById("editAvatar").value = u.avatar || "";
+              document.getElementById("editPlan").value = u.plan || "trial";
+              document.getElementById("editBanned").checked = !!u.banned;
+              document.getElementById("userModalTitle").textContent =
+                "Edit User";
+            } else {
+              document.getElementById("editUserId").value = "";
+              [
+                "editFirstName",
+                "editLastName",
+                "editEmail",
+                "editAge",
+                "editLocation",
+                "editPhone",
+                "editBio",
+                "editInterests",
+                "editProfession",
+                "editIncome",
+                "editNetWorth",
+                "editAvatar",
+              ].forEach(function (f) {
+                document.getElementById(f).value = "";
+              });
+              document.getElementById("editPlan").value = "trial";
+              document.getElementById("editBanned").checked = false;
+              document.getElementById("userModalTitle").textContent =
+                "Add User";
+            }
+            modal.classList.add("active");
+          }
+
+          document
+            .getElementById("closeUserModal")
+            .addEventListener("click", function () {
+              document.getElementById("userModal").classList.remove("active");
+            });
+          document
+            .getElementById("addUserBtn")
+            .addEventListener("click", function () {
+              openUserModal(null);
+            });
+
+          document
+            .getElementById("saveUserBtn")
+            .addEventListener("click", async function () {
+              var btn = this;
+              var orig = btn.innerHTML;
+              btn.disabled = true;
+              btn.innerHTML =
+                '<i class="fa-solid fa-spinner fa-spin"></i> Saving…';
+              var id = document.getElementById("editUserId").value.trim();
+              var data = {
+                firstName: document
+                  .getElementById("editFirstName")
+                  .value.trim(),
+                lastName: document.getElementById("editLastName").value.trim(),
+                email: document.getElementById("editEmail").value.trim(),
+                age: document.getElementById("editAge").value,
+                location: document.getElementById("editLocation").value.trim(),
+                phone: document.getElementById("editPhone").value.trim(),
+                bio: document.getElementById("editBio").value.trim(),
+                interests: document
+                  .getElementById("editInterests")
+                  .value.trim(),
+                profession: document
+                  .getElementById("editProfession")
+                  .value.trim(),
+                income: document.getElementById("editIncome").value.trim(),
+                netWorth: document.getElementById("editNetWorth").value.trim(),
+                avatar: document.getElementById("editAvatar").value.trim(),
+                plan: document.getElementById("editPlan").value,
+                banned: document.getElementById("editBanned").checked,
+              };
+              var pw = document.getElementById("editPassword").value.trim();
+              if (pw) data.password = pw;
+              try {
+                if (id) {
+                  await window.updateDoc(
+                    window.doc(window.db, "users", id),
+                    data,
+                  );
+                } else {
+                  var docId = data.email || Date.now().toString(36);
+                  if (!pw) data.password = "12345678";
+                  await window.setDoc(
+                    window.doc(window.db, "users", docId),
+                    Object.assign(data, {
+                      createdAt: window.serverTimestamp(),
+                      lastActive: window.serverTimestamp(),
+                      uid: docId,
+                      banned: false,
+                      incognito: false,
+                      visibility: true,
+                    }),
+                  );
+                }
+                document.getElementById("userModal").classList.remove("active");
+                loadUsers();
+                loadDashboard();
+                showToast("✅ User saved.");
+              } catch (e) {
+                console.error(e);
+                showToast("Failed to save.");
+              } finally {
+                btn.disabled = false;
+                btn.innerHTML = orig;
+              }
+            });
+
+          async function toggleBan(id) {
+            try {
+              var ref = window.doc(window.db, "users", id);
+              var snap = await window.getDoc(ref);
+              if (snap.exists()) {
+                var cur = snap.data().banned || false;
+                await window.updateDoc(ref, { banned: !cur });
+                loadUsers();
+                loadDashboard();
+                showToast("User " + (!cur ? "banned" : "unbanned"));
+              }
+            } catch (e) {
+              console.error(e);
+            }
+          }
+
+          async function cyclePlan(id) {
+            var plans = ["trial", "premium-monthly", "elite-annual"];
+            try {
+              var ref = window.doc(window.db, "users", id);
+              var snap = await window.getDoc(ref);
+              if (snap.exists()) {
+                var cur = snap.data().plan || "trial";
+                var next = plans[(plans.indexOf(cur) + 1) % 3];
+                await window.updateDoc(ref, { plan: next });
+                loadUsers();
+                loadDashboard();
+                showToast("Plan updated to " + next);
+              }
+            } catch (e) {
+              console.error(e);
+            }
+          }
+
+          async function deleteUser(id) {
+            if (!confirm("Delete this user permanently?")) return;
+            try {
+              await window.deleteDoc(window.doc(window.db, "users", id));
+              loadUsers();
+              loadDashboard();
+              showToast("🗑️ User deleted.");
+            } catch (e) {
+              console.error(e);
+              showToast("Failed to delete.");
+            }
+          }
+
+          /* ===== EVENTS ===== */
+          async function loadEvents() {
+            var tbody = document.querySelector("#eventsTable tbody");
+            tbody.innerHTML =
+              '<tr><td colspan="5" style="text-align:center;padding:2rem;"><i class="fa-solid fa-spinner fa-spin"></i></td></tr>';
+            try {
+              var snap = await window.getDocs(
+                window.collection(window.db, "events"),
+              );
+              var events = [];
+              snap.forEach(function (doc) {
+                events.push({ id: doc.id, ...doc.data() });
+              });
+              if (!events.length) {
+                tbody.innerHTML =
+                  '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);">No events yet.</td></tr>';
+                return;
+              }
+              tbody.innerHTML = events
+                .map(function (e) {
+                  return (
+                    "<tr><td>" +
+                    e.name +
+                    "</td><td>" +
+                    e.date +
+                    '</td><td><span class="badge badge-info">' +
+                    e.type +
+                    "</span></td><td>" +
+                    (e.location || "—") +
+                    '</td><td><button class="btn-sm btn-edit edit-event" data-id="' +
+                    e.id +
+                    '">Edit</button> <button class="btn-sm btn-delete delete-event" data-id="' +
+                    e.id +
+                    '">Del</button></td></tr>'
+                  );
+                })
+                .join("");
+              attachEventActions();
+            } catch (e) {
+              console.error(e);
+              tbody.innerHTML =
+                '<tr><td colspan="5" style="color:var(--danger);">Failed to load events.</td></tr>';
+            }
+          }
+
+          function attachEventActions() {
+            document.querySelectorAll(".edit-event").forEach(function (b) {
+              b.onclick = function () {
+                openEventModal(this.dataset.id);
+              };
+            });
+            document.querySelectorAll(".delete-event").forEach(function (b) {
+              b.onclick = async function () {
+                if (confirm("Delete?")) {
+                  try {
+                    await window.deleteDoc(
+                      window.doc(window.db, "events", this.dataset.id),
+                    );
+                    loadEvents();
+                    showToast("🗑️ Deleted.");
+                  } catch (e) {
+                    console.error(e);
+                    showToast("Failed.");
+                  }
+                }
+              };
+            });
+          }
+
+          async function openEventModal(id) {
+            var modal = document.getElementById("eventModalOverlay");
+            if (id) {
+              try {
+                var snap = await window.getDoc(
+                  window.doc(window.db, "events", id),
+                );
+                if (!snap.exists()) {
+                  showToast("Not found.");
+                  return;
+                }
+                var e = snap.data();
+                document.getElementById("editEventId").value = id;
+                document.getElementById("editEventName").value = e.name || "";
+                document.getElementById("editEventDate").value = e.date || "";
+                document.getElementById("editEventType").value =
+                  e.type || "gala";
+                document.getElementById("editEventLocation").value =
+                  e.location || "";
+                document.getElementById("editEventDress").value = e.dress || "";
+                document.getElementById("editEventTime").value = e.time || "";
+                document.getElementById("editEventImage").value = e.image || "";
+                document.getElementById("editEventDesc").value =
+                  e.description || "";
+                document.getElementById("eventModalTitle").textContent =
+                  "Edit Event";
+              } catch (e) {
+                console.error(e);
+                showToast("Failed to load.");
+                return;
               }
             } else {
-              // Add new event
-              eventData.id =
-                Date.now().toString(36) +
-                Math.random().toString(36).substr(2, 5);
-              events.push(eventData);
+              document.getElementById("editEventId").value = "";
+              document.getElementById("editEventName").value = "";
+              document.getElementById("editEventDate").value = "";
+              document.getElementById("editEventType").value = "gala";
+              document.getElementById("editEventLocation").value = "";
+              document.getElementById("editEventDress").value = "";
+              document.getElementById("editEventTime").value = "";
+              document.getElementById("editEventImage").value = "";
+              document.getElementById("editEventDesc").value = "";
+              document.getElementById("eventModalTitle").textContent =
+                "Add Event";
             }
+            modal.classList.add("active");
+          }
 
-            localStorage.setItem(EVENTS_KEY, JSON.stringify(events));
-            document
-              .getElementById("eventModalOverlay")
-              .classList.remove("active");
-            loadEvents(); // refresh the admin table
-            showToast("Event saved successfully!");
-          });
+          document
+            .getElementById("closeEventModal")
+            .addEventListener("click", function () {
+              document
+                .getElementById("eventModalOverlay")
+                .classList.remove("active");
+            });
+          document
+            .getElementById("addEventBtn")
+            .addEventListener("click", function () {
+              openEventModal(null);
+            });
 
-        // ── Messages ──────────────────────────────
-        function loadMessages() {
-          const messages = JSON.parse(
-            localStorage.getItem("reh_chat_messages") || "[]",
-          );
-          const allUsers = JSON.parse(
-            localStorage.getItem("reh_users") || "[]",
-          );
-          const list = document.getElementById("messagesList");
-          if (!list) return;
+          document
+            .getElementById("saveEventBtn")
+            .addEventListener("click", async function () {
+              var id = document.getElementById("editEventId").value.trim();
+              var data = {
+                name: document.getElementById("editEventName").value.trim(),
+                date: document.getElementById("editEventDate").value.trim(),
+                time: document.getElementById("editEventTime").value.trim(),
+                type: document.getElementById("editEventType").value,
+                location: document
+                  .getElementById("editEventLocation")
+                  .value.trim(),
+                dress: document.getElementById("editEventDress").value.trim(),
+                description: document
+                  .getElementById("editEventDesc")
+                  .value.trim(),
+                image: document.getElementById("editEventImage").value.trim(),
+              };
+              if (!data.name || !data.date) {
+                showToast("Name and date required.");
+                return;
+              }
+              var btn = this,
+                orig = btn.innerHTML;
+              btn.disabled = true;
+              btn.innerHTML =
+                '<i class="fa-solid fa-spinner fa-spin"></i> Saving…';
+              try {
+                if (id) {
+                  await window.updateDoc(
+                    window.doc(window.db, "events", id),
+                    data,
+                  );
+                } else {
+                  await window.addDoc(
+                    window.collection(window.db, "events"),
+                    data,
+                  );
+                }
+                document
+                  .getElementById("eventModalOverlay")
+                  .classList.remove("active");
+                loadEvents();
+                showToast("✅ Event saved.");
+              } catch (e) {
+                console.error(e);
+                showToast("Failed.");
+              } finally {
+                btn.disabled = false;
+                btn.innerHTML = orig;
+              }
+            });
 
-          if (messages.length === 0) {
+          /* ===== MESSAGES ===== */
+          async function loadMessages() {
+            var list = document.getElementById("messagesList");
+            if (!list) return;
             list.innerHTML =
-              '<p style="color:var(--text-muted); text-align:center; padding:2rem;">No messages yet.</p>';
-            return;
+              '<p style="color:var(--text-muted);text-align:center;padding:2rem;"><i class="fa-solid fa-spinner fa-spin"></i> Loading…</p>';
+            try {
+              var q = window.query(
+                window.collectionGroup(window.db, "messages"),
+                window.orderBy("timestamp", "desc"),
+                window.limit(100),
+              );
+              var snap = await window.getDocs(q);
+              list.innerHTML = "";
+              if (snap.empty) {
+                list.innerHTML =
+                  '<p style="color:var(--text-muted);text-align:center;padding:2rem;">No messages yet.</p>';
+                return;
+              }
+              snap.forEach(function (doc) {
+                var m = doc.data();
+                var div = document.createElement("div");
+                div.style.cssText =
+                  "border-bottom:1px solid rgba(255,255,255,0.05);padding:1rem 0;display:flex;justify-content:space-between;align-items:flex-start;";
+                div.innerHTML =
+                  '<div><strong style="color:var(--gold-light);">' +
+                  (m.fromName || m.from || "unknown") +
+                  '</strong> <small style="color:var(--text-muted);">(' +
+                  (m.from || "") +
+                  ')</small><p style="margin:0.3rem 0;color:var(--text-secondary);">' +
+                  m.text +
+                  '</p><small style="color:var(--text-muted);">' +
+                  new Date(
+                    m.timestamp?.seconds
+                      ? m.timestamp.seconds * 1000
+                      : m.timestamp,
+                  ).toLocaleString() +
+                  '</small></div><div><button class="btn-sm btn-delete" data-path="' +
+                  doc.ref.path +
+                  '" style="margin-left:10px;">Del</button></div>';
+                list.appendChild(div);
+              });
+              document
+                .querySelectorAll("#messagesList .btn-delete")
+                .forEach(function (b) {
+                  b.addEventListener("click", async function () {
+                    if (!confirm("Delete?")) return;
+                    try {
+                      await window.deleteDoc(
+                        window.doc(window.db, this.dataset.path),
+                      );
+                      showToast("🗑️ Deleted.");
+                      loadMessages();
+                    } catch (e) {
+                      console.error(e);
+                      showToast("Failed.");
+                    }
+                  });
+                });
+            } catch (e) {
+              console.error(e);
+              list.innerHTML =
+                '<p style="color:var(--danger);text-align:center;padding:2rem;">Failed to load.</p>';
+            }
           }
 
-          list.innerHTML = messages
-            .map((m) => {
-              // Find the user by email (stored in m.from)
-              const user = allUsers.find((u) => u.email === m.from);
-              const senderName = user
-                ? `${user.firstName} ${user.lastName}`
-                : m.from;
-              const senderEmail = m.from || "unknown";
-              return `
-                    <div style="border-bottom:1px solid rgba(255,255,255,0.05); padding:1rem 0; display:flex; justify-content:space-between; align-items:flex-start;">
-                        <div>
-                            <strong style="color:var(--gold-light);">${senderName} (${senderEmail})</strong>
-                            <p style="margin:0.3rem 0; color:var(--text-secondary);">${m.text}</p>
-                            <small style="color:var(--text-muted);">${new Date(m.timestamp).toLocaleString()}</small>
-                        </div>
-                        <div>
-                            ${!m.read ? '<span class="badge badge-danger">New</span>' : ""}
-                            <button class="btn-sm btn-delete" data-id="${m.id}" style="margin-left:10px;">Del</button>
-                        </div>
-                    </div>`;
-            })
-            .join("");
-
-          // Delete handlers
-          document.querySelectorAll("#messagesList .btn-delete").forEach((b) =>
-            b.addEventListener("click", () => {
-              let messages = JSON.parse(
-                localStorage.getItem("reh_chat_messages") || "[]",
+          /* ===== CONCIERGE ===== */
+          async function updateConciergeBadge() {
+            try {
+              var snap = await window.getDocs(
+                window.query(
+                  window.collection(window.db, "concierge_requests"),
+                  window.where("status", "==", "new"),
+                ),
               );
-              messages = messages.filter((m) => m.id !== b.dataset.id);
-              localStorage.setItem(
-                "reh_chat_messages",
-                JSON.stringify(messages),
-              );
-              loadMessages();
-              loadDashboard();
-              showToast("🗑️ Message deleted.");
-            }),
-          );
-        }
+              var badge = document.getElementById("conciergeBadge");
+              if (badge) {
+                badge.textContent = snap.size;
+                badge.style.display = snap.size > 0 ? "inline" : "none";
+              }
+            } catch (e) {
+              console.error(e);
+            }
+          }
 
-        window.addEventListener("storage", (e) => {
-          if (e.key === CONCIERGE_KEY) {
-            updateConciergeBadge();
-            if (document.querySelector("#page-concierge.active")) {
+          async function loadConciergeRequests() {
+            var tbody = document.querySelector("#conciergeTable tbody");
+            tbody.innerHTML =
+              '<tr><td colspan="7" style="text-align:center;padding:2rem;"><i class="fa-solid fa-spinner fa-spin"></i></td></tr>';
+            try {
+              var snap = await window.getDocs(
+                window.query(
+                  window.collection(window.db, "concierge_requests"),
+                  window.orderBy("timestamp", "desc"),
+                ),
+              );
+              tbody.innerHTML = "";
+              if (snap.empty) {
+                tbody.innerHTML =
+                  '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);">No requests yet.</td></tr>';
+                return;
+              }
+              snap.forEach(function (doc) {
+                var r = doc.data();
+                r.firestoreId = doc.id;
+                var colors = {
+                  new: "badge-warning",
+                  "in-progress": "badge-info",
+                  completed: "badge-success",
+                };
+                var row = document.createElement("tr");
+                row.innerHTML =
+                  "<td>" +
+                  r.fromName +
+                  "<br><small>" +
+                  r.fromEmail +
+                  "</small></td><td>" +
+                  r.occasion +
+                  "</td><td>" +
+                  r.destination +
+                  "</td><td>" +
+                  r.budget +
+                  "</td><td>" +
+                  (r.special || "—") +
+                  '</td><td><span class="badge ' +
+                  (colors[r.status] || "badge-warning") +
+                  '">' +
+                  r.status +
+                  '</span></td><td><button class="btn-sm btn-edit" data-id="' +
+                  r.firestoreId +
+                  '" data-action="status">Change Status</button> <button class="btn-sm btn-delete" data-id="' +
+                  r.firestoreId +
+                  '" data-action="delete">Delete</button></td>';
+                tbody.appendChild(row);
+              });
+              document
+                .querySelectorAll('#conciergeTable [data-action="status"]')
+                .forEach(function (b) {
+                  b.addEventListener("click", function () {
+                    cycleRequestStatus(this.dataset.id);
+                  });
+                });
+              document
+                .querySelectorAll('#conciergeTable [data-action="delete"]')
+                .forEach(function (b) {
+                  b.addEventListener("click", function () {
+                    deleteRequest(this.dataset.id);
+                  });
+                });
+              updateConciergeBadge();
+            } catch (e) {
+              console.error(e);
+              tbody.innerHTML =
+                '<tr><td colspan="7" style="color:var(--danger);">Failed to load.</td></tr>';
+            }
+          }
+
+          async function cycleRequestStatus(id) {
+            var flow = ["new", "in-progress", "completed"];
+            try {
+              var ref = window.doc(window.db, "concierge_requests", id);
+              var snap = await window.getDoc(ref);
+              if (!snap.exists()) return;
+              var cur = snap.data().status || "new";
+              var next = flow[(flow.indexOf(cur) + 1) % 3];
+              await window.updateDoc(ref, { status: next });
               loadConciergeRequests();
+              showToast("Status updated.");
+            } catch (e) {
+              console.error(e);
+              showToast("Failed.");
             }
           }
-          if (e.key === CHAT_KEY) {
-            loadMessages();
-            loadDashboard();
+
+          async function deleteRequest(id) {
+            if (!confirm("Delete?")) return;
+            try {
+              await window.deleteDoc(
+                window.doc(window.db, "concierge_requests", id),
+              );
+              loadConciergeRequests();
+              showToast("Deleted.");
+            } catch (e) {
+              console.error(e);
+              showToast("Failed.");
+            }
           }
-          if (e.key === EVENT_INVITES_KEY) {
-            if (document.querySelector("#page-event-invitations.active")) {
+
+          /* ===== EVENT INVITATIONS ===== */
+          async function loadEventInvitations() {
+            var tbody = document.querySelector("#eventInvitesTable tbody");
+            tbody.innerHTML =
+              '<tr><td colspan="5" style="text-align:center;padding:2rem;"><i class="fa-solid fa-spinner fa-spin"></i></td></tr>';
+            try {
+              var snap = await window.getDocs(
+                window.query(
+                  window.collection(window.db, "event_invitations"),
+                  window.orderBy("timestamp", "desc"),
+                ),
+              );
+              tbody.innerHTML = "";
+              if (snap.empty) {
+                tbody.innerHTML =
+                  '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);">No invitations yet.</td></tr>';
+                return;
+              }
+              snap.forEach(function (doc) {
+                var inv = doc.data();
+                inv.firestoreId = doc.id;
+                var badge =
+                  inv.status === "confirmed"
+                    ? "badge-success"
+                    : inv.status === "declined"
+                      ? "badge-danger"
+                      : "badge-warning";
+                var row = document.createElement("tr");
+                row.innerHTML =
+                  "<td>" +
+                  inv.userName +
+                  " (" +
+                  inv.userEmail +
+                  ")</td><td>" +
+                  inv.eventName +
+                  "</td><td>" +
+                  new Date(
+                    inv.timestamp?.seconds
+                      ? inv.timestamp.seconds * 1000
+                      : inv.timestamp,
+                  ).toLocaleString() +
+                  '</td><td><span class="badge ' +
+                  badge +
+                  '">' +
+                  inv.status +
+                  '</span></td><td><button class="btn-sm btn-edit" data-id="' +
+                  inv.firestoreId +
+                  '" data-action="confirm">Confirm</button> <button class="btn-sm btn-ban" data-id="' +
+                  inv.firestoreId +
+                  '" data-action="decline">Decline</button> <button class="btn-sm btn-delete" data-id="' +
+                  inv.firestoreId +
+                  '" data-action="delete">Delete</button></td>';
+                tbody.appendChild(row);
+              });
+              document
+                .querySelectorAll('[data-action="confirm"]')
+                .forEach(function (b) {
+                  b.addEventListener("click", function () {
+                    updateInvitationStatus(this.dataset.id, "confirmed");
+                  });
+                });
+              document
+                .querySelectorAll('[data-action="decline"]')
+                .forEach(function (b) {
+                  b.addEventListener("click", function () {
+                    updateInvitationStatus(this.dataset.id, "declined");
+                  });
+                });
+              document
+                .querySelectorAll('[data-action="delete"]')
+                .forEach(function (b) {
+                  b.addEventListener("click", function () {
+                    deleteInvitation(this.dataset.id);
+                  });
+                });
+            } catch (e) {
+              console.error(e);
+              tbody.innerHTML =
+                '<tr><td colspan="5" style="color:var(--danger);">Failed to load.</td></tr>';
+            }
+          }
+
+          async function updateInvitationStatus(id, status) {
+            try {
+              await window.updateDoc(
+                window.doc(window.db, "event_invitations", id),
+                { status: status },
+              );
               loadEventInvitations();
+              showToast("Invitation " + status);
+            } catch (e) {
+              console.error(e);
+              showToast("Failed.");
             }
           }
-        });
 
-        function updateConciergeBadge() {
-          const requests = JSON.parse(
-            localStorage.getItem("reh_concierge_requests") || "[]",
-          );
-          const count = requests.filter((r) => r.status === "new").length;
-          const badge = document.getElementById("conciergeBadge");
-          if (badge) {
-            badge.textContent = count;
-            badge.style.display = count > 0 ? "inline" : "none";
-          }
-        }
-
-        async function loadConciergeRequests() {
-          // const requests = JSON.parse(
-          //   localStorage.getItem(CONCIERGE_KEY) || "[]",
-          // );
-          const snapshot = await window.getDocs(window.collection(window.db, "concierge_requests"));
-          const requests = snapshot.docs.map((doc) => doc.data());
-          const tbody = document.querySelector("#conciergeTable tbody");
-          tbody.innerHTML = "";
-
-          if (requests.length === 0) {
-            tbody.innerHTML =
-              '<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:2rem;">No concierge requests yet.</td></tr>';
-            return;
-          }
-
-          // Sort newest first
-          requests.sort((a, b) => b.timestamp - a.timestamp);
-
-          requests.forEach((r) => {
-            const statusColors = {
-              new: "badge-warning",
-              "in-progress": "badge-info",
-              completed: "badge-success",
-            };
-            const row = document.createElement("tr");
-            row.innerHTML = `
-                <td>${r.fromName}<br><small>${r.fromEmail}</small></td>
-                <td>${r.occasion}</td>
-                <td>${r.destination}</td>
-                <td>${r.budget}</td>
-                <td>${r.special || "—"}</td>
-                <td><span class="badge ${statusColors[r.status] || "badge-warning"}">${r.status}</span></td>
-                <td>
-                    <button class="btn-sm btn-edit" data-id="${r.id}" data-action="status">Change Status</button>
-                    <button class="btn-sm btn-delete" data-id="${r.id}" data-action="delete">Delete</button>
-                </td>
-            `;
-            tbody.appendChild(row);
-          });
-
-          // Attach action handlers
-          document
-            .querySelectorAll('#conciergeTable [data-action="status"]')
-            .forEach((btn) => {
-              btn.addEventListener("click", () =>
-                cycleRequestStatus(btn.dataset.id),
+          async function deleteInvitation(id) {
+            if (!confirm("Delete?")) return;
+            try {
+              await window.deleteDoc(
+                window.doc(window.db, "event_invitations", id),
               );
-            });
-          document
-            .querySelectorAll('#conciergeTable [data-action="delete"]')
-            .forEach((btn) => {
-              btn.addEventListener("click", () =>
-                deleteRequest(btn.dataset.id),
-              );
-            });
-        }
-
-        function cycleRequestStatus(id) {
-          const requests = JSON.parse(
-            localStorage.getItem(CONCIERGE_KEY) || "[]",
-          );
-          const idx = requests.findIndex((r) => r.id === id);
-          if (idx === -1) return;
-          const statusFlow = ["new", "in-progress", "completed"];
-          const current = statusFlow.indexOf(requests[idx].status);
-          requests[idx].status = statusFlow[(current + 1) % 3];
-          localStorage.setItem(CONCIERGE_KEY, JSON.stringify(requests));
-          loadConciergeRequests();
-          showToast("Request status updated.");
-        }
-
-        function deleteRequest(id) {
-          if (!confirm("Delete this request?")) return;
-          let requests = JSON.parse(
-            localStorage.getItem(CONCIERGE_KEY) || "[]",
-          );
-          requests = requests.filter((r) => r.id !== id);
-          localStorage.setItem(CONCIERGE_KEY, JSON.stringify(requests));
-          loadConciergeRequests();
-          showToast("Request deleted.");
-        }
-
-        function loadEventInvitations() {
-          const invitations = JSON.parse(
-            localStorage.getItem(EVENT_INVITES_KEY) || "[]",
-          );
-          const tbody = document.querySelector("#eventInvitesTable tbody");
-          tbody.innerHTML = "";
-          if (invitations.length === 0) {
-            tbody.innerHTML =
-              '<tr><td colspan="5" style="text-align:center; color:var(--text-muted); padding:2rem;">No event invitations yet.</td></tr>';
-            return;
-          }
-          // Sort newest first
-          invitations.sort((a, b) => b.timestamp - a.timestamp);
-          invitations.forEach((inv) => {
-            const row = document.createElement("tr");
-            const statusBadge =
-              inv.status === "confirmed"
-                ? "badge-success"
-                : inv.status === "declined"
-                  ? "badge-danger"
-                  : "badge-warning";
-            row.innerHTML = `
-                        <td>${inv.userName} (${inv.userEmail})</td>
-                        <td>${inv.eventName}</td>
-                        <td>${new Date(inv.timestamp).toLocaleString()}</td>
-                        <td><span class="badge ${statusBadge}">${inv.status}</span></td>
-                        <td>
-                            <button class="btn-sm btn-edit" data-id="${inv.id}" data-action="confirm">Confirm</button>
-                            <button class="btn-sm btn-ban" data-id="${inv.id}" data-action="decline">Decline</button>
-                            <button class="btn-sm btn-delete" data-id="${inv.id}" data-action="delete">Delete</button>
-                        </td>
-                    `;
-            tbody.appendChild(row);
-          });
-          attachEventInviteActions();
-        }
-
-        function attachEventInviteActions() {
-          document
-            .querySelectorAll('[data-action="confirm"]')
-            .forEach((btn) =>
-              btn.addEventListener("click", () =>
-                updateInvitationStatus(btn.dataset.id, "confirmed"),
-              ),
-            );
-          document
-            .querySelectorAll('[data-action="decline"]')
-            .forEach((btn) =>
-              btn.addEventListener("click", () =>
-                updateInvitationStatus(btn.dataset.id, "declined"),
-              ),
-            );
-          document
-            .querySelectorAll('[data-action="delete"]')
-            .forEach((btn) =>
-              btn.addEventListener("click", () =>
-                deleteInvitation(btn.dataset.id),
-              ),
-            );
-        }
-
-        function updateInvitationStatus(id, status) {
-          const invitations = JSON.parse(
-            localStorage.getItem(EVENT_INVITES_KEY) || "[]",
-          );
-          const idx = invitations.findIndex((inv) => inv.id === id);
-          if (idx !== -1) {
-            invitations[idx].status = status;
-            localStorage.setItem(
-              EVENT_INVITES_KEY,
-              JSON.stringify(invitations),
-            );
-            loadEventInvitations();
-            showToast(`Invitation ${status}`);
-          }
-        }
-
-        function deleteInvitation(id) {
-          if (!confirm("Delete this invitation?")) return;
-          let invitations = JSON.parse(
-            localStorage.getItem(EVENT_INVITES_KEY) || "[]",
-          );
-          invitations = invitations.filter((inv) => inv.id !== id);
-          localStorage.setItem(EVENT_INVITES_KEY, JSON.stringify(invitations));
-          loadEventInvitations();
-          showToast("Invitation deleted.");
-        }
-        // ── Notifications ─────────────────────────
-        function loadNotifications() {
-          refreshData();
-          const history = document.getElementById("notifHistory");
-          if (notifications.length === 0) {
-            history.innerHTML =
-              '<p style="color:var(--text-muted);">No notifications sent yet.</p>';
-            return;
-          }
-          history.innerHTML = notifications
-            .map(
-              (n) => `
-                    <div style="border-bottom:1px solid rgba(255,255,255,0.05); padding:0.8rem 0;">
-                        <strong style="color:var(--gold-light);">${n.title}</strong>
-                        <p style="color:var(--text-secondary);">${n.body}</p>
-                        <small style="color:var(--text-muted);">${new Date(n.sentAt).toLocaleString()}</small>
-                    </div>
-                `,
-            )
-            .join("");
-        }
-
-        document
-          .getElementById("sendNotifBtn")
-          .addEventListener("click", async () => {
-            const title = document.getElementById("notifTitle").value.trim();
-            const body = document.getElementById("notifBody").value.trim();
-            if (!title || !body)
-              return showToast("⚠️ Please fill both fields.");
-            const notifData = {
-              title: title,
-              body: body,
-              timestamp: window.serverTimestamp ? window.serverTimestamp() : new Date(),
-              targetEmail: null,   // global notification – null means everyone gets it
-              readBy: []           // initially nobody has read it
-          };
-          await window.addDoc(window.collection(window.db, "notifications"), notifData);
-            localStorage.setItem(NOTIF_KEY, JSON.stringify(notifications));
-            document.getElementById("notifTitle").value = "";
-            document.getElementById("notifBody").value = "";
-            loadNotifications();
-            showToast("📢 Notification sent to all users!");
-          });
-
-          const SUBSCRIBERS_KEY = 'reh_newsletter_subscribers';
-
-function loadNewsletterSubscribers() {
-    const subscribers = JSON.parse(localStorage.getItem(SUBSCRIBERS_KEY) || '[]');
-    const tbody = document.querySelector('#newsletterTable tbody');
-    tbody.innerHTML = '';
-
-    if (subscribers.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:var(--text-muted); padding:2rem;">No subscribers yet.</td></tr>';
-        return;
-    }
-
-    subscribers.sort((a, b) => new Date(b.subscribedAt) - new Date(a.subscribedAt));
-
-    subscribers.forEach(s => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${s.email}</td>
-            <td>${new Date(s.subscribedAt).toLocaleString()}</td>
-            <td>
-                <button class="btn-sm btn-delete delete-subscriber" data-email="${s.email}">Delete</button>
-            </td>
-        `;
-        tbody.appendChild(row);
-    });
-
-    // Delete handler
-    document.querySelectorAll('.delete-subscriber').forEach(btn => {
-        btn.addEventListener('click', () => {
-            let subs = JSON.parse(localStorage.getItem(SUBSCRIBERS_KEY) || '[]');
-            subs = subs.filter(s => s.email !== btn.dataset.email);
-            localStorage.setItem(SUBSCRIBERS_KEY, JSON.stringify(subs));
-            loadNewsletterSubscribers();
-            showToast('Subscriber removed.');
-        });
-    });
-}
-
-        // ── Admin Settings ────────────────────────
-        document
-          .getElementById("saveAdminSettings")
-          .addEventListener("click", () => {
-            const password = document
-              .getElementById("adminPassword")
-              .value.trim();
-            if (password) {
-              localStorage.setItem(SETTINGS_KEY, JSON.stringify({ password }));
-              showToast("🔐 Admin password updated.");
+              loadEventInvitations();
+              showToast("Deleted.");
+            } catch (e) {
+              console.error(e);
+              showToast("Failed.");
             }
-          });
+          }
 
-        document
-          .getElementById("resetAllData")
-          .addEventListener("click", () => {
-            if (
-              confirm(
-                "⚠️ This will delete ALL users, events, messages, and notifications. Are you absolutely sure?",
-              )
-            ) {
-              if (confirm("Final warning: This cannot be undone. Proceed?")) {
-                localStorage.removeItem(USERS_KEY);
-                localStorage.removeItem(EVENTS_KEY);
-                localStorage.removeItem(MESSAGES_KEY);
-                localStorage.removeItem(NOTIF_KEY);
-                refreshData();
-                loadDashboard();
+          /* ===== NOTIFICATIONS ===== */
+          function loadNotifications() {
+            var history = document.getElementById("notifHistory");
+            var notifs = JSON.parse(localStorage.getItem(NOTIF_KEY) || "[]");
+            if (!notifs.length) {
+              history.innerHTML =
+                '<p style="color:var(--text-muted);">No notifications sent yet.</p>';
+              return;
+            }
+            history.innerHTML = notifs
+              .map(function (n) {
+                return (
+                  '<div style="border-bottom:1px solid rgba(255,255,255,0.05);padding:0.8rem 0;"><strong style="color:var(--gold-light);">' +
+                  n.title +
+                  '</strong><p style="color:var(--text-secondary);">' +
+                  n.body +
+                  '</p><small style="color:var(--text-muted);">' +
+                  new Date(n.sentAt || n.timestamp).toLocaleString() +
+                  "</small></div>"
+                );
+              })
+              .join("");
+          }
+
+          document
+            .getElementById("sendNotifBtn")
+            .addEventListener("click", async function () {
+              var title = document.getElementById("notifTitle").value.trim();
+              var body = document.getElementById("notifBody").value.trim();
+              if (!title || !body) {
+                showToast("⚠️ Fill both fields.");
+                return;
+              }
+              var btn = this,
+                orig = btn.innerHTML;
+              btn.disabled = true;
+              btn.innerHTML =
+                '<i class="fa-solid fa-spinner fa-spin"></i> Sending…';
+              try {
+                await window.addDoc(
+                  window.collection(window.db, "notifications"),
+                  {
+                    title: title,
+                    body: body,
+                    timestamp: window.serverTimestamp
+                      ? window.serverTimestamp()
+                      : new Date(),
+                    targetEmail: null,
+                    readBy: [],
+                  },
+                );
+                document.getElementById("notifTitle").value = "";
+                document.getElementById("notifBody").value = "";
+                showToast("📢 Sent!");
+              } catch (e) {
+                console.error(e);
+                showToast("Failed.");
+              } finally {
+                btn.disabled = false;
+                btn.innerHTML = orig;
+              }
+            });
+
+          /* ===== NEWSLETTER ===== */
+          async function loadNewsletterSubscribers() {
+            var tbody = document.querySelector("#newsletterTable tbody");
+            tbody.innerHTML =
+              '<tr><td colspan="3" style="text-align:center;padding:2rem;"><i class="fa-solid fa-spinner fa-spin"></i></td></tr>';
+            try {
+              var snap = await window.getDocs(
+                window.query(
+                  window.collection(window.db, "newsletter_subscribers"),
+                  window.orderBy("subscribedAt", "desc"),
+                ),
+              );
+              tbody.innerHTML = "";
+              if (snap.empty) {
+                tbody.innerHTML =
+                  '<tr><td colspan="3" style="text-align:center;color:var(--text-muted);">No subscribers yet.</td></tr>';
+                return;
+              }
+              snap.forEach(function (doc) {
+                var sub = doc.data();
+                var row = document.createElement("tr");
+                row.innerHTML =
+                  "<td>" +
+                  sub.email +
+                  "</td><td>" +
+                  new Date(
+                    sub.subscribedAt?.seconds
+                      ? sub.subscribedAt.seconds * 1000
+                      : sub.subscribedAt,
+                  ).toLocaleString() +
+                  '</td><td><button class="btn-sm btn-delete delete-subscriber" data-email="' +
+                  sub.email +
+                  '">Delete</button></td>';
+                tbody.appendChild(row);
+              });
+              document
+                .querySelectorAll(".delete-subscriber")
+                .forEach(function (b) {
+                  b.addEventListener("click", async function () {
+                    if (!confirm("Delete " + this.dataset.email + "?")) return;
+                    try {
+                      await window.deleteDoc(
+                        window.doc(
+                          window.db,
+                          "newsletter_subscribers",
+                          this.dataset.email,
+                        ),
+                      );
+                      showToast("Removed.");
+                      loadNewsletterSubscribers();
+                    } catch (e) {
+                      console.error(e);
+                      showToast("Failed.");
+                    }
+                  });
+                });
+            } catch (e) {
+              console.error(e);
+              tbody.innerHTML =
+                '<tr><td colspan="3" style="color:var(--danger);">Failed to load.</td></tr>';
+            }
+          }
+
+          /* ===== SETTINGS ===== */
+          document
+            .getElementById("saveAdminSettings")
+            .addEventListener("click", async function () {
+              var pw = document.getElementById("adminPassword").value.trim();
+              if (!pw) {
+                showToast("⚠️ Enter a password.");
+                return;
+              }
+              var hash = await hashPassword(pw);
+              localStorage.setItem(
+                SETTINGS_KEY,
+                JSON.stringify({ passwordHash: hash }),
+              );
+              showToast("🔐 Password updated.");
+            });
+
+          document
+            .getElementById("resetAllData")
+            .addEventListener("click", async function () {
+              if (!confirm("⚠️ Delete ALL Firestore data?")) return;
+              if (!confirm("Final warning – cannot be undone. Proceed?"))
+                return;
+              var btn = this,
+                orig = btn.innerHTML;
+              btn.disabled = true;
+              btn.innerHTML =
+                '<i class="fa-solid fa-spinner fa-spin"></i> Wiping…';
+              try {
+                await deleteCollection(window.collection(window.db, "users"));
+                await deleteCollection(window.collection(window.db, "events"));
+                await deleteCollection(
+                  window.collection(window.db, "event_invitations"),
+                );
+                await deleteCollection(
+                  window.collection(window.db, "concierge_requests"),
+                );
+                await deleteCollection(
+                  window.collection(window.db, "notifications"),
+                );
+                await deleteCollection(
+                  window.collection(window.db, "newsletter_subscribers"),
+                );
+                await deleteCollection(window.collection(window.db, "gifts"));
+                await deleteCollection(
+                  window.collection(window.db, "profileViews"),
+                );
+                var chatsSnap = await window.getDocs(
+                  window.collection(window.db, "chats"),
+                );
+                for (var i = 0; i < chatsSnap.docs.length; i++) {
+                  var chatDoc = chatsSnap.docs[i];
+                  await deleteCollection(
+                    window.collection(
+                      window.db,
+                      "chats/" + chatDoc.id + "/messages",
+                    ),
+                  );
+                  await window.deleteDoc(chatDoc.ref);
+                }
+                localStorage.clear();
+                await loadDashboard();
                 loadUsers();
                 loadEvents();
                 loadMessages();
                 loadNotifications();
-                showToast("💥 All data has been reset.");
+                showToast("💥 All data wiped.");
+              } catch (e) {
+                console.error(e);
+                showToast("Failed.");
+              } finally {
+                btn.disabled = false;
+                btn.innerHTML = orig;
               }
-            }
-          });
+            });
 
-        document.getElementById("logoutAdmin").addEventListener("click", () => {
-          window.location.href = "index.html";
-        });
+          document
+            .getElementById("logoutAdmin")
+            .addEventListener("click", function () {
+              lockPanel();
+              window.location.href = "index.html";
+            });
 
-        // ── Floating Hearts ───────────────────────
-        const heartsContainer = document.getElementById("heartsContainer");
-        const heartIcons = ["❤️", "💕", "💖", "💗", "💘", "✨", "🌸"];
-        const goldHearts = ["💛", "⭐", "🌟"];
-        setInterval(() => {
-          const heart = document.createElement("span");
-          heart.className = "floating-heart";
-          heart.textContent = (Math.random() > 0.6 ? goldHearts : heartIcons)[
-            Math.floor(Math.random() * 4)
-          ];
-          heart.style.left = Math.random() * 100 + "%";
-          heart.style.animationDuration = Math.random() * 8 + 6 + "s";
-          heartsContainer.appendChild(heart);
-          setTimeout(() => heart.remove(), 14000);
-        }, 600);
-        for (let i = 0; i < 8; i++)
-          setTimeout(() => {
-            const heart = document.createElement("span");
-            heart.className = "floating-heart";
-            heart.textContent = (Math.random() > 0.6 ? goldHearts : heartIcons)[
-              Math.floor(Math.random() * 4)
-            ];
-            heart.style.left = Math.random() * 100 + "%";
-            heart.style.animationDuration = Math.random() * 8 + 6 + "s";
-            heartsContainer.appendChild(heart);
-            setTimeout(() => heart.remove(), 14000);
-          }, i * 200);
+          /* ===== NAVIGATION ===== */
+          var sidebar = document.getElementById("sidebar");
+          document
+            .getElementById("mobileToggle")
+            .addEventListener("click", function () {
+              sidebar.classList.toggle("open");
+            });
 
-        // ── Initial Load ──────────────────────────
-        loadDashboard();
-        loadUsers();
-        loadEvents();
-        loadMessages();
-        loadNotifications();
-    }
+          document
+            .querySelectorAll(".sidebar nav a[data-page]")
+            .forEach(function (link) {
+              link.addEventListener("click", function (e) {
+                e.preventDefault();
+                var page = this.dataset.page;
+                document.querySelectorAll(".page").forEach(function (p) {
+                  p.classList.remove("active");
+                });
+                document.getElementById("page-" + page).classList.add("active");
+                document
+                  .querySelectorAll(".sidebar nav a")
+                  .forEach(function (a) {
+                    a.classList.remove("active");
+                  });
+                this.classList.add("active");
+                sidebar.classList.remove("open");
+                if (page === "dashboard") loadDashboard();
+                if (page === "users") loadUsers();
+                if (page === "events") loadEvents();
+                if (page === "messages") loadMessages();
+                if (page === "concierge") loadConciergeRequests();
+                if (page === "notifications") loadNotifications();
+                if (page === "newsletter") loadNewsletterSubscribers();
+                if (page === "event-invitations") loadEventInvitations();
+              });
+            });
 
-    waitForFirebase(startAdminPanel);
+          /* ===== EXPOSE HELPERS for login ===== */
+          window._adminCheckPassword = checkAdminPassword;
+          window._adminSetAuthenticated = setAdminAuthenticated;
+          window._adminInitializePanel = function () {
+            loadDashboard();
+            loadUsers();
+            loadEvents();
+            loadMessages();
+            loadNotifications();
+            loadNewsletterSubscribers();
+            loadEventInvitations();
+          };
 
+          /* ===== AUTO‑LOGIN IF AUTHENTICATED ===== */
+          if (isAdminAuthenticated()) {
+            document.getElementById("adminLoginOverlay").style.display = "none";
+            document.getElementById("adminMainContent").style.display = "";
+            window._adminInitializePanel();
+          } else {
+            document.getElementById("adminLoginOverlay").style.display = "flex";
+            document.getElementById("adminMainContent").style.display = "none";
+          }
+        }
       })();
     </script>
   </body>

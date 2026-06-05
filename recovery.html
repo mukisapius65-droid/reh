@@ -445,167 +445,267 @@
             <a href="index.html?redirect=register.html"><i class="fa-solid fa-arrow-left"></i> Back to Sign In</a>
         </div>
     </div>
-    <script type="module" src="assets/auth.js"></script>
-
-    <script>
-        (function() {
-            // ── Floating hearts ──────────────────────
-            const heartsContainer = document.getElementById('heartsContainer');
-            const heartIcons = ['❤️', '💕', '💖', '💗', '💘', '✨', '🌸'];
-            const goldHearts = ['💛', '⭐', '🌟'];
-
-            function createHeart() {
-                const heart = document.createElement('span');
-                heart.className = 'floating-heart';
-                heart.textContent = (Math.random() > 0.7 ? goldHearts : heartIcons)[Math.floor(Math.random() * 6)];
-                heart.style.left = Math.random() * 100 + '%';
-                heart.style.animationDuration = (Math.random() * 8 + 6) + 's';
-                heart.style.animationDelay = Math.random() * 5 + 's';
-                heart.style.fontSize = (Math.random() * 1.5 + 1) + 'rem';
-                heartsContainer.appendChild(heart);
-                setTimeout(() => heart.remove(), 12000);
-            }
-            setInterval(createHeart, 400);
-            for (let i = 0; i < 10; i++) setTimeout(createHeart, i * 200);
-
-            // ── Toast ────────────────────────────────
-            const toast = document.getElementById('toast');
-            const toastMessage = document.getElementById('toastMessage');
-            let toastTimer;
-
-            function showToast(msg) {
-                if (toastTimer) clearTimeout(toastTimer);
-                toastMessage.textContent = msg;
-                toast.classList.add('show');
-                toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
-            }
-
-            let recoveryEmail = '';
-
-            // ── Panel switching ──────────────────────
-            const panelEmail = document.getElementById('stepEmail');
-            const panelCode = document.getElementById('stepCode');
-            const panelNewPass = document.getElementById('stepNewPassword');
-            const panelSuccess = document.getElementById('stepSuccess');
-
-            function showPanel(panel) {
-                [panelEmail, panelCode, panelNewPass, panelSuccess].forEach(p => p.classList.remove('active'));
-                panel.classList.add('active');
-            }
-
-            // ── Code input auto-focus ────────────────
-            const codeInputs = document.querySelectorAll('.code-box');
-            codeInputs.forEach((input, index) => {
-                input.addEventListener('input', function() {
-                    if (this.value.length === 1 && index < codeInputs.length - 1) {
-                        codeInputs[index + 1].focus();
-                    }
-                });
-                input.addEventListener('keydown', function(e) {
-                    if (e.key === 'Backspace' && this.value.length === 0 && index > 0) {
-                        codeInputs[index - 1].focus();
-                    }
-                });
-            });
-
-            // ── Step 1: Send Code ────────────────────
-            const emailInput = document.getElementById('recoveryEmail');
-            const sendCodeBtn = document.getElementById('sendCodeBtn');
-            const maskedEmailSpan = document.getElementById('maskedEmail');
-
-            sendCodeBtn.addEventListener('click', () => {
-                const email = emailInput.value.trim();
-                if (!email) {
-                    showToast('🌸 Please enter your email address.');
-                    return;
-                }
-                // Check that the email exists in the user list
-                const allUsers = JSON.parse(localStorage.getItem('reh_users') || '[]');
-                const user = allUsers.find(u => u.email === email);
-                if (!user) {
-                    showToast('💔 No account found with that email.');
-                    return;
-                }
-                maskedEmailSpan.textContent = email.replace(/(.{2})(.*)(?=@)/, (_, a, b) => a + '***' + b.slice(-1));
-                recoveryEmail = email;   // ← ADD THIS
-                showToast('✨ A 6‑digit code has been sent to your inbox.');
-                showPanel(panelCode);
-                codeInputs[0].focus();
-            });
-
-            // ── Resend ───────────────────────────────
-            document.getElementById('resendLink').addEventListener('click', (e) => {
-                e.preventDefault();
-                showToast('✨ Code resent!');
-                codeInputs.forEach(inp => inp.value = '');
-                codeInputs[0].focus();
-            });
-
-            // ── Back buttons ─────────────────────────
-            document.getElementById('backToEmail').addEventListener('click', () => {
-                showPanel(panelEmail);
-            });
-            document.getElementById('backToCode').addEventListener('click', () => {
-                showPanel(panelCode);
-            });
-
-            // ── Step 2: Verify Code ──────────────────
-            document.getElementById('verifyCodeBtn').addEventListener('click', () => {
-                const code = Array.from(codeInputs).map(inp => inp.value).join('');
-                if (code.length !== 6 || isNaN(code)) {
-                    showToast('🔢 Please enter the 6‑digit code.');
-                    return;
-                }
-                // Simulate verification (any code 111111 will succeed, or simply always succeed)
-                showToast('✅ Code verified. Set your new password.');
-                showPanel(panelNewPass);
-            });
-
-            // ── Step 3: Reset Password ───────────────
-            const newPassInput = document.getElementById('newPassword');
-            const confirmPassInput = document.getElementById('confirmPassword');
-            const resetBtn = document.getElementById('resetPasswordBtn');
-
-            resetBtn.addEventListener('click', () => {
-    const newPass = newPassInput.value;
-    const confirmPass = confirmPassInput.value;
-    if (!newPass || !confirmPass) {
-        showToast('🌸 Please fill in both password fields.');
-        return;
-    }
-    if (newPass.length < 8) {
-        showToast('🔐 Password must be at least 8 characters.');
-        return;
-    }
-    if (newPass !== confirmPass) {
-        showToast('❌ Passwords do not match.');
-        return;
+   <script type="module" src="assets/auth.js"></script>
+<script>
+  (function () {
+    /* ---------- Wait for Firebase ---------- */
+    function waitForFirebase(cb) {
+      if (window.db && window.collection && window.doc && window.setDoc && window.getDoc && window.updateDoc && window.deleteDoc && window.serverTimestamp) {
+        cb();
+      } else {
+        let tries = 0;
+        const timer = setInterval(() => {
+          if (window.db && window.collection && window.doc && window.setDoc && window.getDoc && window.updateDoc && window.deleteDoc && window.serverTimestamp) {
+            clearInterval(timer);
+            cb();
+          }
+          if (++tries > 100) { clearInterval(timer); console.error('Firebase not ready'); }
+        }, 100);
+      }
     }
 
-    // Update the password in the master list
-    const allUsers = JSON.parse(localStorage.getItem('reh_users') || '[]');
-    const userIndex = allUsers.findIndex(u => u.email === recoveryEmail);
-    if (userIndex !== -1) {
-        allUsers[userIndex].password = newPass;
-        localStorage.setItem('reh_users', JSON.stringify(allUsers));
+    waitForFirebase(startApp);
 
-        // Also update the session if this user is logged in
-        const session = JSON.parse(localStorage.getItem('reh_user') || '{}');
-        if (session.email === recoveryEmail) {
-            session.password = newPass;
-            localStorage.setItem('reh_user', JSON.stringify(session));
+    function startApp() {
+      // ── Floating hearts ──────────────────────
+      const heartsContainer = document.getElementById('heartsContainer');
+      const heartIcons = ['❤️', '💕', '💖', '💗', '💘', '✨', '🌸'];
+      const goldHearts = ['💛', '⭐', '🌟'];
+      function createHeart() {
+        const heart = document.createElement('span');
+        heart.className = 'floating-heart';
+        heart.textContent = (Math.random() > 0.7 ? goldHearts : heartIcons)[Math.floor(Math.random() * 6)];
+        heart.style.left = Math.random() * 100 + '%';
+        heart.style.animationDuration = (Math.random() * 8 + 6) + 's';
+        heart.style.animationDelay = Math.random() * 5 + 's';
+        heart.style.fontSize = (Math.random() * 1.5 + 1) + 'rem';
+        heartsContainer.appendChild(heart);
+        setTimeout(() => heart.remove(), 12000);
+      }
+      setInterval(createHeart, 400);
+      for (let i = 0; i < 10; i++) setTimeout(createHeart, i * 200);
+
+      // ── Toast ────────────────────────────────
+      const toast = document.getElementById('toast');
+      const toastMessage = document.getElementById('toastMessage');
+      let toastTimer;
+      function showToast(msg) {
+        if (toastTimer) clearTimeout(toastTimer);
+        toastMessage.textContent = msg;
+        toast.classList.add('show');
+        toastTimer = setTimeout(() => toast.classList.remove('show'), 5000);
+      }
+
+      // ── State ────────────────────────────────
+      let recoveryEmail = '';
+
+      // ── Panel switching ──────────────────────
+      const panelEmail = document.getElementById('stepEmail');
+      const panelCode = document.getElementById('stepCode');
+      const panelNewPass = document.getElementById('stepNewPassword');
+      const panelSuccess = document.getElementById('stepSuccess');
+      function showPanel(panel) {
+        [panelEmail, panelCode, panelNewPass, panelSuccess].forEach(p => p.classList.remove('active'));
+        panel.classList.add('active');
+      }
+
+      // ── Code input auto‑focus ────────────────
+      const codeInputs = document.querySelectorAll('.code-box');
+      codeInputs.forEach((input, index) => {
+        input.addEventListener('input', function () {
+          if (this.value.length === 1 && index < codeInputs.length - 1) {
+            codeInputs[index + 1].focus();
+          }
+        });
+        input.addEventListener('keydown', function (e) {
+          if (e.key === 'Backspace' && this.value.length === 0 && index > 0) {
+            codeInputs[index - 1].focus();
+          }
+        });
+      });
+
+      // ── Helper: generate 6‑digit code ────────
+      function generateCode() {
+        return Math.floor(100000 + Math.random() * 900000).toString();
+      }
+
+      // ── Firestore: store code with expiry ────
+      async function storeVerificationCode(email, code) {
+        const ref = window.doc(window.db, 'password_reset_codes', email);
+        // Expire after 10 minutes
+        const expiresAt = Date.now() + 10 * 60 * 1000;
+        await window.setDoc(ref, {
+          code: code,
+          expiresAt: expiresAt,
+          attempts: 0
+        });
+      }
+
+      // ── Firestore: verify code ───────────────
+      async function verifyCode(email, inputCode) {
+        const ref = window.doc(window.db, 'password_reset_codes', email);
+        const snap = await window.getDoc(ref);
+        if (!snap.exists()) return { valid: false, reason: 'no_code' };
+
+        const data = snap.data();
+        if (Date.now() > data.expiresAt) {
+          // Code expired – clean up
+          await window.deleteDoc(ref);
+          return { valid: false, reason: 'expired' };
         }
 
-        showToast('✨ Your password has been updated!');
-        showPanel(panelSuccess);
-    } else {
-        showToast('❌ Something went wrong. Please try again.');
-    }
-});
+        if (data.attempts >= 5) {
+          // Too many attempts – clean up
+          await window.deleteDoc(ref);
+          return { valid: false, reason: 'max_attempts' };
+        }
 
-            // ── Initial setup ────────────────────────
-            showPanel(panelEmail);
-        })();
-    </script>
+        if (data.code !== inputCode) {
+          // Increment attempts
+          await window.updateDoc(ref, { attempts: data.attempts + 1 });
+          return { valid: false, reason: 'wrong' };
+        }
+
+        // Code is correct – delete it so it can't be reused
+        await window.deleteDoc(ref);
+        return { valid: true };
+      }
+
+      // ── Step 1: Check email & send code ──────
+      const emailInput = document.getElementById('recoveryEmail');
+      const sendCodeBtn = document.getElementById('sendCodeBtn');
+      const maskedEmailSpan = document.getElementById('maskedEmail');
+
+      sendCodeBtn.addEventListener('click', async () => {
+        const email = emailInput.value.trim().toLowerCase();
+        if (!email) {
+          showToast('🌸 Please enter your email address.');
+          return;
+        }
+
+        const origHTML = sendCodeBtn.innerHTML;
+        sendCodeBtn.disabled = true;
+        sendCodeBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking…';
+
+        try {
+          const docRef = window.doc(window.db, 'users', email);
+          const docSnap = await window.getDoc(docRef);
+          if (!docSnap.exists()) {
+            showToast('💔 No account found with that email.');
+            return;
+          }
+
+          // Generate code and store it
+          const code = generateCode();
+          await storeVerificationCode(email, code);
+
+          // Mask email
+          maskedEmailSpan.textContent = email.replace(/(.{2})(.*)(?=@)/, (_, a, b) => a + '***' + b.slice(-1));
+          recoveryEmail = email;
+
+          // In production you would send the code via email here.
+          // For demo, we show it in a toast:
+          showToast(`✨ Your verification code is: ${code} (valid for 10 minutes)`);
+          showPanel(panelCode);
+          codeInputs[0].focus();
+        } catch (err) {
+          console.error(err);
+          showToast('❌ Something went wrong. Please try again.');
+        } finally {
+          sendCodeBtn.disabled = false;
+          sendCodeBtn.innerHTML = origHTML;
+        }
+      });
+
+      // ── Resend ───────────────────────────────
+      document.getElementById('resendLink').addEventListener('click', async (e) => {
+        e.preventDefault();
+        if (!recoveryEmail) return;
+
+        const code = generateCode();
+        await storeVerificationCode(recoveryEmail, code);
+        codeInputs.forEach(inp => inp.value = '');
+        codeInputs[0].focus();
+        showToast(`✨ New code sent: ${code}`);
+      });
+
+      // ── Back buttons ─────────────────────────
+      document.getElementById('backToEmail').addEventListener('click', () => showPanel(panelEmail));
+      document.getElementById('backToCode').addEventListener('click', () => showPanel(panelCode));
+
+      // ── Step 2: Verify code ──────────────────
+      document.getElementById('verifyCodeBtn').addEventListener('click', async () => {
+        const code = Array.from(codeInputs).map(inp => inp.value).join('');
+        if (code.length !== 6 || isNaN(code)) {
+          showToast('🔢 Please enter the 6‑digit code.');
+          return;
+        }
+
+        const result = await verifyCode(recoveryEmail, code);
+        if (!result.valid) {
+          if (result.reason === 'expired') showToast('⏰ Code has expired. Please request a new one.');
+          else if (result.reason === 'max_attempts') showToast('🔒 Too many attempts. Please request a new code.');
+          else showToast('❌ Invalid code. Please try again.');
+          return;
+        }
+
+        showToast('✅ Code verified. Set your new password.');
+        showPanel(panelNewPass);
+      });
+
+      // ── Step 3: Reset password ───────────────
+      const newPassInput = document.getElementById('newPassword');
+      const confirmPassInput = document.getElementById('confirmPassword');
+      const resetBtn = document.getElementById('resetPasswordBtn');
+
+      resetBtn.addEventListener('click', async () => {
+        const newPass = newPassInput.value;
+        const confirmPass = confirmPassInput.value;
+
+        if (!newPass || !confirmPass) {
+          showToast('🌸 Please fill in both password fields.');
+          return;
+        }
+        if (newPass.length < 8) {
+          showToast('🔐 Password must be at least 8 characters.');
+          return;
+        }
+        if (newPass !== confirmPass) {
+          showToast('❌ Passwords do not match.');
+          return;
+        }
+
+        const origHTML = resetBtn.innerHTML;
+        resetBtn.disabled = true;
+        resetBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Updating…';
+
+        try {
+          await window.updateDoc(window.doc(window.db, 'users', recoveryEmail), {
+            password: newPass
+          });
+
+          // Update session if the same user is logged in
+          const session = JSON.parse(localStorage.getItem('reh_user') || '{}');
+          if (session.email === recoveryEmail) {
+            session.password = newPass;
+            localStorage.setItem('reh_user', JSON.stringify(session));
+          }
+
+          showToast('✨ Your password has been updated!');
+          showPanel(panelSuccess);
+        } catch (err) {
+          console.error(err);
+          showToast('❌ Failed to update password. Please try again.');
+        } finally {
+          resetBtn.disabled = false;
+          resetBtn.innerHTML = origHTML;
+        }
+      });
+
+      // ── Start on email panel ─────────────────
+      showPanel(panelEmail);
+    }
+  })();
+</script>
 </body>
 </html>
