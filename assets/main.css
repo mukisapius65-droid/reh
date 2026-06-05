@@ -1020,6 +1020,26 @@
     margin-top: 0.5rem;
     font-size: 0.8rem;
 }
+.btn-primary {
+    padding: 12px 28px;
+    background: linear-gradient(135deg, var(--crimson), var(--royal-blue));
+    border: none;
+    border-radius: 14px;
+    color: white;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 20px rgba(180, 30, 45, 0.3);
+}
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(200, 40, 55, 0.5);
+}
+
 .btn-admire {
     background: rgba(255,255,255,0.05);
     border: 1px solid rgba(255,255,255,0.15);

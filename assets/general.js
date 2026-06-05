@@ -232,9 +232,9 @@ footerContainer.innerHTML = `<div class="footer-grid">
         <h4>Legal</h4>
         <ul>
             <li><a href="index.html?redirect=the-iron-convenant.html">Privacy Policy</a></li>
-            <li><a href="#">Terms of Service</a></li>
-            <li><a href="#">Cookie Policy</a></li>
-            <li><a href="#">GDPR Compliance</a></li>
+            <li><a href="#" data-footer="terms">Terms of Service</a></li>
+            <li><a href="#" data-footer="cookies">Cookie Policy</a></li>
+            <li><a href="#" data-footer="gdpr">GDPR Compliance</a></li>
         </ul>
         <h4 style="margin-top:1.5rem;">Newsletter</h4>
         <div class="newsletter-form">
@@ -327,6 +327,76 @@ const modalContent = {
            <textarea id="reportReason" rows="3" placeholder="Reason for report"></textarea>
            <button id="submitReportBtn">Submit Report</button>`,
   },
+  terms: {
+  title: "Terms of Service",
+  body: `<h4>Effective Date: January 1, 2026</h4>
+         <p>Welcome to <strong>Reh</strong>. By accessing or using our website, mobile application, or any related services (collectively, the “Service”), you agree to be bound by these Terms of Service (“Terms”). If you do not agree to these Terms, you may not use the Service.</p>
+         <h5>1. Eligibility</h5>
+         <p>You must be at least 18 years old to use Reh. By creating an account, you represent and warrant that you meet this age requirement.</p>
+         <h5>2. Account Responsibilities</h5>
+         <p>You are responsible for maintaining the confidentiality of your login credentials and for all activities that occur under your account. You agree to provide accurate, current, and complete information during registration and to update such information to keep it accurate.</p>
+         <h5>3. User Conduct</h5>
+         <p>You agree not to:</p>
+         <ul>
+           <li>Harass, abuse, or harm other users</li>
+           <li>Post false, misleading, or fraudulent content</li>
+           <li>Impersonate any person or entity</li>
+           <li>Use the Service for any illegal purpose</li>
+           <li>Scrape or collect data from the Service without permission</li>
+         </ul>
+         <h5>4. Premium Memberships & Payments</h5>
+         <p>Certain features require a paid subscription. Fees are non‑refundable except as required by law. Reh reserves the right to change subscription fees upon reasonable notice.</p>
+         <h5>5. Privacy</h5>
+         <p>Your privacy is important to us. Please review our <a href="#" data-footer="privacy">Privacy Policy</a> and <a href="#" data-footer="cookies">Cookie Policy</a>.</p>
+         <h5>6. Termination</h5>
+         <p>We may suspend or terminate your account at any time, with or without cause, and without prior notice. Upon termination, your right to use the Service will immediately cease.</p>
+         <h5>7. Disclaimers & Limitation of Liability</h5>
+         <p>Reh is provided “as is” without warranties of any kind. To the fullest extent permitted by law, Reh shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising out of your use of the Service.</p>
+         <h5>8. Changes to Terms</h5>
+         <p>We may modify these Terms at any time. We will notify you of material changes via email or through the Service. Your continued use after the effective date constitutes acceptance of the new Terms.</p>
+         <h5>9. Contact</h5>
+         <p>For questions about these Terms, contact <a href="mailto:legal@reh.com" style="color:var(--gold);">legal@reh.com</a>.</p>`
+},
+cookies: {
+  title: "Cookie Policy",
+  body: `<h4>Last updated: January 1, 2026</h4>
+         <p>This Cookie Policy explains how Reh uses cookies and similar technologies to recognise you when you visit our website.</p>
+         <h5>What are cookies?</h5>
+         <p>Cookies are small data files that are placed on your device when you visit a website. They are widely used to make websites work, or work more efficiently, as well as to provide reporting information.</p>
+         <h5>How we use cookies</h5>
+         <p>We use cookies for the following purposes:</p>
+         <ul>
+           <li><strong>Essential cookies:</strong> Necessary for the operation of the Service (e.g., keeping you logged in).</li>
+           <li><strong>Analytical/performance cookies:</strong> Allow us to recognise and count the number of visitors and see how visitors move around the site (Google Analytics).</li>
+           <li><strong>Functionality cookies:</strong> Used to recognise you when you return to our site.</li>
+         </ul>
+         <h5>Third‑party cookies</h5>
+         <p>Some cookies may be set by third parties (e.g., Google Analytics) to provide measurement services.</p>
+         <h5>Your choices</h5>
+         <p>You can block cookies by activating the setting on your browser that allows you to refuse the setting of all or some cookies. However, if you block essential cookies, you may not be able to access all or parts of the Service.</p>
+         <h5>More information</h5>
+         <p>If you have any questions about our use of cookies, please contact <a href="mailto:privacy@reh.com" style="color:var(--gold);">privacy@reh.com</a>.</p>`
+},
+gdpr: {
+  title: "GDPR Compliance",
+  body: `<h4>Your Rights under the General Data Protection Regulation (GDPR)</h4>
+         <p>If you are a resident of the European Economic Area (EEA), you have certain data protection rights. Reh is the data controller of your personal information.</p>
+         <h5>Your GDPR Rights</h5>
+         <ul>
+           <li><strong>Right to Access:</strong> You can request copies of your personal data.</li>
+           <li><strong>Right to Rectification:</strong> You can request that we correct any information you believe is inaccurate or complete information you believe is incomplete.</li>
+           <li><strong>Right to Erasure:</strong> You can request that we erase your personal data, under certain conditions.</li>
+           <li><strong>Right to Restrict Processing:</strong> You can request that we restrict the processing of your personal data.</li>
+           <li><strong>Right to Object to Processing:</strong> You can object to our processing of your personal data.</li>
+           <li><strong>Right to Data Portability:</strong> You can request that we transfer the data we have collected to another organisation, or directly to you.</li>
+         </ul>
+         <h5>Lawful Basis for Processing</h5>
+         <p>We process your personal data based on your consent, the performance of a contract, compliance with legal obligations, and/or our legitimate interests.</p>
+         <h5>Data Retention</h5>
+         <p>We will retain your personal data only for as long as is necessary for the purposes set out in our Privacy Policy.</p>
+         <h5>Contact & Complaints</h5>
+         <p>To exercise any of these rights, please contact our Data Protection Officer at <a href="mailto:dpo@reh.com" style="color:var(--gold);">dpo@reh.com</a>. You also have the right to lodge a complaint with your local supervisory authority.</p>`
+}
 };
 
 // Attach click handlers to footer links with data-page attributes
@@ -336,32 +406,47 @@ document.addEventListener("click", (e) => {
   e.preventDefault();
   const page = link.getAttribute("data-footer");
 
-  if (page === "report") {
-    openFooterModal("Report a Profile", modalContent.report.body);
-    // Bind the report submission after modal opens
-    setTimeout(() => {
-      const submitBtn = document.getElementById("submitReportBtn");
-      if (submitBtn) {
-        submitBtn.addEventListener("click", () => {
-          const email = document.getElementById("reportEmail").value.trim();
-          const reason = document.getElementById("reportReason").value.trim();
-          if (!email) return showToast("Please enter the profile email.");
-          const reports = JSON.parse(
-            localStorage.getItem("reh_reports") || "[]",
-          );
-          reports.push({
+if (page === "report") {
+  openFooterModal("Report a Profile", modalContent.report.body);
+  // Bind the report submission after modal opens
+  setTimeout(() => {
+    const submitBtn = document.getElementById("submitReportBtn");
+    if (submitBtn) {
+      submitBtn.addEventListener("click", async () => {
+        const email = document.getElementById("reportEmail").value.trim();
+        const reason = document.getElementById("reportReason").value.trim();
+        if (!email) {
+          showToast("Please enter the profile email.");
+          return;
+        }
+        const currentUser = JSON.parse(localStorage.getItem("reh_user") || "{}");
+        try {
+          // Ensure Firebase is available (it should be by now)
+          if (!window.db || !window.collection || !window.addDoc) {
+            showToast("Service unavailable. Please try again later.");
+            return;
+          }
+          await window.addDoc(window.collection(window.db, "reports"), {
             reported: email,
             reason,
-            reporter: getCurrentUser()?.email,
-            timestamp: Date.now(),
+            reporter: currentUser.email || "anonymous",
+            reporterName: (currentUser.firstName + " " + currentUser.lastName).trim() || "Unknown",
+            timestamp: window.serverTimestamp ? window.serverTimestamp() : new Date(),
+            status: "new"   // new, reviewed, resolved
           });
-          localStorage.setItem("reh_reports", JSON.stringify(reports));
           showToast("Report submitted. Thank you for helping keep Reh safe.");
           footerModal.classList.remove("active");
-        });
-      }
-    }, 100);
-  } else if (modalContent[page]) {
+          // Clear the form fields
+          document.getElementById("reportEmail").value = "";
+          document.getElementById("reportReason").value = "";
+        } catch (error) {
+          console.error("Error submitting report:", error);
+          showToast("Failed to submit report. Please try again.");
+        }
+      });
+    }
+  }, 100);
+} else if (modalContent[page]) {
     openFooterModal(modalContent[page].title, modalContent[page].body);
   }
 });
