@@ -594,20 +594,13 @@
               await window.addDoc(window.collection(window.db, "gifts"), gift);
 
               // Notify the recipient (we'll keep this in localStorage for now – you can later move to Firestore)
-              const notifications = JSON.parse(
-                localStorage.getItem("ss_global_notifications") || "[]",
-              );
-              notifications.push({
-                id: Date.now().toString(36),
-                title: "💎 You received a gift!",
-                body: `${gift.fromName} sent you a Diamond Rose.`,
-                timestamp: Date.now(),
+              await window.addDoc(window.collection(window.db, "notifications"), {
+                title: '💎 You received a gift!',
+                body: `${currentUser.firstName || 'Someone'} sent you a Diamond Rose.`,
+                timestamp: window.serverTimestamp ? window.serverTimestamp() : new Date(),
                 targetEmail: targetEmail,
+                readBy: []
               });
-              localStorage.setItem(
-                "ss_global_notifications",
-                JSON.stringify(notifications),
-              );
 
               showToast("💎 Diamond Rose sent!");
               document.getElementById("giftCount").textContent =

@@ -366,25 +366,6 @@
             border-color: var(--gold-light);
             box-shadow: 0 0 18px rgba(200, 160, 60, 0.2);
         }
-        .btn-primary {
-            padding: 12px 28px;
-            background: linear-gradient(135deg, var(--crimson), var(--royal-blue));
-            border: none;
-            border-radius: 14px;
-            color: white;
-            font-weight: 700;
-            letter-spacing: 0.04em;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 4px 20px rgba(180, 30, 45, 0.3);
-        }
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(200, 40, 55, 0.5);
-        }
 
         .toggle-group {
             display: flex;
@@ -454,7 +435,7 @@
         .danger-btn {
             background: transparent;
             border: 1px solid var(--danger);
-            color: var(--danger);
+            color: var(--gold-light);
             padding: 12px 28px;
             border-radius: 14px;
             font-weight: 700;
@@ -712,17 +693,27 @@
                 <p style="color:var(--text-secondary); margin-bottom:1.5rem; font-size:0.9rem;">
                     You have full control over your personal data. Request a complete export of your information or download it instantly.
                 </p>
-                <button class="btn-primary" id="exportDataBtn"><i class="fa-solid fa-download"></i> Download My Data (GDPR)</button>
+                <button class="btn-primary" id="exportDataBtn"><i class="fa
+                    -solid fa-download"></i> Download My Data (GDPR)</button>
                 <p style="color:var(--text-muted); font-size:0.7rem; margin-top:0.8rem;">A JSON file will be generated and downloaded to your device.</p>
             </div>
 
             <!-- Danger Zone -->
-            <div class="settings-card danger-zone">
-                <h2 class="section-title" style="color:var(--danger);"><i class="fa-solid fa-skull"></i> Danger Zone</h2>
-                <p style="color:var(--text-secondary); margin-bottom:1.5rem; font-size:0.9rem;">
-                    Once you delete your account, there is no going back. Please be certain.
-                </p>
-                <button class="danger-btn" id="openDeleteModal"><i class="fa-solid fa-trash"></i> Delete My Account</button>
+            <div class="settings-card" style="margin-top:2.5rem; border-color:rgba(231,76,60,0.4);">
+            <h2 class="section-title" style="color:var(--danger);">
+                <i class="fa-solid fa-triangle-exclamation"></i> Danger Zone
+            </h2>
+            <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:1.5rem;">
+                You can hide your profile instead of deleting it. Hiding makes you invisible to others while keeping your matches and data safe. You can unhide anytime from your Profile page.
+            </p>
+            <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+                <button id="hideProfileBtn" class="btn-primary" style="background:linear-gradient(135deg, var(--gold), var(--gold-light)); color:#080c24; flex:1;">
+                <i class="fa-solid fa-eye-slash"></i> Hide My Profile
+                </button>
+                <button id="deleteAccountBtn" class="danger-btn" style="background:linear-gradient(135deg, var(--crimson), var(--danger)); flex:1;">
+                <i class="fa-solid fa-trash-can"></i> Delete Account
+                </button>
+            </div>
             </div>
         </div>
         <footer class="footer"></footer>
@@ -766,6 +757,7 @@
       const toast = document.getElementById('toast');
       const toastMsg = document.getElementById('toastMessage');
       let toastTimer;
+      
       function showToast(msg) {
         if (toastTimer) clearTimeout(toastTimer);
         toastMsg.textContent = msg;
@@ -994,52 +986,61 @@
         }
       });
 
-      // ── Account Deletion ───────────────────
-      const deleteModal = document.getElementById('deleteModal');
-      document.getElementById('openDeleteModal').addEventListener('click', () => {
-        deleteModal.classList.add('active');
-      });
-      document.getElementById('cancelDelete').addEventListener('click', () => {
-        deleteModal.classList.remove('active');
-      });
-      document.getElementById('confirmDelete').addEventListener('click', async () => {
-        const currentUser = getCurrentUser();
-        const btn = document.getElementById('confirmDelete');
-        const origHTML = btn.innerHTML;
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Deleting…';
+      // ── Danger Zone (hide / delete) ─────────────
+const SESSION_KEY = 'reh_user';
 
-        try {
-          // Delete user document from Firestore
-          await window.deleteDoc(window.doc(window.db, 'users', currentUser.email));
-          // Note: subcollections (bookmarks, admirations) are not deleted automatically.
-          // For a full cleanup, you would need to recursively delete them.
-          // Clear session
-          localStorage.removeItem(AUTH_KEY);
-          updateNavUI(null);
-          deleteModal.classList.remove('active');
-          showToast('💔 Your account has been deleted. We will miss you.');
-          setTimeout(() => {
-            window.location.href = 'index.html?redirect=register.html';
-          }, 2000);
-        } catch (err) {
-          console.error(err);
-          showToast('❌ Failed to delete account. Please try again.');
-          btn.disabled = false;
-          btn.innerHTML = origHTML;
-        }
-      });
+// Hide Profile
+document.getElementById('hideProfileBtn')?.addEventListener('click', async () => {
+  if (!user.email) return showToast('You must be logged in.');
 
-      // ── Dropdown & Mobile Nav (from general.js) ──
-      const profileAreaEl = document.getElementById('profileArea');
-      const dropdownEl = document.getElementById('dropdownMenu');
-      if (profileAreaEl && dropdownEl) {
-        profileAreaEl.addEventListener('click', (e) => {
-          e.stopPropagation();
-          dropdownEl.classList.toggle('show');
-        });
-        document.addEventListener('click', () => dropdownEl.classList.remove('show'));
-      }
+  try {
+    await window.updateDoc(window.doc(window.db, "users", user.email), {
+      visibility: false
+    });
+    // Update local session too
+    const session = JSON.parse(localStorage.getItem(SESSION_KEY));
+    session.visibility = false;
+    localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    showToast('🙈 Your profile is now hidden. You can unhide it from the Profile page.');
+  } catch (err) {
+    console.error(err);
+    showToast('Failed to hide profile. Please try again.');
+  }
+});
+
+// Delete Account (two‑step)
+document.getElementById('deleteAccountBtn')?.addEventListener('click', () => {
+  if (!user.email) return showToast('You must be logged in.');
+
+  // Step 1 – suggest hiding
+  if (!confirm('Are you sure you want to delete your account? This cannot be undone.\n\nTip: You can hide your profile instead – you’ll be invisible but can come back anytime.\n\nClick "Cancel" to hide your profile, or "OK" to proceed with deletion.')) {
+    if (confirm('Would you like to hide your profile instead? (You can always unhide later.)')) {
+      document.getElementById('hideProfileBtn').click();
+    }
+    return;
+  }
+
+  // Step 2 – final confirmation
+  if (!confirm('FINAL WARNING: This will permanently erase your profile, messages, admirations, and all data.\n\nThis action CANNOT be undone.\n\nAre you absolutely sure?')) {
+    return;
+  }
+
+  // Perform deletion
+  (async () => {
+    try {
+      await window.deleteDoc(window.doc(window.db, "users", user.email));
+      localStorage.removeItem(SESSION_KEY);
+      showToast('💔 Your account has been deleted. We’re sad to see you go.');
+      setTimeout(() => {
+        window.location.href = 'index.html?redirect=register.html';
+      }, 2000);
+    } catch (err) {
+      console.error(err);
+      showToast('Failed to delete account. Please try again or contact support.');
+    }
+  })();
+});
+
 
       const hamburgerBtn = document.getElementById('hamburgerBtn');
       const navLinksEl = document.getElementById('navLinks');

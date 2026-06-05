@@ -739,6 +739,7 @@
           <a href="#" data-page="newsletter"
             ><i class="fa-solid fa-newspaper"></i> Newsletter</a
           >
+          <a href="#" data-page="reports"><i class="fa-solid fa-flag"></i> Reports</a>
           <a href="#" data-page="settings"
             ><i class="fa-solid fa-gear"></i> Admin Settings</a
           >
@@ -959,6 +960,29 @@
             </table>
           </div>
         </div>
+
+        <!-- Reports -->
+<div id="page-reports" class="page">
+  <div class="page-header">
+    <h2 class="page-title">
+      <i class="fa-solid fa-flag"></i> Reported Profiles
+    </h2>
+  </div>
+  <div class="table-container">
+    <table id="reportsTable">
+      <thead>
+        <tr>
+          <th>Reported Email</th>
+          <th>Reason</th>
+          <th>Reporter</th>
+          <th>Date</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
 
         <!-- Admin Settings -->
         <div id="page-settings" class="page">
@@ -2327,6 +2351,42 @@
             }
           }
 
+          async function loadReports() {
+  const tbody = document.querySelector("#reportsTable tbody");
+  tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:2rem;"><i class="fa-solid fa-spinner fa-spin"></i> Loading reports…</td></tr>';
+
+  try {
+    const snapshot = await window.getDocs(
+      window.query(
+        window.collection(window.db, "reports"),
+        window.orderBy("timestamp", "desc")
+      )
+    );
+    tbody.innerHTML = "";
+
+    if (snapshot.empty) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--text-muted);">No reports yet.</td></tr>';
+      return;
+    }
+
+    snapshot.forEach(doc => {
+      const r = doc.data();
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${r.reported}</td>
+        <td>${r.reason}</td>
+        <td>${r.reporterName || r.reporter}</td>
+        <td>${new Date(r.timestamp?.seconds ? r.timestamp.seconds * 1000 : r.timestamp).toLocaleString()}</td>
+        <td><span class="badge badge-${r.status === 'new' ? 'warning' : r.status === 'reviewed' ? 'info' : 'success'}">${r.status}</span></td>
+      `;
+      tbody.appendChild(row);
+    });
+  } catch (error) {
+    console.error('Error loading reports:', error);
+    tbody.innerHTML = '<tr><td colspan="5" style="color:var(--danger); text-align:center;">Failed to load reports.</td></tr>';
+  }
+}
+
           /* ===== SETTINGS ===== */
           document
             .getElementById("saveAdminSettings")
@@ -2442,6 +2502,7 @@
                 if (page === "concierge") loadConciergeRequests();
                 if (page === "notifications") loadNotifications();
                 if (page === "newsletter") loadNewsletterSubscribers();
+                if (page === 'reports') loadReports();
                 if (page === "event-invitations") loadEventInvitations();
               });
             });

@@ -1232,8 +1232,6 @@ Art curator &amp; passionate about Renaissance history. Looking for genuine conn
           // ── Storage keys (some still localStorage for non‑profile data) ──
           const SESSION_KEY = "reh_user";
           const ADMIRATIONS_KEY = "reh_admirations";
-          const GIFTS_KEY = "reh_gifts";
-          // const VIEWS_KEY = 'reh_profile_views';
 
           // ── Floating Particles ──────────────────────
           const particlesContainer =
@@ -1407,7 +1405,7 @@ Art curator &amp; passionate about Renaissance history. Looking for genuine conn
           locationInput.addEventListener("input", updateSidebarDisplay);
 
           // ── Admirer count & vault (localStorage) ──
-          function loadAdmirerCountAndVault() {
+          async function loadAdmirerCountAndVault() {
             const admirations = JSON.parse(
               localStorage.getItem(ADMIRATIONS_KEY) || "[]",
             );
@@ -1415,9 +1413,14 @@ Art curator &amp; passionate about Renaissance history. Looking for genuine conn
               (a) => a.to === user.email,
             ).length;
 
-            const gifts = JSON.parse(localStorage.getItem(GIFTS_KEY) || "[]");
-            const myGifts = gifts.filter((g) => g.to === user.email);
-            const giftCount = myGifts.length;
+            const giftsSnapshot = await window.getDocs(
+              window.query(
+                window.collection(window.db, "gifts"),
+                window.where("to", "==", user.email),
+                window.where("giftType", "==", "diamond_rose")
+              )
+            );
+            const giftCount = giftsSnapshot.size;
 
             if (sidebarStats1) {
               sidebarStats1.innerHTML = `
@@ -1512,32 +1515,47 @@ Art curator &amp; passionate about Renaissance history. Looking for genuine conn
           }
 
           // ── Vault (localStorage) ──────────────────
-          function loadVault() {
-            const vaultEl = document.getElementById("vaultContent");
+          async function loadVault() {
+            const vaultEl = document.getElementById('vaultContent');
             if (!vaultEl) return;
-            const gifts = JSON.parse(localStorage.getItem(GIFTS_KEY) || "[]");
-            const myGifts = gifts.filter((g) => g.to === user.email);
-            if (myGifts.length === 0) {
-              vaultEl.innerHTML =
-                '<p style="color:var(--muted);">No treasures yet.</p>';
-            } else {
-              vaultEl.innerHTML =
-                myGifts
-                  .map(
-                    (g) => `
-                    <div style="display:flex; align-items:center; gap:1rem; padding:0.6rem 0; border-bottom:1px solid var(--glass-border);">
-                        <i class="fa-solid fa-gem" style="color:var(--gold-light);"></i>
-                        <div>
-                            <div style="color:var(--text);">${g.fromName || "Someone"}</div>
-                            <div style="font-size:0.7rem; color:var(--muted);">${new Date(g.timestamp).toLocaleDateString()}</div>
-                        </div>
-                    </div>
-                `,
-                  )
-                  .join("") +
-                `
-                    <p style="margin-top:0.5rem; color:var(--text2);">Total received: ${myGifts.length}</p>
-                `;
+
+            try {
+              const q = window.query(
+                window.collection(window.db, "gifts"),
+                window.where("to", "==", user.email),
+                window.where("giftType", "==", "diamond_rose")
+              );
+              const snapshot = await window.getDocs(q);
+              const gifts = [];
+              snapshot.forEach(doc => gifts.push(doc.data()));
+
+              // Update the gift count display in the sidebar
+              const giftCount = gifts.length;
+              const giftCountElement = document.querySelector('.vault-btn');
+              if (giftCountElement) {
+                giftCountElement.innerHTML = `<i class="fa-solid fa-vault"></i> ${giftCount}`;
+              }
+
+              if (giftCount === 0) {
+                vaultEl.innerHTML = '<p style="color:var(--muted);">No treasures yet. When someone sends you a Diamond Rose, it will appear here.</p>';
+                return;
+              }
+
+              vaultEl.innerHTML = gifts.map(g => `
+                <div style="display:flex; align-items:center; gap:1rem; padding:0.6rem 0; border-bottom:1px solid var(--glass-border);">
+                  <i class="fa-solid fa-gem" style="color:var(--gold-light);"></i>
+                  <div>
+                    <div style="color:var(--text);">${g.fromName || 'Someone'}</div>
+                    <div style="font-size:0.7rem; color:var(--muted);">${new Date(g.timestamp).toLocaleDateString()}</div>
+                  </div>
+                </div>
+              `).join('') + `
+                <p style="margin-top:0.5rem; color:var(--text2);">Total received: ${giftCount} Diamond Rose${giftCount !== 1 ? 's' : ''}</p>
+              `;
+
+            } catch (error) {
+              console.error('Error loading vault:', error);
+              vaultEl.innerHTML = '<p style="color:var(--danger);">Failed to load treasures.</p>';
             }
           }
 
