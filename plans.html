@@ -720,144 +720,179 @@
     <script src="assets/general.js"></script>
     <script type="module" src="assets/auth.js"></script>
 
-    <script>
-        (function() {
-            // ── Auth simulation ──────────────────────
-            const AUTH_KEY = 'reh_user';
+    <script src="assets/general.js"></script>
+<script type="module" src="assets/auth.js"></script>
+<script>
+(function() {
+  // ── Firebase readiness helper ──────────────
+  function waitForFirebase(callback) {
+    if (window.db && window.updateDoc && window.doc) {
+      callback();
+    } else {
+      let attempts = 0;
+      const check = setInterval(() => {
+        if (window.db && window.updateDoc && window.doc) {
+          clearInterval(check);
+          callback();
+        }
+        attempts++;
+        if (attempts > 50) {
+          clearInterval(check);
+          console.error('Firebase not ready for Plans page');
+        }
+      }, 100);
+    }
+  }
 
-            function getCurrentUser() {
-                const stored = localStorage.getItem(AUTH_KEY);
-                return stored ? JSON.parse(stored) : null;
-            }
+  function startApp() {
+    // ── Auth ──────────────────────────────────
+    const AUTH_KEY = 'reh_user';
 
-            function updateNavUI(user) {
-                const joinCta = document.getElementById('joinCta');
-                const profileArea = document.getElementById('profileArea');
-                const navAvatarImg = document.getElementById('navAvatarImg');
-                if (!joinCta || !profileArea) return;
-                if (user) {
-                    joinCta.style.display = 'none';
-                    profileArea.style.display = 'flex';
-                    if (navAvatarImg && user.avatar) navAvatarImg.src = user.avatar;
-                } else {
-                    joinCta.style.display = '';
-                    profileArea.style.display = 'none';
-                }
-            }
+    function getCurrentUser() {
+      const stored = localStorage.getItem(AUTH_KEY);
+      return stored ? JSON.parse(stored) : null;
+    }
 
-            // ── Floating hearts ────────────────────
-            const heartsContainer = document.getElementById('heartsContainer');
-            const heartIcons = ['❤️', '💕', '💖', '💗', '💘', '✨', '🌸'];
-            const goldHearts = ['💛', '⭐', '🌟'];
+    function updateNavUI(user) {
+      const joinCta = document.getElementById('joinCta');
+      const profileArea = document.getElementById('profileArea');
+      const navAvatarImg = document.getElementById('navAvatarImg');
+      if (!joinCta || !profileArea) return;
+      if (user) {
+        joinCta.style.display = 'none';
+        profileArea.style.display = 'flex';
+        if (navAvatarImg && user.avatar) navAvatarImg.src = user.avatar;
+      } else {
+        joinCta.style.display = '';
+        profileArea.style.display = 'none';
+      }
+    }
 
-            function spawnHeart() {
-                const heart = document.createElement('span');
-                heart.className = 'floating-heart';
-                heart.textContent = (Math.random() > 0.6 ? goldHearts : heartIcons)[Math.floor(Math.random() * 4)];
-                heart.style.left = Math.random() * 100 + '%';
-                heart.style.animationDuration = (Math.random() * 8 + 6) + 's';
-                heartsContainer.appendChild(heart);
-                setTimeout(() => heart.remove(), 14000);
-            }
-            for (let i = 0; i < 10; i++) setTimeout(spawnHeart, i * 180);
-            setInterval(spawnHeart, 600);
+    // ── Floating hearts ──────────────────────
+    const heartsContainer = document.getElementById('heartsContainer');
+    const heartIcons = ['❤️', '💕', '💖', '💗', '💘', '✨', '🌸'];
+    const goldHearts = ['💛', '⭐', '🌟'];
 
-            // ── Toast ──────────────────────────────
-            const toast = document.getElementById('toast');
-            const toastMsg = document.getElementById('toastMessage');
-            let toastTimer;
+    function spawnHeart() {
+      const heart = document.createElement('span');
+      heart.className = 'floating-heart';
+      heart.textContent = (Math.random() > 0.6 ? goldHearts : heartIcons)[Math.floor(Math.random() * 4)];
+      heart.style.left = Math.random() * 100 + '%';
+      heart.style.animationDuration = (Math.random() * 8 + 6) + 's';
+      heartsContainer.appendChild(heart);
+      setTimeout(() => heart.remove(), 14000);
+    }
+    for (let i = 0; i < 10; i++) setTimeout(spawnHeart, i * 180);
+    setInterval(spawnHeart, 600);
 
-            function showToast(msg) {
-                if (toastTimer) clearTimeout(toastTimer);
-                toastMsg.textContent = msg;
-                toast.classList.add('show');
-                toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
-            }
+    // ── Toast ────────────────────────────────
+    const toast = document.getElementById('toast');
+    const toastMsg = document.getElementById('toastMessage');
+    let toastTimer;
 
-            // ── Init user ──────────────────────────
-            const user = getCurrentUser();
-            if (user) {
-                updateNavUI(user);
-                // If user has a plan, mark that card as current
-                if (user.plan) {
-                    const currentPlanCard = document.querySelector(`.plan-card[data-plan="${user.plan}"]`);
-                    if (currentPlanCard) {
-                        const btn = currentPlanCard.querySelector('.btn-choose');
-                        btn.textContent = 'Current Plan';
-                        btn.classList.add('current');
-                        btn.disabled = true;
-                    }
-                }
-            } else {
-                // Not logged in – Join button will show
-                updateNavUI(null);
-            }
+    function showToast(msg) {
+      if (toastTimer) clearTimeout(toastTimer);
+      toastMsg.textContent = msg;
+      toast.classList.add('show');
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+    }
 
-            // ── Plan selection buttons (single handler) ──
-document.querySelectorAll('.btn-choose:not(.current)').forEach(btn => {
-    btn.addEventListener('click', function() {
+    // ── Init user ────────────────────────────
+    const user = getCurrentUser();
+    if (user) {
+      updateNavUI(user);
+      // If user has a plan, mark that card as current
+      if (user.plan) {
+        const currentPlanCard = document.querySelector(`.plan-card[data-plan="${user.plan}"]`);
+        if (currentPlanCard) {
+          const btn = currentPlanCard.querySelector('.btn-choose');
+          btn.textContent = 'Current Plan';
+          btn.classList.add('current');
+          btn.disabled = true;
+        }
+      }
+    } else {
+      updateNavUI(null);
+    }
+
+    // ── Plan selection buttons (Firestore) ───
+    document.querySelectorAll('.btn-choose:not(.current)').forEach(btn => {
+      btn.addEventListener('click', async function() {
         const plan = this.getAttribute('data-plan');
         if (!plan) return;
 
         const session = JSON.parse(localStorage.getItem(AUTH_KEY) || '{}');
         if (!session.email) {
-            window.location.href = 'index.html?redirect=login.html';
-            return;
+          window.location.href = 'index.html?redirect=login.html';
+          return;
         }
 
         if (!confirm(`You will be charged for the ${plan} plan. Continue?`)) return;
 
-        // 1. Update session
-        session.plan = plan;
-        localStorage.setItem(AUTH_KEY, JSON.stringify(session));
+        const originalHTML = this.innerHTML;
+        this.disabled = true;
+        this.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Updating…';
 
-        // 2. Update master list (reh_users)
-        const allUsers = JSON.parse(localStorage.getItem('reh_users') || '[]');
-        const idx = allUsers.findIndex(u => u.email === session.email);
-        if (idx !== -1) {
-            allUsers[idx].plan = plan;
-            localStorage.setItem('reh_users', JSON.stringify(allUsers));
-        }
+        try {
+          // 1. Update Firestore
+          await window.updateDoc(window.doc(window.db, "users", session.email), {
+            plan: plan
+          });
 
-        // 3. Visual feedback
-        document.querySelectorAll('.btn-choose').forEach(b => {
+          // 2. Update local session
+          session.plan = plan;
+          localStorage.setItem(AUTH_KEY, JSON.stringify(session));
+
+          // 3. Visual feedback
+          document.querySelectorAll('.btn-choose').forEach(b => {
             b.classList.remove('current');
             b.disabled = false;
             b.textContent = b.getAttribute('data-plan') === 'trial' ? 'Start Free Trial' :
                            b.getAttribute('data-plan') === 'premium-monthly' ? 'Go Premium' :
                            'Become Elite';
-        });
-        this.textContent = 'Current Plan';
-        this.classList.add('current');
-        this.disabled = true;
+          });
+          this.textContent = 'Current Plan';
+          this.classList.add('current');
+          this.disabled = true;
 
-        const planName = plan === 'trial' ? 'Trial' : plan === 'premium-monthly' ? 'Premium Monthly' : 'Elite Annual';
-        showToast(`✨ You are now on the ${planName} plan!`);
+          const planName = plan === 'trial' ? 'Trial' : plan === 'premium-monthly' ? 'Premium Monthly' : 'Elite Annual';
+          showToast(`✨ You are now on the ${planName} plan!`);
+        } catch (error) {
+          console.error('Error updating plan:', error);
+          this.innerHTML = originalHTML;
+          this.disabled = false;
+          showToast('Failed to update plan. Please try again.');
+        }
+      });
     });
-});
 
-            const hamburgerBtn = document.getElementById('hamburgerBtn');
-            const navLinksEl = document.getElementById('navLinks');
-            if (hamburgerBtn && navLinksEl) {
-                hamburgerBtn.addEventListener('click', () => navLinksEl.classList.toggle('open'));
-                navLinksEl.querySelectorAll('a').forEach(link => {
-                    link.addEventListener('click', () => navLinksEl.classList.remove('open'));
-                });
-                document.addEventListener('click', (e) => {
-                    if (!hamburgerBtn.contains(e.target) && !navLinksEl.contains(e.target)) {
-                        navLinksEl.classList.remove('open');
-                    }
-                });
-            }
+    // ── Hamburger menu ────────────────────────
+    const hamburgerBtn = document.getElementById('hamburgerBtn');
+    const navLinksEl = document.getElementById('navLinks');
+    if (hamburgerBtn && navLinksEl) {
+      hamburgerBtn.addEventListener('click', () => navLinksEl.classList.toggle('open'));
+      navLinksEl.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => navLinksEl.classList.remove('open'));
+      });
+      document.addEventListener('click', (e) => {
+        if (!hamburgerBtn.contains(e.target) && !navLinksEl.contains(e.target)) {
+          navLinksEl.classList.remove('open');
+        }
+      });
+    }
 
-            // ── Logout ────────────────────────────
-            document.getElementById('logoutBtn').addEventListener('click', () => {
-                localStorage.removeItem(AUTH_KEY);
-                updateNavUI(null);
-                window.location.href = 'loading.html?redirect=signin.html';
-            });
-        })();
-    </script>
-    <script src="assets/toadmin.js"></script>
+    // ── Logout ──────────────────────────────
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      localStorage.removeItem(AUTH_KEY);
+      updateNavUI(null);
+      window.location.href = 'index.html?redirect=login.html';
+    });
+  }
+
+  // Wait for Firebase, then start the app
+  waitForFirebase(startApp);
+})();
+</script>
+<script src="assets/toadmin.js"></script>
 </body>
 </html>

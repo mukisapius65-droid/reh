@@ -1,856 +1,448 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>View Profile | Reh</title>
-    <!-- Google Fonts & Font Awesome -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-    />
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>View Profile | Reh</title>
+  <!-- Google Fonts & Font Awesome -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500&display=swap"
+    rel="stylesheet"
+  />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+  />
+  <script type="module" src="assets/firebase.js"></script>
 
-    <script type="module" src="assets/firebase.js"></script>
+  <style>
+    :root {
+      --deep-navy: #080c24;
+      --gold: #c9a84c;
+      --gold-light: #dfc278;
+      --champagne: #f0e4c8;
+      --crimson: #8b1a2b;
+      --royal-blue: #162464;
+      --glass-bg: rgba(255,255,255,0.04);
+      --glass-border: rgba(255,255,255,0.08);
+      --glass-card: rgba(15,20,50,0.55);
+      --text: #f0ece6;
+      --text2: #c5bfb3;
+      --muted: #8a857a;
+      --love-pink: #ff6b8a;
+      --danger: #e74c3c;
+      --success: #2ecc71;
+      --shadow-gold: 0 0 40px rgba(200,155,60,0.2);
+    }
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'Inter',sans-serif;background:var(--deep-navy);color:var(--text);min-height:100vh;overflow-x:hidden;line-height:1.6;}
+    .bg-orbit{position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse at 30% 30%,rgba(255,107,138,0.15) 0%,transparent 50%),radial-gradient(ellipse at 70% 60%,rgba(200,160,60,0.1) 0%,transparent 50%);animation:bgPulse 10s infinite;}
+    @keyframes bgPulse{0%,100%{opacity:0.9;}50%{opacity:1;}}
+    .main-wrapper{position:relative;z-index:2;max-width:1000px;margin:0 auto;padding:2rem 1rem;}
+    .profile-grid{display:grid;grid-template-columns:1fr 1.5fr;gap:2rem;}
+    @media(max-width:768px){.profile-grid{grid-template-columns:1fr;}}
+    .profile-left,.profile-right{background:var(--glass-card);border:1px solid var(--glass-border);border-radius:24px;padding:2rem;backdrop-filter:blur(20px);}
+    .profile-left{display:flex;flex-direction:column;align-items:center;}
+    .photo-gallery{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-bottom:1.5rem;}
+    .photo-gallery img{width:80px;height:80px;border-radius:12px;object-fit:cover;border:2px solid transparent;cursor:pointer;transition:0.3s;}
+    .photo-gallery img:hover,.photo-gallery img.active{border-color:var(--gold);transform:scale(1.05);}
+    .main-photo{width:200px;height:200px;border-radius:50%;object-fit:cover;border:4px solid var(--gold);box-shadow:0 0 35px rgba(200,160,60,0.5);margin-bottom:1rem;}
+    .username{color:var(--muted);font-size:0.9rem;margin-bottom:0.5rem;}
+    .display-name{font-family:'Playfair Display',serif;font-size:1.8rem;color:var(--text);display:flex;align-items:center;gap:0.5rem;justify-content:center;}
+    .verified-badge{color:#3498db;font-size:1.2rem;}
+    .age-badge{background:rgba(200,155,60,0.2);color:var(--gold-light);padding:4px 12px;border-radius:50px;display:inline-block;margin:0.5rem 0;}
+    .online-status{display:flex;align-items:center;gap:0.4rem;font-size:0.8rem;color:var(--text2);}
+    .online-dot{width:10px;height:10px;border-radius:50%;background:#4cfa7c;box-shadow:0 0 10px #4cfa7c;}
+    .offline-dot{width:10px;height:10px;border-radius:50%;background:#7a756e;}
+    .info-row{display:flex;flex-wrap:wrap;gap:1rem;justify-content:center;margin:1rem 0;color:var(--text2);}
+    .info-row span{display:flex;align-items:center;gap:0.4rem;}
+    .profile-right h3{font-family:'Playfair Display',serif;color:var(--gold-light);margin-bottom:1rem;border-bottom:1px solid var(--glass-border);padding-bottom:0.5rem;}
+    .detail-item{margin-bottom:0.8rem;font-size:0.9rem;color:var(--text2);}
+    .detail-item i{margin-right:0.5rem;color:var(--gold-light);width:20px;}
+    .detail-item strong{color:var(--text);}
+    .action-buttons{display:flex;gap:1rem;flex-wrap:wrap;margin:1.5rem 0;}
+    .btn{flex:1;min-width:130px;padding:12px;border-radius:50px;font-weight:600;text-align:center;cursor:pointer;transition:0.3s;display:flex;align-items:center;justify-content:center;gap:0.5rem;border:none;}
+    .btn-gift{background:linear-gradient(135deg,#c9a84c,#f0e4c8);color:#080c24;}
+    .btn-chat{background:linear-gradient(135deg,var(--royal-blue),var(--crimson));color:white;}
+    .btn-block{background:transparent;border:1px solid var(--danger);color:var(--danger);}
+    .btn-block:hover{background:var(--danger);color:white;}
+    .btn-gift:disabled,.btn-chat:disabled{opacity:0.6;cursor:not-allowed;box-shadow:none;}
+    .bookmark-icon{cursor:pointer;font-size:1.3rem;margin-left:0.5rem;color:var(--gold-light);}
+    /* Chat panel */
+    .chat-panel{position:fixed;bottom:0;left:0;right:0;background:rgba(10,15,35,0.98);backdrop-filter:blur(30px);border-top:1px solid var(--gold);padding:1rem;z-index:1000;transform:translateY(100%);transition:transform 0.3s;max-height:60vh;display:flex;flex-direction:column;}
+    .chat-panel.open{transform:translateY(0);}
+    .chat-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;color:var(--gold-light);}
+    .chat-messages{flex:1;overflow-y:auto;padding:0.5rem 0;display:flex;flex-direction:column;gap:0.5rem;}
+    .chat-msg{max-width:75%;padding:0.5rem 0.8rem;border-radius:12px;font-size:0.85rem;word-wrap:break-word;position:relative;}
+    .chat-msg.sent{align-self:flex-end;background:rgba(200,160,60,0.2);border:1px solid var(--gold);color:var(--text);}
+    .chat-msg.received{align-self:flex-start;background:rgba(255,255,255,0.05);color:var(--text);}
+    .chat-msg small{display:block;font-size:0.65rem;color:var(--muted);margin-top:0.2rem;}
+    .msg-status{font-size:0.7rem;margin-left:0.3rem;}
+    .single-check{color:var(--muted);}
+    .double-faded{color:var(--muted);opacity:0.7;}
+    .double-golden{color:var(--gold);}
+    .chat-input-area{display:flex;gap:0.5rem;margin-top:0.5rem;}
+    .chat-input-area input{flex:1;padding:0.5rem;background:rgba(255,255,255,0.05);border:1px solid var(--glass-border);border-radius:20px;color:white;outline:none;}
+    .chat-input-area button{background:linear-gradient(135deg,var(--crimson),var(--royal-blue));border:none;color:white;border-radius:50%;width:36px;height:36px;cursor:pointer;}
+    .toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(100px);background:rgba(20,30,60,0.9);border:1px solid var(--gold);color:var(--champagne);padding:14px 28px;border-radius:50px;z-index:9999;transition:transform 0.4s;display:flex;align-items:center;gap:8px;font-size:0.85rem;}
+    .toast.show{transform:translateX(-50%) translateY(0);}
+    .invisible{display:none!important;}
+  </style>
+</head>
+<body>
+<div class="bg-orbit"></div>
+<div class="toast" id="toast"><i class="fa-solid fa-heart"></i> <span id="toastMsg"></span></div>
+<div class="main-wrapper">
+  <div class="profile-grid" id="profileContent">
+    <p style="color:var(--muted); grid-column:1/-1; text-align:center;">Loading profile...</p>
+  </div>
+</div>
 
-    <style>
-      :root {
-        --deep-navy: #080c24;
-        --gold: #c9a84c;
-        --gold-light: #dfc278;
-        --champagne: #f0e4c8;
-        --crimson: #8b1a2b;
-        --ruby: #a82035;
-        --rose: #c0394b;
-        --royal-blue: #162464;
-        --glass-bg: rgba(255, 255, 255, 0.04);
-        --glass-border: rgba(255, 255, 255, 0.08);
-        --glass-card: rgba(15, 20, 50, 0.55);
-        --text: #f0ece6;
-        --text2: #c5bfb3;
-        --muted: #8a857a;
-        --love-pink: #ff6b8a;
-        --danger: #e74c3c;
-        --success: #2ecc71;
-        --shadow-gold: 0 0 40px rgba(200, 155, 60, 0.2);
-      }
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-      body {
-        font-family: "Inter", sans-serif;
-        background: var(--deep-navy);
-        color: var(--text);
-        min-height: 100vh;
-        overflow-x: hidden;
-        line-height: 1.6;
-      }
-      .bg-orbit {
-        position: fixed;
-        inset: 0;
-        pointer-events: none;
-        z-index: 0;
-        background:
-          radial-gradient(
-            ellipse at 30% 30%,
-            rgba(255, 107, 138, 0.15) 0%,
-            transparent 50%
-          ),
-          radial-gradient(
-            ellipse at 70% 60%,
-            rgba(200, 160, 60, 0.1) 0%,
-            transparent 50%
-          );
-        animation: bgPulse 10s infinite;
-      }
-      @keyframes bgPulse {
-        0%,
-        100% {
-          opacity: 0.9;
-        }
-        50% {
-          opacity: 1;
-        }
-      }
-      .main-wrapper {
-        position: relative;
-        z-index: 2;
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 2rem;
-      }
-      .profile-card {
-        background: var(--glass-card);
-        border: 1px solid var(--glass-border);
-        border-radius: 24px;
-        padding: 2rem;
-        backdrop-filter: blur(20px);
-        text-align: center;
-      }
-      .avatar {
-        width: 150px;
-        height: 150px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 4px solid var(--gold);
-        margin: 0 auto 1.5rem;
-        box-shadow: 0 0 35px rgba(200, 160, 60, 0.5);
-      }
-      .name {
-        font-family: "Playfair Display", serif;
-        font-size: 2rem;
-        color: var(--text);
-      }
-      .age {
-        background: rgba(200, 155, 60, 0.2);
-        color: var(--gold-light);
-        padding: 4px 12px;
-        border-radius: 50px;
-        display: inline-block;
-        margin: 0.5rem 0;
-      }
-      .info-row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1rem;
-        justify-content: center;
-        margin: 1rem 0;
-        color: var(--text2);
-      }
-      .info-row span {
-        display: flex;
-        align-items: center;
-        gap: 0.4rem;
-      }
-      .bio {
-        margin: 1rem 0;
-        color: var(--text2);
-      }
-      .interests {
-        margin: 0.5rem 0;
-        color: var(--gold-light);
-      }
-      .btn-gift {
-        background: linear-gradient(135deg, #c9a84c, #f0e4c8);
-        color: #080c24;
-        border: none;
-        padding: 0.8rem 2rem;
-        border-radius: 50px;
-        font-weight: 700;
-        cursor: pointer;
-        transition: 0.3s;
-        box-shadow: 0 4px 15px rgba(200, 160, 60, 0.4);
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
-      .btn-gift:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(200, 160, 60, 0.6);
-      }
-      .btn-gift:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-        box-shadow: none;
-      }
-      .btn-block {
-        background: var(--danger);
-        color: white;
-        border: none;
-        padding: 0.8rem 2rem;
-        border-radius: 50px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: 0.3s;
-        margin-top: 1.5rem;
-      }
-      .btn-block:hover {
-        opacity: 0.9;
-      }
-      /* Chat panel */
-      .chat-panel {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: rgba(10, 15, 35, 0.98);
-        backdrop-filter: blur(30px);
-        border-top: 1px solid var(--gold);
-        padding: 1rem;
-        z-index: 1000;
-        transform: translateY(100%);
-        transition: transform 0.3s;
-        max-height: 60vh;
-        display: flex;
-        flex-direction: column;
-      }
-      .chat-panel.open {
-        transform: translateY(0);
-      }
-      .chat-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 0.5rem;
-        color: var(--gold-light);
-      }
-      .chat-messages {
-        flex: 1;
-        overflow-y: auto;
-        padding: 0.5rem 0;
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-      }
-      .chat-msg {
-        max-width: 75%;
-        padding: 0.5rem 0.8rem;
-        border-radius: 12px;
-        font-size: 0.85rem;
-        word-wrap: break-word;
-      }
-      .chat-msg.sent {
-        align-self: flex-end;
-        background: rgba(200, 160, 60, 0.2);
-        border: 1px solid var(--gold);
-        color: var(--text);
-      }
-      .chat-msg.received {
-        align-self: flex-start;
-        background: rgba(255, 255, 255, 0.05);
-        color: var(--text);
-      }
-      .chat-msg small {
-        display: block;
-        font-size: 0.65rem;
-        color: var(--muted);
-        margin-top: 0.2rem;
-      }
-      .chat-input-area {
-        display: flex;
-        gap: 0.5rem;
-        margin-top: 0.5rem;
-      }
-      .chat-input-area input {
-        flex: 1;
-        padding: 0.5rem;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid var(--glass-border);
-        border-radius: 20px;
-        color: white;
-        outline: none;
-      }
-      .chat-input-area button {
-        background: linear-gradient(135deg, var(--crimson), var(--royal-blue));
-        border: none;
-        color: white;
-        border-radius: 50%;
-        width: 36px;
-        height: 36px;
-        cursor: pointer;
-      }
-      .toast {
-        position: fixed;
-        bottom: 30px;
-        left: 50%;
-        transform: translateX(-50%) translateY(100px);
-        background: rgba(20, 30, 60, 0.9);
-        border: 1px solid var(--gold);
-        color: var(--champagne);
-        padding: 14px 28px;
-        border-radius: 50px;
-        z-index: 9999;
-        transition: transform 0.4s;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 0.85rem;
-      }
-      .toast.show {
-        transform: translateX(-50%) translateY(0);
-      }
-      .invisible {
-        display: none !important;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="bg-orbit"></div>
-    <div class="toast" id="toast">
-      <i class="fa-solid fa-heart"></i> <span id="toastMsg"></span>
-    </div>
+<!-- Chat Panel -->
+<div class="chat-panel" id="chatPanel">
+  <div class="chat-header">
+    <span><i class="fa-solid fa-lock"></i> Encrypted Chat</span>
+    <button id="closeChatBtn" style="background:none;border:none;color:var(--gold-light);font-size:1.5rem;cursor:pointer;">&times;</button>
+  </div>
+  <div class="chat-messages" id="chatMessages"></div>
+  <div class="chat-input-area">
+    <input type="text" id="chatMessageInput" placeholder="Type a message...">
+    <button id="sendChatBtn"><i class="fa-solid fa-paper-plane"></i></button>
+  </div>
+</div>
 
-    <div class="main-wrapper">
-      <div class="profile-card" id="profileContent">
-        <p style="color: var(--muted)">Loading profile...</p>
-      </div>
-    </div>
+<nav class="nav invisible"></nav>
+<aside class="sidebar invisible" id="sidebar"></aside>
+<footer class="footer invisible"></footer>
 
-    <!-- Chat Panel (hidden by default) -->
-    <div class="chat-panel" id="chatPanel">
-      <div class="chat-header">
-        <span><i class="fa-solid fa-lock"></i> Encrypted Chat</span>
-        <button
-          id="closeChatBtn"
-          style="
-            background: none;
-            border: none;
-            color: var(--gold-light);
-            font-size: 1.5rem;
-            cursor: pointer;
-          "
-        >
-          &times;
-        </button>
-      </div>
-      <div class="chat-messages" id="chatMessages"></div>
-      <div class="chat-input-area">
-        <input
-          type="text"
-          id="chatMessageInput"
-          placeholder="Type a message..."
-        />
-        <button id="sendChatBtn">
-          <i class="fa-solid fa-paper-plane"></i>
-        </button>
-      </div>
-      <!-- Navigation & Sidebar (hidden) -->
-      <nav class="nav invisible"></nav>
-      <aside class="sidebar invisible" id="sidebar"></aside>
-      <footer class="footer invisible"></footer>
-    </div>
+<script src="assets/general.js"></script>
+<script src="assets/auth.js"></script>
+<script>
+(function() {
+  function waitForFirebase(cb) {
+    if (window.db && window.collection) cb();
+    else {
+      let tries = 0;
+      const timer = setInterval(() => {
+        if (window.db && window.collection) { clearInterval(timer); cb(); }
+        if (++tries > 50) { clearInterval(timer); console.error('Firebase not ready'); }
+      }, 100);
+    }
+  }
 
-    <script src="assets/general.js"></script>
-    <script src="assets/auth.js"></script>
+  function startApp() {
+    const SESSION_KEY = 'reh_user';
+    const CACHE_BOOKMARKS = 'reh_cache_bookmarks';   // ← add this
+    let convId = null, chatUnsubscribe = null;
+    let bookmarkedEmails = new Set();
 
-    <script>
-      (function () {
-        // ── Firebase readiness ─────────────────────
-        function waitForFirebase(callback) {
-          if (window.db) {
-            callback();
+    // Helpers
+    function getCurrentUser() { return JSON.parse(localStorage.getItem(SESSION_KEY)||'{}'); }
+    function showToast(msg) {
+      const t = document.getElementById('toast'), s = document.getElementById('toastMsg');
+      if(t&&s){ s.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000); }
+    }
+
+    // Online check from Firestore lastActive
+    function isUserOnline(profile) {
+      if (!profile || !profile.lastActive) return false;
+      const now = Date.now();
+      const ms = profile.lastActive?.seconds ? profile.lastActive.seconds*1000 : profile.lastActive;
+      return (now - ms) < 20000;
+    }
+
+    // Bookmark cache loader
+    async function loadBookmarkCache() {
+      const session = getCurrentUser();
+      if (!session.email) return;
+      const snap = await window.getDocs(window.collection(window.db, "users", session.email, "bookmarks"));
+      bookmarkedEmails.clear();
+      snap.forEach(doc => bookmarkedEmails.add(doc.id));
+    }
+
+    // Optimistic bookmark toggle
+async function toggleBookmark(targetEmail, btn) {
+  const session = getCurrentUser();
+  if (!session.email) { window.location.href='index.html?redirect=login.html'; return; }
+
+  // If btn is the icon itself, use it; otherwise find icon inside
+  const icon = btn.classList.contains('fa-bookmark') ? btn : btn.querySelector('i.fa-bookmark');
+  if (!icon) return;
+
+  const currently = icon.classList.contains('fa-solid');
+  icon.classList.toggle('fa-solid');
+  icon.classList.toggle('fa-regular');
+  if (currently) bookmarkedEmails.delete(targetEmail); else bookmarkedEmails.add(targetEmail);
+  sessionStorage.setItem(CACHE_BOOKMARKS, JSON.stringify([...bookmarkedEmails]));
+
+  const ref = window.doc(window.db, "users", session.email, "bookmarks", targetEmail);
+  try {
+    if (currently) { await window.deleteDoc(ref); showToast('🔖 Bookmark removed.'); }
+    else {
+      const targetDoc = await window.getDoc(window.doc(window.db, "users", targetEmail));
+      if (!targetDoc.exists()) throw new Error('User not found');
+      const t = targetDoc.data();
+      await window.setDoc(ref, {
+        email: targetEmail, firstName: t.firstName||'', lastName: t.lastName||'',
+        age: t.age||'', avatar: t.avatar||'', location: t.location||'',
+        addedAt: new Date()
+      });
+      showToast('🔖 Profile bookmarked.');
+    }
+  } catch(e) {
+    console.error(e);
+    icon.classList.toggle('fa-solid');
+    icon.classList.toggle('fa-regular');
+    if (currently) bookmarkedEmails.add(targetEmail); else bookmarkedEmails.delete(targetEmail);
+    sessionStorage.setItem(CACHE_BOOKMARKS, JSON.stringify([...bookmarkedEmails]));
+    showToast('Could not update bookmark.');
+  }
+}
+
+    // Gift helpers
+    async function getGiftCount(target) {
+      const q = window.query(window.collection(window.db,"gifts"), window.where("to","==",target), window.where("giftType","==","diamond_rose"));
+      return (await window.getDocs(q)).size;
+    }
+    async function hasSentGift(from, to) {
+      const q = window.query(window.collection(window.db,"gifts"), window.where("from","==",from), window.where("to","==",to), window.where("giftType","==","diamond_rose"));
+      return !(await window.getDocs(q)).empty;
+    }
+    async function sendGift(target) {
+      const cur = getCurrentUser();
+      if (!cur) return showToast('Login required.');
+      if (cur.email === target) return showToast('Cannot send to yourself.');
+      if (await hasSentGift(cur.email, target)) return showToast('Already sent.');
+      try {
+        await window.addDoc(window.collection(window.db,"gifts"),{
+          from: cur.email, fromName: `${cur.firstName} ${cur.lastName}`.trim()||cur.email,
+          to: target, giftType:'diamond_rose', timestamp: Date.now()
+        });
+        await window.addDoc(window.collection(window.db,"notifications"),{
+          title:'💎 You received a gift!', body:`${cur.firstName||'Someone'} sent you a Diamond Rose.`,
+          timestamp: new Date(), targetEmail: target, readBy:[]
+        });
+        showToast('💎 Diamond Rose sent!');
+        const countEl = document.getElementById('giftCount');
+        if (countEl) countEl.textContent = await getGiftCount(target);
+        const btn = document.getElementById('giftBtn');
+        if (btn) { btn.disabled=true; btn.textContent='Gift Sent'; }
+      } catch(e) { console.error(e); showToast('Failed to send gift.'); }
+    }
+
+    // Encryption
+    async function deriveKey(salt,pass) {
+      const enc = new TextEncoder();
+      const km = await crypto.subtle.importKey('raw',enc.encode(pass),{name:'PBKDF2'},false,['deriveKey']);
+      return crypto.subtle.deriveKey({name:'PBKDF2',salt:enc.encode(salt),iterations:100000,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+    }
+    async function encryptMessage(text,key) {
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const ct = await crypto.subtle.encrypt({name:'AES-GCM',iv},key,new TextEncoder().encode(text));
+      return {iv:Array.from(iv),ciphertext:Array.from(new Uint8Array(ct))};
+    }
+    async function decryptMessage(obj,key) {
+      const iv = new Uint8Array(obj.iv), ct = new Uint8Array(obj.ciphertext);
+      return new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv},key,ct));
+    }
+    function getConvId(a,b){ return [a,b].sort().join('_'); }
+
+    // Chat
+    async function openChat(targetEmail) {
+      const cur = getCurrentUser();
+      if (!cur) return;
+      convId = getConvId(cur.email,targetEmail);
+      const key = await deriveKey(convId,convId);
+      const ref = window.collection(window.db,"chats",convId,"messages");
+      const q = window.query(ref, window.orderBy("timestamp","asc"));
+      if (chatUnsubscribe) chatUnsubscribe();
+      chatUnsubscribe = window.onSnapshot(q, async (snap) => {
+        const container = document.getElementById('chatMessages');
+        container.innerHTML = '';
+        for (const doc of snap.docs) {
+          const msg = doc.data();
+          let text = '';
+          try { text = typeof msg.text==='string'? msg.text : await decryptMessage(msg.text,key); }
+          catch(e) { text = '[Decryption failed]'; }
+          const div = document.createElement('div');
+          div.className = `chat-msg ${msg.from===cur.email?'sent':'received'}`;
+          const time = new Date(msg.timestamp?.seconds?msg.timestamp.seconds*1000:msg.timestamp).toLocaleString();
+          // Message status: single check if sent, double faded if received but not read, golden double if read
+          let statusHtml = '';
+          if (msg.from === cur.email) {
+            if (msg.read) statusHtml = '<span class="msg-status double-golden"><i class="fa-solid fa-check-double"></i></span>';
+            else statusHtml = '<span class="msg-status single-check"><i class="fa-solid fa-check"></i></span>';
           } else {
-            let attempts = 0;
-            const check = setInterval(() => {
-              if (window.db) {
-                clearInterval(check);
-                callback();
-              }
-              attempts++;
-              if (attempts > 50) {
-                clearInterval(check);
-                console.error("Firebase failed to load");
-              }
-            }, 100);
+            // For received messages, we can mark as read when the chat is opened
+            if (!msg.read) {
+              // Mark as read
+              await window.updateDoc(window.doc(window.db,"chats",convId,"messages",doc.id),{read:true});
+              msg.read = true;
+            }
           }
+          div.innerHTML = `${text}<small>${time} ${statusHtml}</small>`;
+          container.appendChild(div);
         }
+        container.scrollTop = container.scrollHeight;
+      });
+    }
 
-        function startApp() {
-          const SESSION_KEY = "reh_user";
-          // const GIFTS_KEY = 'reh_gifts';
-          const NOTIF_KEY = "ss_global_notifications";
-          const BOOKMARKS_KEY = "reh_bookmarks";
-          // const CHAT_KEY = 'reh_profile_chats';
-          let convId = null;
-          let chatUnsubscribe = null;
+    async function sendMessage(targetEmail) {
+      const cur = getCurrentUser();
+      if (!cur || !convId) return;
+      const input = document.getElementById('chatMessageInput');
+      const text = input.value.trim();
+      if (!text) return;
+      const key = await deriveKey(convId,convId);
+      const enc = await encryptMessage(text,key);
+      try {
+        await window.addDoc(window.collection(window.db,"chats",convId,"messages"),{
+          from: cur.email, text: enc, timestamp: new Date(), read: false
+        });
+        input.value = '';
+      } catch(e) { console.error(e); showToast('Failed to send message.'); }
+    }
 
-          // ── Helpers ────────────────────────────────
-          function getCurrentUser() {
-            return JSON.parse(localStorage.getItem(SESSION_KEY) || "{}");
+    // Load profile
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetEmail = urlParams.get('email');
+    const container = document.getElementById('profileContent');
+
+    if (!targetEmail) {
+      container.innerHTML = '<p style="color:var(--muted);grid-column:1/-1;text-align:center;">No user specified.</p>';
+    } else {
+      container.innerHTML = '<div style="padding:2rem;color:var(--muted);grid-column:1/-1;text-align:center;"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><p>Loading profile…</p></div>';
+      (async function fetchAndRender() {
+        try {
+          const docSnap = await window.getDoc(window.doc(window.db,"users",targetEmail));
+          if (!docSnap.exists()) {
+            container.innerHTML = '<p style="color:var(--muted);grid-column:1/-1;text-align:center;">User not found.</p>';
+            return;
           }
+          const profile = docSnap.data();
+          const cur = getCurrentUser();
+          if (cur && profile.blocked && profile.blocked.includes(cur.email)) {
+            container.innerHTML = '<p style="color:var(--danger);grid-column:1/-1;text-align:center;">This user has blocked you.</p>';
+            return;
+          }
+          const online = isUserOnline(profile);
+          const photos = profile.photos || [];
+          if (!photos.length) photos.push(profile.avatar || 'https://randomuser.me/api/portraits/women/44.jpg');
+          const mainPhoto = photos[0];
+          const username = profile.username ? '@'+profile.username : '@'+(profile.email||'').split('@')[0];
+          const isVerified = profile.plan === 'elite-annual';
+          // Build HTML
+          container.innerHTML = `
+            <div class="profile-left">
+              <div class="photo-gallery" id="photoGallery">
+                ${photos.map((p,i) => `<img src="${p}" alt="Photo ${i+1}" class="${i===0?'active':''}" onclick="document.querySelector('.main-photo').src='${p}'">`).join('')}
+              </div>
+              <img class="main-photo" src="${mainPhoto}" alt="${profile.firstName}">
+              <div class="username">${username}</div>
+              <div class="display-name">${profile.firstName} ${profile.lastName} ${isVerified?'<i class="fa-solid fa-circle-check verified-badge" title="Verified Elite"></i>':''}</div>
+              <div class="age-badge">${profile.age||''}</div>
+              <div class="online-status">${online?'<span class="online-dot"></span> Online':'<span class="offline-dot"></span> Offline'}</div>
+              <div class="info-row">
+                <span><i class="fa-solid fa-location-dot"></i> ${profile.location||'Unknown'}</span>
+                ${profile.gender?`<span><i class="fa-solid fa-venus-mars"></i> ${profile.gender}</span>`:''}
+              </div>
+            </div>
+            <div class="profile-right">
+              <h3><i class="fa-solid fa-user"></i> About</h3>
+              <div class="detail-item"><i class="fa-solid fa-quote-left"></i> ${profile.bio||'No bio yet.'}</div>
+              <div class="detail-item"><i class="fa-solid fa-heart"></i> <strong>Interests:</strong> ${profile.interests||'Not specified'}</div>
+              <div class="detail-item"><i class="fa-solid fa-briefcase"></i> <strong>Profession:</strong> ${profile.profession||'Not specified'}</div>
+              <div class="detail-item"><i class="fa-solid fa-coins"></i> <strong>Income:</strong> ${profile.income||'Confidential'}</div>
+              <div class="detail-item"><i class="fa-solid fa-gem"></i> <strong>Net Worth:</strong> ${profile.netWorth||'Confidential'}</div>
+              <h3><i class="fa-solid fa-circle-info"></i> Personal Details</h3>
+              <div class="detail-item"><i class="fa-solid fa-cake-candles"></i> <strong>Date of Birth:</strong> ${profile.dateOfBirth||'Not set'}</div>
+              <div class="detail-item"><i class="fa-solid fa-venus-mars"></i> <strong>Interested in:</strong> ${profile.interestedIn||'Not specified'}</div>
+              <div class="detail-item"><i class="fa-solid fa-sparkles"></i> <strong>Fun Fact:</strong> ${profile.funFact||'None'}</div>
+              <div class="detail-item"><i class="fa-solid fa-plane-departure"></i> <strong>Favorite Travel:</strong> ${profile.favTravel||'None'}</div>
+              <div class="detail-item"><i class="fa-solid fa-heart-circle-plus"></i> <strong>Relationship Goals:</strong> ${profile.relationshipGoals||'Open'}</div>
+              ${profile.voiceIntro?`<div class="detail-item"><i class="fa-solid fa-microphone"></i> <a href="${profile.voiceIntro}" target="_blank" style="color:var(--gold-light);">Voice Intro</a></div>`:''}
+              ${profile.videoIntro?`<div class="detail-item"><i class="fa-solid fa-video"></i> <a href="${profile.videoIntro}" target="_blank" style="color:var(--gold-light);">Video Intro</a></div>`:''}
+              <div class="action-buttons">
+                <button class="btn btn-gift" id="giftBtn"><i class="fa-solid fa-gem"></i> Send Diamond Rose</button>
+                <button class="btn btn-chat" id="chatBtn"><i class="fa-solid fa-comment"></i> Chat</button>
+                <i class="bookmark-icon fa-bookmark ${bookmarkedEmails.has(targetEmail)?'fa-solid':'fa-regular'}" id="bookmarkBtn" data-email="${targetEmail}"></i>
+              </div>
+              <button class="btn btn-block" id="blockBtn"><i class="fa-solid fa-ban"></i> Block this user</button>
+            </div>
+          `;
 
-          function showToast(msg) {
-            const toast = document.getElementById("toast");
-            const msgSpan = document.getElementById("toastMsg");
-            if (toast && msgSpan) {
-              msgSpan.textContent = msg;
-              toast.classList.add("show");
-              setTimeout(() => toast.classList.remove("show"), 3000);
+          // Gift button logic
+          const giftBtn = document.getElementById('giftBtn');
+          if (giftBtn) {
+            if (cur && await hasSentGift(cur.email, targetEmail)) {
+              giftBtn.disabled = true;
+              giftBtn.textContent = 'Gift Sent';
             }
+            giftBtn.addEventListener('click', () => sendGift(targetEmail));
           }
 
-          function isUserOnline(email) {
-            const presence = JSON.parse(
-              localStorage.getItem("reh_presence") || "{}",
-            );
-            const lastBeat = presence[email] || 0;
-            return Date.now() - lastBeat < 20000;
-          }
+          // Bookmark
+         // Bookmark
+const bookmarkIcon = document.getElementById('bookmarkBtn');
+bookmarkIcon.addEventListener('click', function(e) {
+  e.stopPropagation();
+  // Pass the icon itself as the button, but adjust toggleBookmark to handle it
+  toggleBookmark(targetEmail, this);
+});
 
-          // Firestore gift helpers
-          async function getGiftCountFirestore(targetEmail) {
-            const q = window.query(
-              window.collection(window.db, "gifts"),
-              window.where("to", "==", targetEmail),
-              window.where("giftType", "==", "diamond_rose"),
-            );
-            const snapshot = await window.getDocs(q);
-            return snapshot.size; // count of documents
-          }
+          // Block
+          document.getElementById('blockBtn').addEventListener('click', async () => {
+            if (!cur) return showToast('Login required.');
+            if (cur.email === targetEmail) return showToast('Cannot block yourself.');
+            let blocked = cur.blocked || [];
+            if (blocked.includes(targetEmail)) return showToast('Already blocked.');
+            blocked.push(targetEmail);
+            cur.blocked = blocked;
+            localStorage.setItem(SESSION_KEY, JSON.stringify(cur));
+            try { await window.updateDoc(window.doc(window.db,"users",cur.email),{blocked}); } catch(e){}
+            showToast('User blocked.');
+            window.history.back();
+          });
 
-          async function hasAlreadySentGiftFirestore(fromEmail, toEmail) {
-            const q = window.query(
-              window.collection(window.db, "gifts"),
-              window.where("from", "==", fromEmail),
-              window.where("to", "==", toEmail),
-              window.where("giftType", "==", "diamond_rose"),
-            );
-            const snapshot = await window.getDocs(q);
-            return !snapshot.empty;
-          }
+          // Chat
+          const chatPanel = document.getElementById('chatPanel');
+          document.getElementById('chatBtn').addEventListener('click', () => {
+            if (!cur) return showToast('Login required.');
+            chatPanel.classList.add('open');
+            openChat(targetEmail);
+          });
+          document.getElementById('closeChatBtn').addEventListener('click', () => { chatPanel.classList.remove('open'); if(chatUnsubscribe){ chatUnsubscribe(); chatUnsubscribe=null; } });
+          document.getElementById('sendChatBtn').addEventListener('click', () => sendMessage(targetEmail));
+          document.getElementById('chatMessageInput').addEventListener('keypress', (e) => { if(e.key==='Enter') sendMessage(targetEmail); });
 
-          // ── Encryption (chat) ──────────────────────
-          async function deriveKey(salt, password) {
-            const enc = new TextEncoder();
-            const keyMaterial = await crypto.subtle.importKey(
-              "raw",
-              enc.encode(password),
-              { name: "PBKDF2" },
-              false,
-              ["deriveKey"],
-            );
-            return crypto.subtle.deriveKey(
-              {
-                name: "PBKDF2",
-                salt: enc.encode(salt),
-                iterations: 100000,
-                hash: "SHA-256",
-              },
-              keyMaterial,
-              { name: "AES-GCM", length: 256 },
-              false,
-              ["encrypt", "decrypt"],
-            );
-          }
-
-          async function encryptMessage(plaintext, key) {
-            const iv = crypto.getRandomValues(new Uint8Array(12));
-            const enc = new TextEncoder();
-            const ciphertext = await crypto.subtle.encrypt(
-              { name: "AES-GCM", iv },
-              key,
-              enc.encode(plaintext),
-            );
-            return {
-              iv: Array.from(iv),
-              ciphertext: Array.from(new Uint8Array(ciphertext)),
-            };
-          }
-
-          async function decryptMessage(encryptedObj, key) {
-            const iv = new Uint8Array(encryptedObj.iv);
-            const ciphertext = new Uint8Array(encryptedObj.ciphertext);
-            const decrypted = await crypto.subtle.decrypt(
-              { name: "AES-GCM", iv },
-              key,
-              ciphertext,
-            );
-            return new TextDecoder().decode(decrypted);
-          }
-
-          function getConversationId(email1, email2) {
-            const sorted = [email1, email2].sort();
-            return sorted.join("_");
-          }
-
-          async function openChat(targetEmail) {
-            const currentUser = getCurrentUser();
-            if (!currentUser) return;
-
-            convId = getConversationId(currentUser.email, targetEmail);
-            const key = await deriveKey(convId, convId); // derive encryption key once
-
-            const messagesRef = window.collection(
-              window.db,
-              "chats",
-              convId,
-              "messages",
-            );
-            const q = window.query(
-              messagesRef,
-              window.orderBy("timestamp", "asc"),
-            );
-
-            // Unsubscribe from previous listener if any
-            if (chatUnsubscribe) chatUnsubscribe();
-
-            chatUnsubscribe = window.onSnapshot(q, async (snapshot) => {
-              const container = document.getElementById("chatMessages");
-              container.innerHTML = "";
-
-              for (const doc of snapshot.docs) {
-                const msg = doc.data();
-                let text = "";
-                try {
-                  if (typeof msg.text === "string") {
-                    // fallback for unencrypted messages (shouldn't happen)
-                    text = msg.text;
-                  } else {
-                    text = await decryptMessage(msg.text, key);
-                  }
-                } catch (e) {
-                  text = "[Decryption failed]";
-                }
-                const div = document.createElement("div");
-                div.className = `chat-msg ${msg.from === currentUser.email ? "sent" : "received"}`;
-                div.innerHTML = `${text}<small>${new Date(msg.timestamp?.seconds ? msg.timestamp.seconds * 1000 : msg.timestamp).toLocaleString()}</small>`;
-                container.appendChild(div);
-              }
-              container.scrollTop = container.scrollHeight;
-            });
-          }
-
-          async function sendChatMessage(targetEmail) {
-            const currentUser = getCurrentUser();
-            if (!currentUser || !convId) return;
-            const input = document.getElementById("chatMessageInput");
-            const text = input.value.trim();
-            if (!text) return;
-
-            const key = await deriveKey(convId, convId);
-            const encrypted = await encryptMessage(text, key);
-
-            try {
-              const messagesRef = window.collection(
-                window.db,
-                "chats",
-                convId,
-                "messages",
-              );
-              await window.addDoc(messagesRef, {
-                from: currentUser.email,
-                text: encrypted, // already an object { iv, ciphertext }
-                timestamp: window.serverTimestamp
-                  ? window.serverTimestamp()
-                  : new Date(),
+          // Track view
+          if (cur && cur.email !== targetEmail) {
+            const recent = await window.getDocs(window.query(window.collection(window.db,"profileViews"), window.where("viewer","==",cur.email), window.where("viewed","==",targetEmail), window.where("timestamp",">=", Date.now()-3600000)));
+            if (recent.empty) {
+              await window.addDoc(window.collection(window.db,"profileViews"),{
+                viewer: cur.email, viewerName: `${cur.firstName} ${cur.lastName}`.trim()||cur.email,
+                viewed: targetEmail, timestamp: Date.now()
               });
-              input.value = "";
-              // The onSnapshot listener will automatically update the UI
-            } catch (err) {
-              console.error(err);
-              showToast("Failed to send message.");
             }
           }
-
-          document
-            .getElementById("closeChatBtn")
-            .addEventListener("click", () => {
-              document.getElementById("chatPanel").classList.remove("open");
-              if (chatUnsubscribe) {
-                chatUnsubscribe();
-                chatUnsubscribe = null;
-              }
-            });
-
-          // // ── Gift helpers ─────────────────────────
-          // function getGiftCount(email) {
-          //     const gifts = JSON.parse(localStorage.getItem(GIFTS_KEY) || '[]');
-          //     return gifts.filter(g => g.to === email).length;
-          // }
-          // function hasAlreadySentGift(from, to) {
-          //     const gifts = JSON.parse(localStorage.getItem(GIFTS_KEY) || '[]');
-          //     return gifts.some(g => g.from === from && g.to === to);
-          // }
-          async function sendGift(targetEmail) {
-            const currentUser = getCurrentUser();
-            if (!currentUser) {
-              showToast("You must be logged in to send a gift.");
-              return;
-            }
-            if (currentUser.email === targetEmail) {
-              showToast("You cannot send a gift to yourself.");
-              return;
-            }
-
-            // Check if already sent using Firestore
-            const alreadySent = await hasAlreadySentGiftFirestore(
-              currentUser.email,
-              targetEmail,
-            );
-            if (alreadySent) {
-              showToast("You have already sent a gift to this user.");
-              return;
-            }
-
-            const gift = {
-              from: currentUser.email,
-              fromName:
-                `${currentUser.firstName} ${currentUser.lastName}`.trim() ||
-                currentUser.email,
-              to: targetEmail,
-              giftType: "diamond_rose",
-              timestamp: Date.now(),
-            };
-
-            try {
-              // Save to Firestore
-              await window.addDoc(window.collection(window.db, "gifts"), gift);
-
-              // Notify the recipient (we'll keep this in localStorage for now – you can later move to Firestore)
-              await window.addDoc(window.collection(window.db, "notifications"), {
-                title: '💎 You received a gift!',
-                body: `${currentUser.firstName || 'Someone'} sent you a Diamond Rose.`,
-                timestamp: window.serverTimestamp ? window.serverTimestamp() : new Date(),
-                targetEmail: targetEmail,
-                readBy: []
-              });
-
-              showToast("💎 Diamond Rose sent!");
-              document.getElementById("giftCount").textContent =
-                await getGiftCountFirestore(targetEmail);
-              const giftBtn = document.getElementById("giftBtn");
-              if (giftBtn) {
-                giftBtn.disabled = true;
-                giftBtn.textContent = "Gift Sent";
-              }
-            } catch (error) {
-              console.error("Error sending gift:", error);
-              showToast("Failed to send gift.");
-            }
-          }
-
-          // ── Bookmark helpers ────────────────────
-          function isBookmarked(email) {
-            const currentUser = getCurrentUser();
-            if (!currentUser) return false;
-            const bookmarks = JSON.parse(
-              localStorage.getItem(BOOKMARKS_KEY) || "[]",
-            );
-            return bookmarks.some(
-              (b) => b.from === currentUser.email && b.to === email,
-            );
-          }
-          function toggleBookmark(email) {
-            const currentUser = getCurrentUser();
-            if (!currentUser) return;
-            let bookmarks = JSON.parse(
-              localStorage.getItem(BOOKMARKS_KEY) || "[]",
-            );
-            const idx = bookmarks.findIndex(
-              (b) => b.from === currentUser.email && b.to === email,
-            );
-            if (idx !== -1) {
-              bookmarks.splice(idx, 1);
-              showToast("Bookmark removed.");
-            } else {
-              bookmarks.push({
-                from: currentUser.email,
-                to: email,
-                timestamp: Date.now(),
-              });
-              showToast("Bookmarked.");
-            }
-            localStorage.setItem(BOOKMARKS_KEY, JSON.stringify(bookmarks));
-            const icon = document.querySelector(".bookmark-icon");
-            if (icon) {
-              icon.classList.toggle("fa-solid");
-              icon.classList.toggle("fa-regular");
-            }
-          }
-
-          // ── Main: load profile from Firestore ───
-          const urlParams = new URLSearchParams(window.location.search);
-          const targetEmail = urlParams.get("email");
-          const profileContainer = document.getElementById("profileContent");
-
-          if (!targetEmail) {
-            profileContainer.innerHTML =
-              '<p style="color:var(--muted);">No user specified.</p>';
-          } else {
-            // Show loading spinner
-            profileContainer.innerHTML =
-              '<div style="padding:2rem; color:var(--muted);"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><p>Loading profile…</p></div>';
-
-            // Firestore fetch
-            async function fetchAndRender() {
-              try {
-                const docRef = window.doc(window.db, "users", targetEmail);
-                const docSnap = await window.getDoc(docRef);
-                if (!docSnap.exists()) {
-                  profileContainer.innerHTML =
-                    '<p style="color:var(--muted);">User not found.</p>';
-                  return;
-                }
-                const profile = docSnap.data();
-                const currentUser = getCurrentUser();
-
-                // Blocked check: if current user is in the profile's blocked list
-                if (
-                  currentUser &&
-                  profile.blocked &&
-                  profile.blocked.includes(currentUser.email)
-                ) {
-                  profileContainer.innerHTML =
-                    '<p style="color:var(--danger);">This user has blocked you.</p>';
-                  return;
-                }
-
-                const online = isUserOnline(profile.email);
-                profileContainer.innerHTML = `
-                        <img src="${profile.avatar || "https://randomuser.me/api/portraits/women/44.jpg"}" class="avatar">
-                        <div class="name">${profile.firstName} ${profile.lastName}
-                            <i class="bookmark-icon fa-bookmark ${isBookmarked(profile.email) ? "fa-solid" : "fa-regular"}" data-target-email="${profile.email}" style="cursor:pointer;color:var(--gold-light);font-size:1.2rem;margin-left:0.5rem;" title="Bookmark"></i>
-                        </div>
-                        <div class="age">${profile.age || ""}</div>
-                        <div class="info-row">
-                            <span><i class="fa-solid fa-location-dot"></i> ${profile.location || "Unknown"}</span>
-                            <span><i class="fa-solid fa-circle" style="color:${online ? "#2ecc71" : "#7a756e"};"></i> ${online ? "Online" : "Offline"}</span>
-                        </div>
-                        ${profile.bio ? `<div class="bio">"${profile.bio}"</div>` : ""}
-                        ${profile.interests ? `<div class="interests"><i class="fa-solid fa-heart"></i> ${profile.interests}</div>` : ""}
-                        ${profile.profession ? `<p style="color:var(--text2);"><i class="fa-solid fa-briefcase"></i> ${profile.profession}</p>` : ""}
-                        ${profile.income ? `<p style="color:var(--text2);"><i class="fa-solid fa-coins"></i> ${profile.income}</p>` : ""}
-                        ${profile.netWorth ? `<p style="color:var(--text2);"><i class="fa-solid fa-gem"></i> ${profile.netWorth}</p>` : ""}
-                        
-                        <div style="margin-top:1.5rem; display:flex; gap:1rem; flex-wrap:wrap; justify-content:center;">
-                            <button id="giftBtn" class="btn-gift"><i class="fa-solid fa-gem"></i> Send Diamond Rose</button>
-                            <button id="chatBtn" class="btn-gift" style="background:linear-gradient(135deg,var(--royal-blue),var(--crimson));"><i class="fa-solid fa-comment"></i> Chat</button>
-                        </div>
-                        <button class="btn-block" id="blockBtn">Block this user</button>
-                    `;
-
-                // Track profile view in Firestore (only if viewer ≠ profile owner)
-                if (currentUser && currentUser.email !== targetEmail) {
-                  const oneHourAgo = Date.now() - 3600000;
-                  // Check if a recent view already exists
-                  const recentViewQuery = window.query(
-                    window.collection(window.db, "profileViews"),
-                    window.where("viewer", "==", currentUser.email),
-                    window.where("viewed", "==", targetEmail),
-                    window.where("timestamp", ">=", oneHourAgo),
-                  );
-                  const recentSnapshot = await window.getDocs(recentViewQuery);
-                  if (recentSnapshot.empty) {
-                    // No recent view – record a new one
-                    await window.addDoc(
-                      window.collection(window.db, "profileViews"),
-                      {
-                        viewer: currentUser.email,
-                        viewerName:
-                          `${currentUser.firstName} ${currentUser.lastName}`.trim() ||
-                          currentUser.email,
-                        viewed: targetEmail,
-                        timestamp: Date.now(),
-                      },
-                    );
-                  }
-                }
-
-                // Gift count & button state
-                const giftCountEl = document.getElementById("giftCount");
-
-                const count = await getGiftCountFirestore(targetEmail);
-                if (giftCountEl) giftCountEl.textContent = count;
-
-                const giftBtn = document.getElementById("giftBtn");
-                if (giftBtn) {
-                  if (
-                    await hasAlreadySentGiftFirestore(
-                      currentUser.email,
-                      targetEmail,
-                    )
-                  ) {
-                    giftBtn.disabled = true;
-                    giftBtn.textContent = "Gift Sent";
-                  }
-                  giftBtn.addEventListener("click", () =>
-                    sendGift(targetEmail),
-                  );
-                }
-
-                // Bookmark
-                document
-                  .querySelector(".bookmark-icon")
-                  .addEventListener("click", function (e) {
-                    e.stopPropagation();
-                    toggleBookmark(targetEmail);
-                  });
-
-                // Block (now syncs to Firestore as well as session)
-                document
-                  .getElementById("blockBtn")
-                  .addEventListener("click", async () => {
-                    if (!currentUser) {
-                      showToast("Login required.");
-                      return;
-                    }
-                    if (currentUser.email === targetEmail) {
-                      showToast("Cannot block yourself.");
-                      return;
-                    }
-                    let blocked = currentUser.blocked || [];
-                    if (blocked.includes(targetEmail)) {
-                      showToast("Already blocked.");
-                      return;
-                    }
-                    blocked.push(targetEmail);
-                    currentUser.blocked = blocked;
-                    localStorage.setItem(
-                      SESSION_KEY,
-                      JSON.stringify(currentUser),
-                    );
-
-                    // Update Firestore block list for the current user
-                    try {
-                      await window.updateDoc(
-                        window.doc(window.db, "users", currentUser.email),
-                        { blocked: blocked },
-                      );
-                    } catch (e) {
-                      console.warn("Could not update Firestore block list", e);
-                    }
-
-                    showToast("User blocked.");
-                    window.history.back();
-                  });
-
-                // Chat panel
-                const chatPanel = document.getElementById("chatPanel");
-                const chatBtn = document.getElementById("chatBtn");
-                const closeChatBtn = document.getElementById("closeChatBtn");
-                chatBtn.addEventListener("click", () => {
-                  if (!currentUser) {
-                    showToast("Login required.");
-                    return;
-                  }
-                  document.getElementById("chatPanel").classList.add("open");
-                  openChat(targetEmail); // new function
-                });
-                closeChatBtn.addEventListener("click", () =>
-                  chatPanel.classList.remove("open"),
-                );
-                document
-                  .getElementById("sendChatBtn")
-                  .addEventListener("click", () =>
-                    sendChatMessage(targetEmail),
-                  );
-                document
-                  .getElementById("chatMessageInput")
-                  .addEventListener("keypress", (e) => {
-                    if (e.key === "Enter") sendChatMessage(targetEmail);
-                  });
-              } catch (error) {
-                console.error("Error fetching profile:", error);
-                profileContainer.innerHTML =
-                  '<p style="color:var(--danger);">Failed to load profile.</p>';
-              }
-            }
-
-            fetchAndRender();
-          }
+        } catch(e) {
+          console.error(e);
+          container.innerHTML = '<p style="color:var(--danger);grid-column:1/-1;text-align:center;">Failed to load profile.</p>';
         }
-
-        // Wait for Firebase, then start
-        waitForFirebase(startApp);
       })();
-    </script>
-    <script src="assets/toadmin.js"></script>
-  </body>
+    }
+
+    // Load bookmark cache then fetch
+    loadBookmarkCache().then(() => {
+      // already fetching in fetchAndRender
+    });
+  }
+
+  waitForFirebase(startApp);
+})();
+</script>
+<script src="assets/toadmin.js"></script>
+</body>
 </html>

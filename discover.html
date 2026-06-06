@@ -120,28 +120,62 @@
   // Resume audio on the very first user click anywhere
   document.addEventListener("click", () => getAudioContext(), { once: true });
 
+  const CACHE_USERS = 'reh_cache_users';
+  const CACHE_USERS_TS = 'reh_cache_users_ts';
+  const CACHE_BOOKMARKS = 'reh_cache_bookmarks';
+  const CACHE_ADMIRATIONS = 'reh_cache_admirations';
+  const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
   let allProfiles = [];
   let activeFilter = "all";
   let bookmarkedEmails = new Set();   // cache of emails the current user has bookmarked
   let admiredEmails = new Set();   // cache of emails the current user has admired
   let admirersCountMap = {};   // key: targetEmail, value: number of admirers
 
-  async function loadAdmirationCache() {
-  const session = JSON.parse(localStorage.getItem('reh_user') || '{}');
-  if (!session.email) return;
-  const admirationsRef = window.collection(window.db, "users", session.email, "admirations");
-  const snapshot = await window.getDocs(admirationsRef);
-  admiredEmails.clear();
-  snapshot.forEach(doc => admiredEmails.add(doc.id));   // doc id = target email
+  function formatCount(num) {
+  if (num === undefined || num === null || isNaN(num)) return '0';
+  if (num < 1000) return num.toString();
+  if (num < 1000000) return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+  return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
 }
-  
+
 async function loadBookmarkCache() {
   const session = JSON.parse(localStorage.getItem('reh_user') || '{}');
   if (!session.email) return;
+
+  // Check sessionStorage cache
+  const cached = sessionStorage.getItem(CACHE_BOOKMARKS);
+  if (cached) {
+    bookmarkedEmails = new Set(JSON.parse(cached));
+    return;
+  }
+
   const bookmarksRef = window.collection(window.db, "users", session.email, "bookmarks");
   const snapshot = await window.getDocs(bookmarksRef);
   bookmarkedEmails.clear();
-  snapshot.forEach(doc => bookmarkedEmails.add(doc.id));   // doc id is the target email
+  snapshot.forEach(doc => bookmarkedEmails.add(doc.id));
+  sessionStorage.setItem(CACHE_BOOKMARKS, JSON.stringify([...bookmarkedEmails]));
+}
+
+async function loadAdmirationCache() {
+  const session = JSON.parse(localStorage.getItem('reh_user') || '{}');
+  if (!session.email) return;
+
+  const cached = sessionStorage.getItem('reh_cache_admirations');
+  if (cached) {
+    admiredEmails = new Set(JSON.parse(cached));
+  }
+
+  try {
+    const admirationsRef = window.collection(window.db, "users", session.email, "admirations");
+    const snapshot = await window.getDocs(admirationsRef);
+    admiredEmails.clear();
+    snapshot.forEach(doc => admiredEmails.add(doc.id));
+    sessionStorage.setItem('reh_cache_admirations', JSON.stringify([...admiredEmails]));
+  } catch (error) {
+    console.error('Error loading admiration cache:', error);
+    // If there was no cached data, we fall back to empty set
+    if (!cached) admiredEmails = new Set();
+  }
 }
 
   // ── Data keys ────────────────────────────────
@@ -159,12 +193,7 @@ function hasViewed(targetEmail) {
     return views.some(v => v.viewer === session.email && v.viewed === targetEmail);
 }
 
-  window.addEventListener("storage", (e) => {
-    if (e.key === PRESENCE_KEY) {
-      // Re‑render cards to update online statuses
-      renderCards(activeFilter);
-    }
-  });
+
 
   // ──────────────────────────────────────
   // DOM REFERENCES
@@ -272,30 +301,45 @@ function hasViewed(targetEmail) {
 
   // ── Get users from Firestore ────────────
 async function getUsers() {
-    // Wait for Firebase to be ready (safety)
-    if (!window.db) {
-        console.warn('Firebase not ready yet');
-        return [];
-    }
-    try {
-        const snapshot = await window.getDocs(
-            window.query(
-                window.collection(window.db, "users"),
-                window.orderBy("lastActive", "desc"),
-                window.limit(30)
-            )
-        );
-        const allUsers = [];
-        snapshot.forEach(doc => {
-            const u = doc.data();
-            u.id = doc.id;   // add the Firestore document ID
-            allUsers.push(u);
-        });
-        return allUsers;
-    } catch (error) {
-        console.error('Error fetching users:', error);
-        return [];
-    }
+  // 1. Try sessionStorage cache first
+  const cached = sessionStorage.getItem(CACHE_USERS);
+  const cachedTs = sessionStorage.getItem(CACHE_USERS_TS);
+  if (cached && cachedTs && (Date.now() - parseInt(cachedTs)) < CACHE_TTL) {
+    const users = JSON.parse(cached);
+    // Update the cache timestamp (extend life while actively using)
+    sessionStorage.setItem(CACHE_USERS_TS, Date.now().toString());
+    return users;
+  }
+
+  // 2. Fallback to Firestore
+  if (!window.db) {
+    console.warn('Firebase not ready yet');
+    return [];
+  }
+  try {
+    const snapshot = await window.getDocs(
+      window.query(
+        window.collection(window.db, "users"),
+        window.orderBy("lastActive", "desc"),
+        window.limit(30)
+      )
+    );
+    const allUsers = [];
+    snapshot.forEach(doc => {
+      const u = doc.data();
+      u.id = doc.id;
+      allUsers.push(u);
+    });
+    // Save to cache
+    sessionStorage.setItem(CACHE_USERS, JSON.stringify(allUsers));
+    sessionStorage.setItem(CACHE_USERS_TS, Date.now().toString());
+    return allUsers;
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    // If Firestore fails, try to use stale cache
+    const stale = sessionStorage.getItem(CACHE_USERS);
+    return stale ? JSON.parse(stale) : [];
+  }
 }
 
   // ── Relative status helper ──────────────────
@@ -355,6 +399,14 @@ async function toggleBookmark(targetEmail, buttonElement) {
     bookmarkedEmails.add(targetEmail);
   }
 
+  // Optimistic UI toggle...
+if (currentlyBookmarked) {
+  bookmarkedEmails.delete(targetEmail);
+} else {
+  bookmarkedEmails.add(targetEmail);
+}
+sessionStorage.setItem(CACHE_BOOKMARKS, JSON.stringify([...bookmarkedEmails]));   // ✅ write immediately
+
   // ── Firestore write ─────────────────────
   const bookmarkRef = window.doc(window.db, "users", session.email, "bookmarks", targetEmail);
   try {
@@ -379,6 +431,7 @@ async function toggleBookmark(targetEmail, buttonElement) {
         addedAt: window.serverTimestamp ? window.serverTimestamp() : new Date()
       });
       showToast('🔖 Profile bookmarked.');
+sessionStorage.setItem(CACHE_BOOKMARKS, JSON.stringify([...bookmarkedEmails]));
     }
   } catch (err) {
     console.error(err);
@@ -388,6 +441,13 @@ async function toggleBookmark(targetEmail, buttonElement) {
       bookmarkIcon.classList.toggle('fa-solid');
       bookmarkIcon.classList.toggle('fa-regular');
     }
+    if (currentlyBookmarked) {
+  bookmarkedEmails.add(targetEmail);
+} else {
+  bookmarkedEmails.delete(targetEmail);
+}
+sessionStorage.setItem(CACHE_BOOKMARKS, JSON.stringify([...bookmarkedEmails]));
+
     if (currentlyBookmarked) {
       bookmarkedEmails.add(targetEmail);
     } else {
@@ -419,7 +479,7 @@ async function admireUser(targetEmail, buttonElement) {
     heartIcon.classList.remove('fa-regular');
     heartIcon.classList.add('fa-solid');
   }
-
+ 
   // Increment displayed count
   if (count) {
     const current = parseInt(count.textContent, 10) || 0;
@@ -433,6 +493,7 @@ async function admireUser(targetEmail, buttonElement) {
 
   // Update cache
   admiredEmails.add(targetEmail);
+  sessionStorage.setItem('reh_cache_admirations', JSON.stringify([...admiredEmails]));
 
   try {
     // 1. Add admiration record in current user's subcollection
@@ -459,6 +520,7 @@ async function admireUser(targetEmail, buttonElement) {
     });
 
     showToast('❤️ You admired this profile!');
+    
   } catch (error) {
     console.error(error);
     // Revert UI on failure
@@ -467,12 +529,14 @@ async function admireUser(targetEmail, buttonElement) {
       heartIcon.classList.add('fa-regular');
     }
     if (count) {
-      count.textContent = (parseInt(count.textContent, 10) || 1) - 1;
+      const newCount = (parseInt(countSpan.textContent, 10) || 0) + 1;
+      countSpan.textContent = formatCount(newCount);
     }
     buttonElement.disabled = false;
     buttonElement.style.opacity = '1';
     buttonElement.style.cursor = 'pointer';
     admiredEmails.delete(targetEmail);
+    sessionStorage.setItem('reh_cache_admirations', JSON.stringify([...admiredEmails]));
     showToast('Could not admire this profile.');
   }
 }
@@ -498,211 +562,298 @@ function attachInteractionHandlers() {
   });
 }
 
-  async function renderCards(filter = "all", searchTerm = "") {
-    activeFilter = filter;
-    const allUsers = await getUsers();
-    const loggedUser = JSON.parse(localStorage.getItem(AUTH_KEY) || "{}");
-    const currentUid = loggedUser?.email || null;
+// ── SMART MATCHING HELPERS ──────────────────────
 
-    // Remove banned users and the logged‑in user
-    // Get current user's blocked list (from session)
-    const sessionUser = JSON.parse(localStorage.getItem(USER_KEY) || "{}");
-    const myBlocked = sessionUser.blocked || [];
+// Get random users for the "People You May Know" carousel
+function getRandomPeople(allUsers, currentUser, count) {
+  const others = allUsers.filter(u =>
+    u.email !== currentUser?.email &&
+    !u.banned &&
+    u.visibility !== false
+  );
+  // Shuffle using Fisher-Yates
+  for (let i = others.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [others[i], others[j]] = [others[j], others[i]];
+  }
+  return others.slice(0, count);
+}
 
-    // Build a set of users who have blocked the current user
-    const blockedByOthers = allUsers
-      .filter((u) => u.blocked && u.blocked.includes(currentUid))
-      .map((u) => u.email);
+// Smart matching based on current user's profile data
+function getSmartMatches(allUsers, currentUser) {
+  if (!currentUser || !currentUser.email) return [];
 
-    const displayUsers = allUsers.filter((u) => {
-      if (u.banned || u.ppBanned) return false;
-      if (u.visibility === false) return false;
-      if (currentUid && u.email === currentUid) return false;
-      if (myBlocked.includes(u.email)) return false; // I blocked them
-      if (blockedByOthers.includes(u.email)) return false; // they blocked me
-      return true;
-    });
+  const myGender = currentUser.gender || '';               // 'male', 'female', etc.
+  const myInterestedIn = currentUser.interestedIn || 'all'; // 'men','women','all','other'
+  const myAge = parseInt(currentUser.age, 10) || 30;
+  const myLocation = (currentUser.location || '').toLowerCase();
 
-    allProfiles = displayUsers; // store for later filter changes
+  // 1. Filter by mutual compatibility
+  const candidates = allUsers.filter(u => {
+    if (u.email === currentUser.email) return false;
+    if (u.banned || u.visibility === false) return false;
 
-    // Apply the active filter
-    let filtered = displayUsers;
-    if (filter === "online") {
-      const now = Date.now();
-      filtered = displayUsers.filter((p) => {
-        const ms = p.lastActive
-          ? p.lastActive?.seconds
-            ? p.lastActive.seconds * 1000
-            : p.lastActive
-          : 0;
-        return now - ms < 120000;
-      });
-    } else if (filter === "premium") {
-      filtered = displayUsers.filter(
-        (p) => p.plan === "premium-monthly" || p.plan === "elite-annual",
-      );
-    } else if (filter === "verified") {
-      filtered = displayUsers.filter((p) => p.plan === "elite-annual");
-    } else if (filter === "new") {
-      const oneWeekAgo = Date.now() - 604800000;
-      filtered = displayUsers.filter((p) => {
-        const joined = p.joined ? new Date(p.joined).getTime() : 0;
-        return joined > oneWeekAgo;
-      });
-    } else if (filter === "nearby") {
-      // For now, show all (you can add real location filtering later)
-      // filtered remains all
-    }
+    const targetGender = u.gender || '';
+    const targetInterestedIn = u.interestedIn || 'all';
 
-    // Search across multiple fields
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter((p) => {
-        return (
-          (p.firstName && p.firstName.toLowerCase().includes(term)) ||
-          (p.lastName && p.lastName.toLowerCase().includes(term)) ||
-          (p.location && p.location.toLowerCase().includes(term)) ||
-          (p.age && p.age.toString().includes(term)) ||
-          (p.bio && p.bio.toLowerCase().includes(term)) ||
-          (p.interests && p.interests.toLowerCase().includes(term)) ||
-          (p.profession && p.profession.toLowerCase().includes(term))
-        );
-      });
-    }
+    // Does the target want someone like me?
+    const targetWantsMe =
+      targetInterestedIn === 'all' ||
+      (targetInterestedIn === 'men' && myGender === 'male') ||
+      (targetInterestedIn === 'women' && myGender === 'female') ||
+      (targetInterestedIn === 'other' && (myGender !== 'male' && myGender !== 'female'));
 
-    const grid = document.getElementById("cardGrid");
-    grid.innerHTML =
-              '<div style="text-align:center;padding:3rem;color:var(--muted);"><i class="fa-solid fa-spinner fa-spin"></i> Summoning the extraordinary…</div>';
-    if (filtered.length === 0) {
-      grid.innerHTML = `<div style="text-align:center; padding:3rem; color:var(--text-muted);"><i class="fa-solid fa-users-slash"></i><p style="margin-top:1rem;">No profiles match this filter.</p></div>`;
-      return;
-    }
+    // Do I want someone like the target?
+    const iWantThem =
+      myInterestedIn === 'all' ||
+      (myInterestedIn === 'men' && targetGender === 'male') ||
+      (myInterestedIn === 'women' && targetGender === 'female') ||
+      (myInterestedIn === 'other' && (targetGender !== 'male' && targetGender !== 'female'));
 
-    grid.innerHTML = filtered
-      .map((u, i) => {
-        const now = Date.now();
-        const lastMs = u.lastActive?.seconds ? u.lastActive.seconds * 1000 : u.lastActive || 0;
-        const online = (now - lastMs) < 20000;
-        const statusText = online ? "Online" : getRelativeStatus(lastMs);   // ✅ pass a number
-        const hideLastActive = u.showLastActive === false;   // false = hide
-        const statusClass = online ? "online" : "offline";
-        const phone = u.phone || "Private";
-        const admirersCount = u.admirersCount || 0;
-        return `
-        <div class="profile-card" data-index="${i}" style="transition-delay:${i * 0.08}s">
-            <div class="card-image-wrapper">
-                <img class="card-image" src="${u.avatar || "https://randomuser.me/api/portraits/women/44.jpg"}" alt="${u.firstName}" loading="lazy">
-                <div class="status-badge"><span class="status-dot ${statusClass}"></span> ${statusText}</div>
-                ${hasViewed(u.email) ? '<div class="viewed-badge" style="position:absolute; top:16px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.6); backdrop-filter:blur(10px); padding:4px 12px; border-radius:20px; font-size:0.7rem; color:var(--gold-light); display:flex; align-items:center; gap:4px;"><i class="fa-solid fa-eye"></i> Viewed</div>' : ''}
-                 <!-- Interaction bar (TikTok style) -->
-    <div class="card-interactions">
-      <button class="interaction-btn admire-btn" data-target-email="${u.email || ''}">
-        <i class="fa-heart ${hasAlreadyAdmired(u.email) ? 'fa-solid' : 'fa-regular'}"></i>
-        <span class="admirer-count">${u.admirersCount || 0}</span>
-      </button>
-      <button class="interaction-btn bookmark-btn" data-target-email="${u.email || ''}">
-        <i class="fa-bookmark ${bookmarkedEmails.has(u.email) ? 'fa-solid' : 'fa-regular'}"></i>
-      </button>
-    </div>
-            </div>
-                <div class="card-body">
-                    <span class="card-age">${u.age || ""}</span>
-                    <div class="card-name">${u.firstName} ${u.lastName}</div>
-                    <div class="card-location"><i class="fa-solid fa-location-dot"></i> ${u.location || "Unknown"}</div>
-                    <!-- NEW distance line -->
-                    ${
-                      u.distance !== false
-                        ? `
-                    <div class="card-distance" data-location="${u.location || ""}">
-                        <i class="fa-solid fa-route"></i> <span class="dist-text">— km</span>
-                    </div>
-                    `
-                        : ""
-                    }
-                    <div class="card-phone" data-phone="${phone}"><i class="fa-solid fa-phone"></i> ${phone}</div>
-                    
-                </div>
-            </div>
-        </div>`;
-      })
-      .join("");
+    if (!targetWantsMe || !iWantThem) return false;
 
-    document.querySelectorAll(".bookmark-icon").forEach((icon) => {
-      icon.addEventListener("click", function (e) {
-        e.stopPropagation();
-        const email = this.getAttribute("data-target-email");
-        toggleBookmark(email);
-      });
-    });
+    // Age range (±5 years)
+    const targetAge = parseInt(u.age, 10) || 30;
+    if (Math.abs(myAge - targetAge) > 5) return false;
 
-    // Re‑attach intersection observer and phone copy
-    const cards = document.querySelectorAll(".profile-card");
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("card-visible");
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.1 },
-    );
-    cards.forEach((card) => observer.observe(card));
+    // Optional: same city bonus (uncomment for stricter)
+    // if (myLocation && u.location && !(u.location || '').toLowerCase().includes(myLocation)) return false;
 
-    document.querySelectorAll(".card-phone").forEach((el) => {
-      el.addEventListener("click", function (e) {
-        e.stopPropagation();
-        const phone = this.getAttribute("data-phone");
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard
-            .writeText(phone)
-            .then(() => showToast("📋 Phone number copied: " + phone));
-        } else {
-          const tempInput = document.createElement("input");
-          tempInput.value = phone;
-          document.body.appendChild(tempInput);
-          tempInput.select();
-          document.execCommand("copy");
-          document.body.removeChild(tempInput);
-          showToast("📋 Phone number copied: " + phone);
-        }
-        this.style.backgroundColor = "rgba(200,155,60,0.25)";
-        setTimeout(() => {
-          this.style.backgroundColor = "";
-        }, 300);
-      });
-    });
-    updateDistances();
-    attachInteractionHandlers();
-
-    document.querySelectorAll('.profile-card').forEach(card => {
-  card.addEventListener('click', function(e) {
-    if (e.target.closest('.interaction-btn') || e.target.closest('.card-phone')) return;
-    const email = this.querySelector('.admire-btn')?.getAttribute('data-target-email');
-    if (email) window.location.href = `view-profile.html?email=${email}`;
+    return true;
   });
+
+  function isUserOnline(user) {
+  if (!user || !user.lastActive) return false;
+  const now = Date.now();
+  const lastMs = user.lastActive?.seconds ? user.lastActive.seconds * 1000 : user.lastActive;
+  return (now - lastMs) < 20000;
+}
+
+  // 2. Score and sort (online + popularity)
+candidates.sort((a, b) => {
+  const scoreA = (a.admirersCount || 0) + (isUserOnline(a) ? 10 : 0);
+  const scoreB = (b.admirersCount || 0) + (isUserOnline(b) ? 10 : 0);
+  return scoreB - scoreA;
 });
 
-    // document.querySelectorAll(".profile-card").forEach((card) => {
-    //   card.addEventListener("click", function (e) {
-    //     // Don't navigate if clicking a button inside
-    //     if (e.target.closest(".btn-admire") || e.target.closest(".card-phone"))
-    //       return;
-    //     const email =
-    //       this.querySelector(".card-admire")?.getAttribute("data-target-email");
-    //     if (email) window.location.href = `view-profile.html?email=${email}`;
-    //   });
-    // });
+  return candidates;
+}
 
-    // Update distances (asynchronously)
+// Render a single profile card (used for both daily matches and regular cards)
+function renderSingleCard(u, index) {
+  const now = Date.now();
+  const lastMs = u.lastActive?.seconds ? u.lastActive.seconds * 1000 : u.lastActive || 0;
+  const online = (now - lastMs) < 20000;
+  const statusText = online ? "Online" : getRelativeStatus(lastMs);
+  const statusClass = online ? "online" : "offline";
+  const phone = u.phone || "Private";
+  const viewedMark = hasViewed(u.email)
+    ? `<div class="viewed-badge" style="position:absolute; top:16px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.6); backdrop-filter:blur(10px); padding:4px 12px; border-radius:20px; font-size:0.7rem; color:var(--gold-light); display:flex; align-items:center; gap:4px;"><i class="fa-solid fa-eye"></i> Viewed</div>`
+    : '';
 
-    function isUserOnline(email) {
-      // This is now handled per‑user by checking their lastActive field.
-      // We don't need a separate lookup – the user object already contains lastActive.
-      return false; // placeholder; we actually compute online status per user below
-    }
+  return `
+    <div class="profile-card" data-index="${index}" style="transition-delay:${index * 0.08}s">
+      <div class="card-image-wrapper">
+        <img class="card-image" src="${u.avatar || "https://randomuser.me/api/portraits/women/44.jpg"}" alt="${u.firstName}" loading="lazy">
+        <div class="status-badge"><span class="status-dot ${statusClass}"></span> ${statusText}</div>
+        ${viewedMark}
+        <div class="card-interactions">
+          <button class="interaction-btn admire-btn" data-target-email="${u.email || ''}">
+            <i class="fa-heart ${hasAlreadyAdmired(u.email) ? 'fa-solid' : 'fa-regular'}"></i>
+            <span class="admirer-count">${formatCount(u.admirersCount)}</span>
+          </button>
+          <button class="interaction-btn bookmark-btn" data-target-email="${u.email || ''}">
+            <i class="fa-bookmark ${bookmarkedEmails.has(u.email) ? 'fa-solid' : 'fa-regular'}"></i>
+          </button>
+        </div>
+      </div>
+      <div class="card-body">
+        <span class="card-age">${u.age || ""}</span>
+        <div class="card-name">${u.firstName} ${u.lastName}</div>
+        <div class="card-location"><i class="fa-solid fa-location-dot"></i> ${u.location || "Unknown"}</div>
+        ${u.distance !== false ? `<div class="card-distance" data-location="${u.location || ""}"><i class="fa-solid fa-route"></i> <span class="dist-text">— km</span></div>` : ""}
+        <div class="card-phone" data-phone="${phone}"><i class="fa-solid fa-phone"></i> ${phone}</div>
+      </div>
+    </div>`;
+}
+
+// ── MAIN RENDERING FUNCTION ───────────────────
+async function renderCards(filter = "all", searchTerm = "") {
+  activeFilter = filter;
+  const allUsers = await getUsers();
+  const sessionUser = JSON.parse(localStorage.getItem(USER_KEY) || "{}");
+  const currentUid = sessionUser?.email || null;
+  const myBlocked = sessionUser.blocked || [];
+
+  // Build blocked-by-others list
+  const blockedByOthers = allUsers
+    .filter((u) => u.blocked && u.blocked.includes(currentUid))
+    .map((u) => u.email);
+
+  // Apply visibility/bans/blocks
+  const displayUsers = allUsers.filter((u) => {
+    if (u.banned || u.ppBanned) return false;
+    if (u.visibility === false) return false;
+    if (currentUid && u.email === currentUid) return false;
+    if (myBlocked.includes(u.email)) return false;
+    if (blockedByOthers.includes(u.email)) return false;
+    return true;
+  });
+
+  allProfiles = displayUsers; // keep for filters
+
+  // Active filter logic (online, premium, etc.)
+  let filtered = displayUsers;
+  if (filter === "online") {
+    const now = Date.now();
+    filtered = displayUsers.filter((p) => {
+      const ms = p.lastActive?.seconds ? p.lastActive.seconds * 1000 : p.lastActive || 0;
+      return now - ms < 120000;
+    });
+  } else if (filter === "premium") {
+    filtered = displayUsers.filter((p) => p.plan === "premium-monthly" || p.plan === "elite-annual");
+  } else if (filter === "verified") {
+    filtered = displayUsers.filter((p) => p.plan === "elite-annual");
+  } else if (filter === "new") {
+    const oneWeekAgo = Date.now() - 604800000;
+    filtered = displayUsers.filter((p) => {
+      const joined = p.joined ? new Date(p.joined).getTime() : 0;
+      return joined > oneWeekAgo;
+    });
   }
+
+  // Search term filtering
+  if (searchTerm) {
+    const term = searchTerm.toLowerCase();
+    filtered = filtered.filter((p) => {
+      return (
+        (p.firstName && p.firstName.toLowerCase().includes(term)) ||
+        (p.lastName && p.lastName.toLowerCase().includes(term)) ||
+        (p.location && p.location.toLowerCase().includes(term)) ||
+        (p.age && p.age.toString().includes(term)) ||
+        (p.bio && p.bio.toLowerCase().includes(term)) ||
+        (p.interests && p.interests.toLowerCase().includes(term)) ||
+        (p.profession && p.profession.toLowerCase().includes(term))
+      );
+    });
+  }
+
+  const grid = document.getElementById("cardGrid");
+  if (!filtered.length && !getSmartMatches(displayUsers, sessionUser).length) {
+    grid.innerHTML = `<div style="text-align:center; padding:3rem; color:var(--text-muted);"><i class="fa-solid fa-users-slash"></i><p style="margin-top:1rem;">No profiles match this filter.</p></div>`;
+    return;
+  }
+
+  let html = '';
+
+  // 1. Daily Matches (up to 4, only if no filter is active)
+if (filter === "all" && !searchTerm) {
+  const dailyMatches = getSmartMatches(displayUsers, sessionUser).slice(0, 6);
+  if (dailyMatches.length > 0) {
+    html += `
+      <div style="margin-bottom:2.5rem;">
+        <h2 style="font-family:'Playfair Display',serif; color:var(--gold-light); margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem;">
+          <i class="fa-solid fa-star"></i> Daily Matches
+        </h2>
+        <div class="people-row" style="margin:0 0 1rem 0; display:flex; gap:1rem; overflow-x:auto; padding-bottom:1rem; scroll-snap-type:x mandatory;">
+          ${dailyMatches.map(p => {
+            const online = (Date.now() - (p.lastActive?.seconds ? p.lastActive.seconds*1000 : p.lastActive || 0)) < 20000;
+            return `
+              <div class="people-circle" onclick="location.href='view-profile.html?email=${p.email}'" style="flex:0 0 80px; text-align:center; scroll-snap-align:start; position:relative; cursor:pointer;">
+                <div style="position:relative; display:inline-block;">
+                  <img src="${p.avatar || 'https://randomuser.me/api/portraits/women/44.jpg'}" style="width:70px; height:70px; border-radius:50%; object-fit:cover; border:2px solid var(--gold-light);">
+                  ${online ? '<span style="position:absolute; bottom:8px; right:2px; width:14px; height:14px; background:#4cfa7c; border-radius:50%; border:2px solid #080c24;"></span>' : ''}
+                </div>
+                <div class="people-name" style="font-size:0.7rem; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:0.3rem;">${p.firstName}</div>
+                <div class="people-age" style="font-size:0.65rem; color:var(--text-muted);">${p.age || ''}</div>
+              </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+  }
+}
+
+  // 2. Regular cards with "People You May Know" interspersed every 12 cards
+  const insertEveryN = 12;
+  let cardIndex = 0;
+
+  for (let i = 0; i < filtered.length; i++) {
+    // Insert a horizontal carousel every 12 cards (except at the very beginning)
+    if (i > 0 && i % insertEveryN === 0) {
+      const randomPeople = getRandomPeople(displayUsers, sessionUser, 8);
+      if (randomPeople.length > 0) {
+        html += `
+          <div class="people-row" style="margin:2rem 0; display:flex; gap:1rem; overflow-x:auto; padding-bottom:1rem; scroll-snap-type:x mandatory;">
+            ${randomPeople.map(p => {
+              const online = (Date.now() - (p.lastActive?.seconds ? p.lastActive.seconds*1000 : p.lastActive || 0)) < 20000;
+              return `
+                <div class="people-circle" onclick="location.href='view-profile.html?email=${p.email}'" style="flex:0 0 80px; text-align:center; scroll-snap-align:start; position:relative; cursor:pointer;">
+                  <div style="position:relative; display:inline-block;">
+                    <img src="${p.avatar || 'https://randomuser.me/api/portraits/women/44.jpg'}" style="width:70px; height:70px; border-radius:50%; object-fit:cover; border:2px solid var(--gold-light);">
+                    ${online ? '<span style="position:absolute; bottom:8px; right:2px; width:14px; height:14px; background:#4cfa7c; border-radius:50%; border:2px solid #080c24;"></span>' : ''}
+                  </div>
+                  <div class="people-name" style="font-size:0.7rem; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:0.3rem;">${p.firstName}</div>
+                  <div class="people-age" style="font-size:0.65rem; color:var(--text-muted);">${p.age || ''}</div>
+                </div>`;
+            }).join('')}
+          </div>`;
+      }
+    }
+    html += renderSingleCard(filtered[i], cardIndex++);
+  }
+
+  grid.innerHTML = html;
+
+  // Attach interaction handlers (admire, bookmark, phone copy)
+  attachInteractionHandlers();
+
+  // Intersection observer for animation
+  const cards = document.querySelectorAll(".profile-card");
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("card-visible");
+          observer.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.1 },
+  );
+  cards.forEach((card) => observer.observe(card));
+
+  // Phone copy functionality
+  document.querySelectorAll(".card-phone").forEach((el) => {
+    el.addEventListener("click", function (e) {
+      e.stopPropagation();
+      const phone = this.getAttribute("data-phone");
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(phone).then(() => showToast("📋 Phone number copied: " + phone));
+      } else {
+        const tempInput = document.createElement("input");
+        tempInput.value = phone;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand("copy");
+        document.body.removeChild(tempInput);
+        showToast("📋 Phone number copied: " + phone);
+      }
+      this.style.backgroundColor = "rgba(200,155,60,0.25)";
+      setTimeout(() => { this.style.backgroundColor = ""; }, 300);
+    });
+  });
+
+  // Card click navigation
+  document.querySelectorAll('.profile-card').forEach(card => {
+    card.addEventListener('click', function(e) {
+      if (e.target.closest('.interaction-btn') || e.target.closest('.card-phone')) return;
+      const email = this.querySelector('.admire-btn')?.getAttribute('data-target-email');
+      if (email) window.location.href = `view-profile.html?email=${email}`;
+    });
+  });
+
+  updateDistances();
+}
 
   function getUserPosition() {
     return new Promise((resolve, reject) => {
