@@ -244,7 +244,12 @@ window.logoutUser = async function () {
   // Clear session
   localStorage.removeItem("reh_user");
   stopPresence();
-  window.location.href = "index.html?redirect=login.html";
+  // Clear all session caches used by the app
+sessionStorage.removeItem('reh_cache_users');
+sessionStorage.removeItem('reh_cache_users_ts');
+sessionStorage.removeItem('reh_cache_bookmarks');
+sessionStorage.removeItem('reh_cache_admirations');
+  window.location.href = "index.html?redirect=landing.html";
 };
 
 // ── Before unload (tab close / navigate away) ──

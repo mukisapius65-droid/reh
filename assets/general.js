@@ -190,6 +190,10 @@ document.getElementById('logoutBtn')?.addEventListener('click', () => {
   window.logoutUser();
 });
 
+document.getElementById('sidebarLogoutBtn')?.addEventListener('click', () => {
+  window.logoutUser();
+});
+
 const footerContainer = document.querySelector("footer");
 footerContainer.innerHTML = `<div class="footer-grid">
     <!-- About -->
