@@ -744,18 +744,18 @@ async function renderCards(filter = "all", searchTerm = "") {
     return;
   }
 
-  let html = '';
+let html = '';
 
-  // 1. Daily Matches (up to 4, only if no filter is active)
+// ── 1. Daily Matches (only if no filter active) ──
 if (filter === "all" && !searchTerm) {
   const dailyMatches = getSmartMatches(displayUsers, sessionUser).slice(0, 6);
   if (dailyMatches.length > 0) {
     html += `
-      <div style="margin-bottom:2.5rem;">
+      <div style="grid-column: 1 / -1; margin-bottom: 2.5rem;">
         <h2 style="font-family:'Playfair Display',serif; color:var(--gold-light); margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem;">
           <i class="fa-solid fa-star"></i> Daily Matches
         </h2>
-        <div class="people-row" style="margin:0 0 1rem 0; display:flex; gap:1rem; overflow-x:auto; padding-bottom:1rem; scroll-snap-type:x mandatory;">
+        <div class="people-row" style="margin:0 0 1rem 0; display:flex; gap:1rem; overflow-x:auto; padding-bottom:1rem; scroll-snap-type:x mandatory; max-width:100%;">
           ${dailyMatches.map(p => {
             const online = (Date.now() - (p.lastActive?.seconds ? p.lastActive.seconds*1000 : p.lastActive || 0)) < 20000;
             return `
@@ -773,17 +773,18 @@ if (filter === "all" && !searchTerm) {
   }
 }
 
-  // 2. Regular cards with "People You May Know" interspersed every 12 cards
-  const insertEveryN = 12;
-  let cardIndex = 0;
+// ── 2. Regular cards + People You May Know every 12 cards ──
+const insertEveryN = 12;
+let cardIndex = 0;
 
-  for (let i = 0; i < filtered.length; i++) {
-    // Insert a horizontal carousel every 12 cards (except at the very beginning)
-    if (i > 0 && i % insertEveryN === 0) {
-      const randomPeople = getRandomPeople(displayUsers, sessionUser, 8);
-      if (randomPeople.length > 0) {
-        html += `
-          <div class="people-row" style="margin:2rem 0; display:flex; gap:1rem; overflow-x:auto; padding-bottom:1rem; scroll-snap-type:x mandatory;">
+for (let i = 0; i < filtered.length; i++) {
+  // Insert a horizontal carousel every 12 cards (except at the very beginning)
+  if (i > 0 && i % insertEveryN === 0) {
+    const randomPeople = getRandomPeople(displayUsers, sessionUser, 8);
+    if (randomPeople.length > 0) {
+      html += `
+        <div style="grid-column: 1 / -1; margin: 2rem 0;">
+          <div class="people-row" style="display:flex; gap:1rem; overflow-x:auto; padding-bottom:1rem; scroll-snap-type:x mandatory; max-width:100%;">
             ${randomPeople.map(p => {
               const online = (Date.now() - (p.lastActive?.seconds ? p.lastActive.seconds*1000 : p.lastActive || 0)) < 20000;
               return `
@@ -796,13 +797,14 @@ if (filter === "all" && !searchTerm) {
                   <div class="people-age" style="font-size:0.65rem; color:var(--text-muted);">${p.age || ''}</div>
                 </div>`;
             }).join('')}
-          </div>`;
-      }
+          </div>
+        </div>`;
     }
-    html += renderSingleCard(filtered[i], cardIndex++);
   }
+  html += renderSingleCard(filtered[i], cardIndex++);
+}
 
-  grid.innerHTML = html;
+grid.innerHTML = html;
 
   // Attach interaction handlers (admire, bookmark, phone copy)
   attachInteractionHandlers();
