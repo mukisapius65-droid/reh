@@ -4,6 +4,22 @@
     { "source": "/elite", "destination": "/elite.html" },
     { "source": "/events", "destination": "/events.html" },
     { "source": "/concierge", "destination": "/concierge.html" },
+    { "source": "/plans", "destination": "/plans.html" },
+    { "source": "/profile", "destination": "/profile.html" },
+    { "source": "/view-profile", "destination": "/view-profile.html" },
+    { "source": "/login", "destination": "/login.html" },
+    { "source": "/signup", "destination": "/signup.html" },
+    { "source": "/recovery", "destination": "/recovery.html" },
+    { "source": "/tell-a-friend", "destination": "/tell-a-friend.html" },
+    { "source": "/settings", "destination": "/settings.html" },
+    { "source": "/welcome", "destination": "/landing.html" },
+    { "source": "/dashboard", "destination": "/dashboard.html" },
+    { "source": "/404", "destination": "/404.html" },
+    { "source": "/plans", "destination": "/plans.html" },
+    { "source": "/plans", "destination": "/plans.html" },
+    { "source": "/plans", "destination": "/plans.html" },
+    { "source": "/plans", "destination": "/plans.html" },
+    { "source": "/plans", "destination": "/plans.html" },
     { "source": "/plans", "destination": "/plans.html" }
   ]
 }
