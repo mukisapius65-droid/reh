@@ -3,7 +3,10 @@ const USER_KEY = "reh_user";
 const navContainer = document.querySelector(".nav");
 navContainer.innerHTML = `<div class="nav-inner">
   <a href="index.html?redirect=discover.html" class="nav-brand">
-    <div class="nav-brand-icon"><i class="fa-solid fa-gem"></i></div>
+
+    <!--<div class="nav-brand-icon"><i class="fa-solid fa-gem"></i></div>-->
+
+    <div class="nav-brand-icon"><img class="brand-img" style="border-radius: 50%;"src="https://res.cloudinary.com/dxd5hibh7/image/upload/v1787307404/99332214_009_33eb_e3tdwu_2_gxfosm.jpg" loading="lazy"></div>
     <span class="nav-brand-text">Reh</span>
   </a>
   <ul class="nav-links">
