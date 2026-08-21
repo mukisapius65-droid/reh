@@ -654,7 +654,7 @@ function renderSingleCard(u, index) {
   return `
     <div class="profile-card" data-index="${index}" style="transition-delay:${index * 0.08}s">
       <div class="card-image-wrapper">
-        <img class="card-image" src="${u.avatar || "https://randomuser.me/api/portraits/women/44.jpg"}" alt="${u.firstName}" loading="lazy">
+        <img class="card-image" src="${u.avatar || "https://res.cloudinary.com/dxd5hibh7/image/upload/v1787307404/99332214_009_33eb_e3tdwu_2_gxfosm.jpg"}" alt="${u.firstName}" loading="lazy">
         <div class="status-badge"><span class="status-dot ${statusClass}"></span> ${statusText}</div>
         ${viewedMark}
         <div class="card-interactions">
@@ -761,7 +761,7 @@ if (filter === "all" && !searchTerm) {
             return `
               <div class="people-circle" onclick="location.href='view-profile.html?email=${p.email}'" style="flex:0 0 80px; text-align:center; scroll-snap-align:start; position:relative; cursor:pointer;">
                 <div style="position:relative; display:inline-block;">
-                  <img src="${p.avatar || 'https://randomuser.me/api/portraits/women/44.jpg'}" style="width:70px; height:70px; border-radius:50%; object-fit:cover; border:2px solid var(--gold-light);">
+                  <img src="${p.avatar || 'https://res.cloudinary.com/dxd5hibh7/image/upload/v1787307404/99332214_009_33eb_e3tdwu_2_gxfosm.jpg'}" style="width:70px; height:70px; border-radius:50%; object-fit:cover; border:2px solid var(--gold-light);">
                   ${online ? '<span style="position:absolute; bottom:8px; right:2px; width:14px; height:14px; background:#4cfa7c; border-radius:50%; border:2px solid #080c24;"></span>' : ''}
                 </div>
                 <div class="people-name" style="font-size:0.7rem; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:0.3rem;">${p.firstName}</div>
@@ -790,7 +790,7 @@ for (let i = 0; i < filtered.length; i++) {
               return `
                 <div class="people-circle" onclick="location.href='view-profile.html?email=${p.email}'" style="flex:0 0 80px; text-align:center; scroll-snap-align:start; position:relative; cursor:pointer;">
                   <div style="position:relative; display:inline-block;">
-                    <img src="${p.avatar || 'https://randomuser.me/api/portraits/women/44.jpg'}" style="width:70px; height:70px; border-radius:50%; object-fit:cover; border:2px solid var(--gold-light);">
+                    <img src="${p.avatar || 'https://res.cloudinary.com/dxd5hibh7/image/upload/v1787307404/99332214_009_33eb_e3tdwu_2_gxfosm.jpg'}" style="width:70px; height:70px; border-radius:50%; object-fit:cover; border:2px solid var(--gold-light);">
                     ${online ? '<span style="position:absolute; bottom:8px; right:2px; width:14px; height:14px; background:#4cfa7c; border-radius:50%; border:2px solid #080c24;"></span>' : ''}
                   </div>
                   <div class="people-name" style="font-size:0.7rem; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:0.3rem;">${p.firstName}</div>
