@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
+    
     <!-- The title of your page -->
     <meta property="og:title" content="Reh-Crown" />
     
@@ -15,9 +16,14 @@
     
     <!-- The URL of the preview image -->
     <meta property="og:image" content="https://res.cloudinary.com/dxd5hibh7/image/upload/v1787321147/IMG-20260821-WA0009_inpyyc.jpg" />
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#080c24">
     
        <!-- Favicon image -->
     <link rel="icon" href="https://res.cloudinary.com/dxd5hibh7/image/upload/v1787307404/99332214_009_33eb_e3tdwu_2_gxfosm.jpg">
+    
+    <link rel="manifest" href="/manifest.json">
 
     <title>Discover | reh-crown</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -40,6 +46,9 @@
 
     <!-- ── Toast Notification ─────────────────────── -->
     <div class="toast" id="toast"></div>
+    
+    <!-- ── install the app to homescreen ─────────────────────── -->
+    <button id="installBtn" style="display:none;">Install Reh</button>
 
     <!-- ── Main Wrapper ───────────────────────────── -->
     <div class="main-wrapper">
