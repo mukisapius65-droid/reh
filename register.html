@@ -534,6 +534,11 @@
                 <input type="email" placeholder="you@example.com" id="email" required>
             </div>
             <div class="form-group">
+                <label><i class="fa-solid fa-phone"></i> Phone Number</label>
+                <input type="tel" id="phone" placeholder="+256 7XX XXX XXX" required>
+                
+            </div>
+            <div class="form-group">
                 <label><i class="fa-solid fa-lock"></i> Password</label>
                 <input type="password" placeholder="At least 8 characters" id="password" required minlength="8">
             </div>
@@ -721,6 +726,7 @@
         const firstName = document.getElementById('firstName').value.trim();
         const lastName = document.getElementById('lastName').value.trim();
         const email = document.getElementById('email').value.trim();
+          const phone = document.getElementById('phone').value.trim();
         const password = document.getElementById('password').value;
         if (!firstName || !lastName || !email || !password) {
           showToast('🌸 Please fill in all fields.');
@@ -730,6 +736,11 @@
           showToast('🔐 Password must be at least 8 characters.');
           return false;
         }
+            // Basic phone check – allow digits, spaces, +, -
+    if (!/^[+\d\s\-()]{7,}$/.test(phone)) {
+        showToast('📱 Please enter a valid phone number.');
+        return false;
+    }
         return true;
       }
 
@@ -837,7 +848,7 @@
           password: password,               // only for demo – hash in production!
           age: document.getElementById('age').value,
           location: document.getElementById('location').value || 'Milan, Italy',
-          phone: '',                         // you can add a phone field later
+          phone: document.getElementById('phone').value.trim(),                       // you can add a phone field later
           bio: document.getElementById('bio').value,
           interests: document.getElementById('interests').value,
           avatar: document.getElementById('previewImg').src || '',
