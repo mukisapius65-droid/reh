@@ -688,7 +688,16 @@ function renderSingleCard(u, index) {
         <div class="card-name">${u.firstName} ${u.lastName}</div>
         <div class="card-location"><i class="fa-solid fa-location-dot"></i> ${u.location || "Unknown"}</div>
         ${u.distance !== false ? `<div class="card-distance" data-location="${u.location || ""}"><i class="fa-solid fa-route"></i> <span class="dist-text">— km</span></div>` : ""}
-        <div class="card-phone" data-phone="${phone}"><i class="fa-solid fa-phone"></i> ${phone}</div>
+        <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap; margin-bottom: 5px;">
+         <button class="interaction-btn chat-btn" data-target-email="${u.email}" 
+          onclick="event.stopPropagation(); location.href='view-profile.html?email=${u.email}&chat=open'"
+          style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.15); border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--gold-light);">
+          <i class="fa-solid fa-comment"></i>
+         </button>
+      </div>
+      
+      <div class="card-phone" data-phone="${phone}"><i class="fa-solid fa-phone"></i> ${phone}</div>
+
       </div>
     </div>`;
 }

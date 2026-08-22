@@ -314,6 +314,28 @@ async function toggleBookmark(targetEmail, btn) {
       container.innerHTML = '<p style="color:var(--muted);grid-column:1/-1;text-align:center;">No user specified.</p>';
     } else {
       container.innerHTML = '<div style="padding:2rem;color:var(--muted);grid-column:1/-1;text-align:center;"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><p>Loading profile…</p></div>';
+      
+      //auto open chat on clicking external chat button      
+      function autoOpenChatIfNeeded(targetEmail) {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('chat') === 'open') {
+          // Wait for the DOM to be fully updated
+          setTimeout(() => {
+            const chatPanel = document.getElementById('chatPanel');
+            if (chatPanel && !chatPanel.classList.contains('open')) {
+              chatPanel.classList.add('open');
+              openChat(targetEmail);   // starts the encrypted chat listener
+            }
+            
+            // Smoothly scroll to the chat panel or a trigger button
+            const chatTrigger = document.getElementById('chatBtn') || chatPanel;
+            if (chatTrigger) {
+              chatTrigger.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+          }, 300);
+        }
+      }
+      
       (async function fetchAndRender() {
         try {
           const docSnap = await window.getDoc(window.doc(window.db,"users",targetEmail));
@@ -416,7 +438,9 @@ bookmarkIcon.addEventListener('click', function(e) {
           document.getElementById('closeChatBtn').addEventListener('click', () => { chatPanel.classList.remove('open'); if(chatUnsubscribe){ chatUnsubscribe(); chatUnsubscribe=null; } });
           document.getElementById('sendChatBtn').addEventListener('click', () => sendMessage(targetEmail));
           document.getElementById('chatMessageInput').addEventListener('keypress', (e) => { if(e.key==='Enter') sendMessage(targetEmail); });
-
+          
+          autoOpenChatIfNeeded(targetEmail);
+          
           // Track view
           if (cur && cur.email !== targetEmail) {
             const recent = await window.getDocs(window.query(window.collection(window.db,"profileViews"), window.where("viewer","==",cur.email), window.where("viewed","==",targetEmail), window.where("timestamp",">=", Date.now()-3600000)));
