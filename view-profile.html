@@ -325,6 +325,7 @@ async function toggleBookmark(targetEmail, btn) {
             if (chatPanel && !chatPanel.classList.contains('open')) {
               chatPanel.classList.add('open');
               openChat(targetEmail);   // starts the encrypted chat listener
+              document.getElementById('chatMessageInput').focus();
             }
             
             // Smoothly scroll to the chat panel or a trigger button
