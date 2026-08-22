@@ -621,7 +621,8 @@
     </div>
     <script src="assets/auth.js"></script>
 
-    <script src="assets/auth.js"></script>
+    <script src="assets/general.js"></script>
+    
 <script>
   (function () {
     // ── Wait for Firebase to be ready ──────────────
@@ -839,7 +840,7 @@
           phone: '',                         // you can add a phone field later
           bio: document.getElementById('bio').value,
           interests: document.getElementById('interests').value,
-          avatar: document.getElementById('previewImg').src || 'https://randomuser.me/api/portraits/women/44.jpg',
+          avatar: document.getElementById('previewImg').src || '',
           plan: selectedPlan,
           profession: document.getElementById('regProfession').value.trim(),
           income: document.getElementById('regIncome').value.trim(),
@@ -851,6 +852,11 @@
           incognito: false,
           uid: email,                        // using email as document ID
         };
+          
+          // After gathering userData, before saving to Firestore
+          if (!userData.avatar || userData.avatar === '') {
+              userData.avatar = window.getRandomAvatar();
+          }
 
         try {
           // Save to Firestore
