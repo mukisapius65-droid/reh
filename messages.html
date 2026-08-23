@@ -1,8 +1,224 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><meta charset="UTF-8"><title>Messages | Reh</title></head>
-<body style="background:#080c24;color:white;text-align:center;padding-top:100px;">
-    <h1>Messages</h1>
-    <p>Your conversations will appear here.</p>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Messages | Reh</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="assets/main.css">
+    <style>
+        :root {
+            --deep-navy: #080c24;
+            --gold: #c9a84c;
+            --gold-light: #dfc278;
+            --champagne: #f0e4c8;
+            --glass-bg: rgba(255,255,255,0.04);
+            --glass-border: rgba(255,255,255,0.08);
+            --glass-card: rgba(15,20,50,0.55);
+            --text: #f0ece6;
+            --text2: #c5bfb3;
+            --muted: #8a857a;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Inter',sans-serif; background:var(--deep-navy); color:var(--text); min-height:100vh; }
+        .messages-container { max-width:800px; margin:2rem auto; padding:0 1rem; }
+        .page-title { font-family:'Playfair Display',serif; font-size:2.2rem; color:var(--gold-light); margin-bottom:2rem; display:flex; align-items:center; gap:0.8rem; }
+        .message-card {
+            background: var(--glass-card);
+            border:1px solid var(--glass-border);
+            border-radius:20px;
+            padding:1.2rem;
+            margin-bottom:1rem;
+            display:flex;
+            align-items:center;
+            gap:1rem;
+            cursor:pointer;
+            transition:0.3s;
+            position:relative;
+        }
+        .message-card:hover { border-color:var(--gold); transform:translateY(-2px); }
+        .message-avatar { width:60px; height:60px; border-radius:50%; object-fit:cover; border:2px solid var(--gold-light); }
+        .message-info { flex:1; }
+        .message-name { font-weight:600; color:white; font-size:1rem; }
+        .message-preview { color:var(--text2); font-size:0.8rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .message-time { font-size:0.7rem; color:var(--muted); }
+        .unread-badge { position:absolute; top:1rem; right:1rem; background:var(--ruby); color:white; border-radius:50%; width:22px; height:22px; font-size:0.65rem; display:flex; align-items:center; justify-content:center; font-weight:700; }
+        .gift-badge { color:var(--gold-light); font-size:0.8rem; }
+        .empty-state { text-align:center; padding:3rem; color:var(--muted); }
+        .empty-state i { font-size:3rem; margin-bottom:1rem; }
+    </style>
+</head>
+<body>
+    <div class="messages-container">
+        <h1 class="page-title"><i class="fa-solid fa-envelope"></i> Messages</h1>
+        <div id="messagesList"></div>
+    </div>
+
+    <script type="module" src="assets/firebase.js"></script>
+    <script>
+        (function() {
+            function waitForFirebase(cb) {
+                if (window.db && window.collection && window.getDocs && window.query && window.where && window.orderBy && window.collectionGroup) {
+                    cb();
+                } else {
+                    let tries = 0;
+                    const timer = setInterval(() => {
+                        if (window.db && window.collection && window.getDocs && window.query && window.where && window.orderBy && window.collectionGroup) {
+                            clearInterval(timer);
+                            cb();
+                        }
+                        if (++tries > 100) {
+                            clearInterval(timer);
+                            console.error('Firebase not ready');
+                        }
+                    }, 100);
+                }
+            }
+
+            waitForFirebase(async function() {
+                const container = document.getElementById('messagesList');
+                const currentUser = JSON.parse(localStorage.getItem('reh_user') || '{}');
+                if (!currentUser.email) {
+                    container.innerHTML = '<p class="empty-state">Please log in.</p>';
+                    return;
+                }
+
+                try {
+                    
+                    // Build a unified list
+                    const messageMap = new Map();
+                    // 1. Fetch all encrypted chat messages where user is involved
+                    
+                    /*
+                    const chatSnap = await window.getDocs(
+                        window.query(
+                            window.collectionGroup(window.db, 'messages'),
+                            window.orderBy('timestamp', 'desc'),
+                            window.limit(500)
+                        )
+                    );
+*/
+                    // Fetch all chats collections
+const chatsSnap = await window.getDocs(window.collection(window.db, "chats"));
+for (const chatDoc of chatsSnap.docs) {
+    const messagesSnap = await window.getDocs(
+        window.query(
+            window.collection(window.db, "chats", chatDoc.id, "messages"),
+            window.orderBy("timestamp", "desc"),
+            window.limit(1)   // only latest message per conversation
+        )
+    );
+    messagesSnap.forEach(doc => {
+        const msg = doc.data();
+        const otherEmail = msg.from === currentUser.email ? msg.to : msg.from;
+        if (!otherEmail) return;
+        if (!messageMap.has(otherEmail)) {
+            messageMap.set(otherEmail, { type: 'chat', email: otherEmail, lastMessage: msg.text, timestamp: msg.timestamp, unread: msg.to === currentUser.email && !msg.read });
+        }
+    });
+}
+                    
+                    // 2. Fetch all gifts received
+                    const giftSnap = await window.getDocs(
+                        window.query(
+                            window.collection(window.db, "gifts"),
+                            window.where("to", "==", currentUser.email),
+                            window.orderBy("timestamp", "desc")
+                        )
+                    );
+
+                    // 3. Fetch admin notifications targeted at user
+                    const notifSnap = await window.getDocs(
+                        window.query(
+                            window.collection(window.db, "notifications"),
+                            window.where("targetEmail", "==", currentUser.email),
+                            window.orderBy("timestamp", "desc"),
+                            window.limit(100)
+                        )
+                    );
+
+                    // Build a unified list
+                  //  const messageMap = new Map();
+/*
+                    // Process chat messages (encrypted)
+                    for (const doc of chatSnap.docs) {
+                        const msg = doc.data();
+                        const otherEmail = msg.from === currentUser.email ? msg.to : msg.from;
+                        if (!otherEmail || otherEmail === currentUser.email) continue;
+                        if (!messageMap.has(otherEmail)) {
+                            messageMap.set(otherEmail, { type: 'chat', email: otherEmail, lastMessage: msg.text, timestamp: msg.timestamp, unread: msg.to === currentUser.email && !msg.read });
+                        } else {
+                            const existing = messageMap.get(otherEmail);
+                            if (msg.timestamp > existing.timestamp) {
+                                existing.lastMessage = msg.text;
+                                existing.timestamp = msg.timestamp;
+                                if (msg.to === currentUser.email && !msg.read) existing.unread = true;
+                            }
+                        }
+                    }
+*/
+                    // Process gifts
+                    for (const doc of giftSnap.docs) {
+                        const gift = doc.data();
+                        const fromEmail = gift.from;
+                        if (!fromEmail || fromEmail === currentUser.email) continue;
+                        if (!messageMap.has(fromEmail)) {
+                            messageMap.set(fromEmail, { type: 'gift', email: fromEmail, lastMessage: '💎 Sent you a Diamond Rose', timestamp: gift.timestamp, unread: false });
+                        }
+                    }
+
+                    // Process admin notifications
+                    for (const doc of notifSnap.docs) {
+                        const notif = doc.data();
+                        if (!notif.senderEmail && !notif.fromEmail) continue; // skip global
+                        const fromEmail = notif.senderEmail || notif.fromEmail || 'admin';
+                        if (fromEmail === currentUser.email) continue;
+                        if (!messageMap.has(fromEmail)) {
+                            messageMap.set(fromEmail, { type: 'admin', email: fromEmail, lastMessage: notif.body, timestamp: notif.timestamp, unread: !(notif.readBy && notif.readBy.includes(currentUser.email)) });
+                        } else {
+                            const existing = messageMap.get(fromEmail);
+                            if (notif.timestamp > existing.timestamp) {
+                                existing.lastMessage = notif.body;
+                                existing.timestamp = notif.timestamp;
+                                if (!(notif.readBy && notif.readBy.includes(currentUser.email))) existing.unread = true;
+                            }
+                        }
+                    }
+
+                    // Convert map to array and sort
+                    const conversations = Array.from(messageMap.values()).sort((a, b) => b.timestamp - a.timestamp);
+
+                    if (conversations.length === 0) {
+                        container.innerHTML = '<div class="empty-state"><i class="fa-solid fa-inbox"></i><p>No messages yet.</p></div>';
+                        return;
+                    }
+
+                    // Render list
+                    container.innerHTML = conversations.map(conv => {
+                        const userName = conv.email.split('@')[0];
+                        const preview = conv.lastMessage?.substring(0, 60) || 'No message';
+                        const time = new Date(conv.timestamp?.seconds ? conv.timestamp.seconds*1000 : conv.timestamp).toLocaleDateString();
+                        return `
+                            <div class="message-card" onclick="location.href='view-profile.html?email=${conv.email}&chat=open'">
+                                <img src="https://ui-avatars.com/api/?name=${userName}&background=c9a84c&color=080c24" class="message-avatar">
+                                <div class="message-info">
+                                    <div class="message-name">${userName}</div>
+                                    <div class="message-preview">${preview}</div>
+                                    <div class="message-time">${time}</div>
+                                    ${conv.type === 'gift' ? '<div class="gift-badge"><i class="fa-solid fa-gem"></i> Gift</div>' : ''}
+                                </div>
+                                ${conv.unread ? '<span class="unread-badge">1</span>' : ''}
+                            </div>`;
+                    }).join('');
+
+                } catch (error) {
+    console.error('Detailed error:', error);
+    container.innerHTML = '<p class="empty-state">Failed to load messages. ' + error.message + '</p>';
+}
+            });
+        })();
+    </script>
 </body>
 </html>
