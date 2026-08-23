@@ -8,12 +8,12 @@
   "description": "Reh is the world’s most exclusive dating circle – where extraordinary hearts find home.",
   "icons": [
     {
-      "src": "https://res.cloudinary.com/dxd5hibh7/image/upload/v1787414323/reh_192x192_myjzt6.jpg",
+      "src": "https://files.catbox.moe/mvkgng.jpg",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "https://res.cloudinary.com/dxd5hibh7/image/upload/v1787414324/reh_512x512_erpta6.jpg",
+      "src": "https://files.catbox.moe/mu7ss2.jpg",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

@@ -724,6 +724,7 @@
           <a href="#" data-page="messages"
             ><i class="fa-solid fa-envelope"></i> Messages</a
           >
+          <a href="#" data-page="tartv"><i class="fa-solid fa-tv"></i> Tar TV</a>
           <a href="#" data-page="concierge">
             <i class="fa-solid fa-clipboard-list"></i> Concierge
             <span
@@ -875,6 +876,21 @@
             <div id="messagesList"></div>
           </div>
         </div>
+        
+        <div id="page-tartv" class="page">
+  <div class="page-header">
+    <h2 class="page-title"><i class="fa-solid fa-tv"></i> Tar TV Videos</h2>
+    <button class="btn btn-primary" id="addVideoBtn"><i class="fa-solid fa-plus"></i> Add Video</button>
+  </div>
+  <div class="table-container">
+    <table id="tartvTable">
+      <thead>
+        <tr><th>Thumbnail</th><th>Title</th><th>Author</th><th>Actions</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
 
         <div id="page-concierge" class="page">
           <div class="page-header">
@@ -1160,6 +1176,34 @@
         </div>
       </div>
     </div>
+
+<!-- Tar TV Video Modal -->
+<div class="modal-overlay" id="videoModal">
+  <div class="modal">
+    <h3 id="videoModalTitle">Add Video</h3>
+    <input type="hidden" id="videoId" />
+    <div class="form-group">
+      <label>Title</label>
+      <input id="videoTitle" placeholder="e.g., Sunset in Santorini" />
+    </div>
+    <div class="form-group">
+      <label>Video URL (MP4)</label>
+      <input id="videoUrl" placeholder="https://cdn.example.com/video.mp4" />
+    </div>
+    <div class="form-group">
+      <label>Thumbnail URL</label>
+      <input id="videoThumb" placeholder="https://cdn.example.com/thumb.jpg" />
+    </div>
+    <div class="form-group">
+      <label>Author</label>
+      <input id="videoAuthor" placeholder="Reh Concierge" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="closeVideoModal">Cancel</button>
+      <button class="btn btn-primary" id="saveVideoBtn">Save Video</button>
+    </div>
+  </div>
+</div>
 
     <script>
       (function () {
@@ -1993,6 +2037,139 @@
             }
           }
 
+// ── Tar TV Videos ───────────────────────────
+async function loadTarTV() {
+  const tbody = document.querySelector('#tartvTable tbody');
+  tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:2rem;"><i class="fa-solid fa-spinner fa-spin"></i></td></tr>';
+
+  try {
+    const snapshot = await window.getDocs(
+      window.collection(window.db, "tar_tv_videos")
+    );
+    tbody.innerHTML = '';
+
+    if (snapshot.empty) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);">No videos yet.</td></tr>';
+      return;
+    }
+
+    snapshot.forEach(doc => {
+      const v = doc.data();
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td><img src="${v.thumbnail || ''}" style="width:60px;height:60px;border-radius:8px;object-fit:cover;"></td>
+        <td>${v.title}</td>
+        <td>${v.author || 'Reh'}</td>
+        <td>
+          <button class="btn-sm btn-edit edit-video" data-id="${doc.id}">Edit</button>
+          <button class="btn-sm btn-delete delete-video" data-id="${doc.id}">Del</button>
+        </td>
+      `;
+      tbody.appendChild(row);
+    });
+
+    // Attach handlers
+    document.querySelectorAll('.edit-video').forEach(btn => {
+      btn.addEventListener('click', () => openVideoModal(btn.dataset.id));
+    });
+    document.querySelectorAll('.delete-video').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (confirm('Delete this video?')) {
+          try {
+            await window.deleteDoc(window.doc(window.db, "tar_tv_videos", btn.dataset.id));
+            loadTarTV();
+            showToast('🗑️ Video deleted.');
+          } catch (e) {
+            console.error(e);
+            showToast('Failed to delete video.');
+          }
+        }
+      });
+    });
+  } catch (error) {
+    console.error('Error loading Tar TV:', error);
+    tbody.innerHTML = '<tr><td colspan="4" style="color:var(--danger);">Failed to load videos.</td></tr>';
+  }
+}
+
+async function openVideoModal(id = null) {
+  const modal = document.getElementById('videoModal');
+  if (!modal) return;
+
+  if (id) {
+    try {
+      const snap = await window.getDoc(window.doc(window.db, "tar_tv_videos", id));
+      if (!snap.exists()) {
+        showToast('Video not found.');
+        return;
+      }
+      const v = snap.data();
+      document.getElementById('videoId').value = id;
+      document.getElementById('videoTitle').value = v.title || '';
+      document.getElementById('videoUrl').value = v.videoUrl || '';
+      document.getElementById('videoThumb').value = v.thumbnail || '';
+      document.getElementById('videoAuthor').value = v.author || '';
+      document.getElementById('videoModalTitle').textContent = 'Edit Video';
+    } catch (e) {
+      console.error(e);
+      showToast('Failed to load video.');
+      return;
+    }
+  } else {
+    document.getElementById('videoId').value = '';
+    document.getElementById('videoTitle').value = '';
+    document.getElementById('videoUrl').value = '';
+    document.getElementById('videoThumb').value = '';
+    document.getElementById('videoAuthor').value = '';
+    document.getElementById('videoModalTitle').textContent = 'Add Video';
+  }
+  modal.classList.add('active');
+}
+
+document.getElementById('closeVideoModal').addEventListener('click', () => {
+  document.getElementById('videoModal').classList.remove('active');
+});
+document.getElementById('addVideoBtn').addEventListener('click', () => {
+  openVideoModal(null);
+});
+document.getElementById('saveVideoBtn').addEventListener('click', async function() {
+  const id = document.getElementById('videoId').value.trim();
+  const data = {
+    title: document.getElementById('videoTitle').value.trim(),
+    videoUrl: document.getElementById('videoUrl').value.trim(),
+    thumbnail: document.getElementById('videoThumb').value.trim(),
+    author: document.getElementById('videoAuthor').value.trim(),
+    createdAt: window.serverTimestamp ? window.serverTimestamp() : new Date()
+  };
+
+  if (!data.title || !data.videoUrl) {
+    showToast('Please fill at least title and video URL.');
+    return;
+  }
+
+  const btn = this;
+  const orig = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving…';
+
+  try {
+    if (id) {
+      await window.updateDoc(window.doc(window.db, "tar_tv_videos", id), data);
+    } else {
+      await window.addDoc(window.collection(window.db, "tar_tv_videos"), data);
+    }
+    document.getElementById('videoModal').classList.remove('active');
+    loadTarTV();
+    showToast('✅ Video saved.');
+  } catch (e) {
+    console.error(e);
+    showToast('Failed to save video.');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = orig;
+  }
+});
+          
           /* ===== CONCIERGE ===== */
           async function updateConciergeBadge() {
             try {
@@ -2499,6 +2676,7 @@
                 if (page === "users") loadUsers();
                 if (page === "events") loadEvents();
                 if (page === "messages") loadMessages();
+                if (page === "tartv") loadTarTv();
                 if (page === "concierge") loadConciergeRequests();
                 if (page === "notifications") loadNotifications();
                 if (page === "newsletter") loadNewsletterSubscribers();
