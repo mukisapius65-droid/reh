@@ -803,20 +803,20 @@ if ('serviceWorker' in navigator) {
 
 let deferredPrompt;
 
+const installBtn = document.getElementById('installBtn');
+
 window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  // Show a custom install button or banner
-  const installBtn = document.getElementById('installBtn');
-  if (installBtn) installBtn.style.display = 'block';
+    e.preventDefault();
+    deferredPrompt = e;
+    installBtn.classList.add('show');   // make visible
 });
 
 document.addEventListener('click', async (e) => {
-  if (e.target && e.target.id === 'installBtn' && deferredPrompt) {
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    console.log(`User response: ${outcome}`);
-    deferredPrompt = null;
-    document.getElementById('installBtn').style.display = 'none';
-  }
+    if (e.target && e.target.id === 'installBtn' && deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log(`User response: ${outcome}`);
+        deferredPrompt = null;
+        installBtn.classList.remove('show');   // hide again
+    }
 });

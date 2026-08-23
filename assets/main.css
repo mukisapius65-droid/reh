@@ -1936,3 +1936,28 @@ body {
     border: 1px solid var(--glass-border);
     color: var(--text-secondary);
 }
+
+.install-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    color: #080c24;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    box-shadow: 0 8px 25px rgba(200, 160, 60, 0.5);
+    display: none;               /* hidden by default */
+    transition: opacity 0.3s;
+}
+.install-btn:hover {
+    transform: translateY(-2px);
+}
+
+.install-btn.show {
+    display: block;
+}
