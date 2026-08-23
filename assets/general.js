@@ -28,7 +28,7 @@ navContainer.innerHTML = `<div class="nav-inner">
 
     <!--<div class="nav-brand-icon"><i class="fa-solid fa-gem"></i></div>-->
 
-    <div class="nav-brand-icon"><img class="brand-img" style="border-radius: 50%;"src="https://res.cloudinary.com/dxd5hibh7/image/upload/v1787307404/99332214_009_33eb_e3tdwu_2_gxfosm.jpg" loading="lazy"></div>
+    <div class="nav-brand-icon"><img class="brand-img" style="border-radius: 50%;"src="https://files.catbox.moe/8r2yqf.jpg" loading="lazy"></div>
     <span class="nav-brand-text">Reh</span>
   </a>
   <ul class="nav-links">
@@ -117,6 +117,43 @@ navContainer.innerHTML = `<div class="nav-inner">
 </div>
 `;
 
+// ── Mobile Bottom Navigation ───────────────────
+const bottomNavHTML = `
+  <div class="mobile-bottom-nav" id="mobileBottomNav">
+    <a href="index.html?redirect=discover.html" class="bottom-nav-item" data-page="home">
+      <i class="fa-solid fa-house"></i>
+      <span>Home</span>
+    </a>
+    <a href="index.html?redirect=messages.html" class="bottom-nav-item" data-page="messages">
+      <i class="fa-solid fa-comment-dots"></i>
+      <span>Messages</span>
+    </a>
+    <button class="bottom-nav-add" id="createStoryBtn">
+      <i class="fa-solid fa-plus"></i>
+    </button>
+    <a href="tartv.html" class="bottom-nav-item" data-page="tartv">
+      <i class="fa-solid fa-tv"></i>
+      <span>Tar TV</span>
+    </a>
+    <a href="index.html?redirect=profile.html" class="bottom-nav-item" data-page="profile">
+      <i class="fa-solid fa-user"></i>
+      <span>Profile</span>
+    </a>
+  </div>
+  <!-- Create Status Modal -->
+  <div class="create-modal-overlay" id="createModal">
+    <div class="create-modal">
+      <h3>Create Status / Story</h3>
+      <button class="btn btn-gold" id="uploadStoryBtn"><i class="fa-solid fa-image"></i> Photo</button>
+      <button class="btn btn-gold" id="videoStoryBtn"><i class="fa-solid fa-video"></i> Video</button>
+      <button class="btn btn-gold" id="textStoryBtn"><i class="fa-solid fa-font"></i> Text</button>
+      <button class="btn btn-close" id="closeCreateModal">Cancel</button>
+    </div>
+  </div>
+`;
+
+document.body.insertAdjacentHTML('beforeend', bottomNavHTML);
+
 const mobileSidebarContainer = document.querySelector(".sidebar");
 mobileSidebarContainer.innerHTML = `<a href="index.html?redirect=discover.html" class="sidebar-brand">
     <div class="nav-brand-icon">
@@ -148,6 +185,35 @@ mobileSidebarContainer.innerHTML = `<a href="index.html?redirect=discover.html" 
 <div class="sidebar-footer">
     <button id="sidebarLogoutBtn"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</button>
 </div>`;
+
+// Show / hide create modal
+const createStoryBtn = document.getElementById('createStoryBtn');
+const createModal = document.getElementById('createModal');
+const closeCreateModal = document.getElementById('closeCreateModal');
+
+createStoryBtn.addEventListener('click', () => {
+    createModal.classList.add('show');
+});
+
+closeCreateModal.addEventListener('click', () => {
+    createModal.classList.remove('show');
+});
+
+document.getElementById('uploadStoryBtn').addEventListener('click', () => {
+    // Placeholder – integrate with file upload later
+    alert('Photo story feature coming soon');
+    createModal.classList.remove('show');
+});
+
+document.getElementById('videoStoryBtn').addEventListener('click', () => {
+    alert('Video story feature coming soon');
+    createModal.classList.remove('show');
+});
+
+document.getElementById('textStoryBtn').addEventListener('click', () => {
+    alert('Text story feature coming soon');
+    createModal.classList.remove('show');
+});
 
 // ── Mobile nav toggle ────────────────────────
 const sidebar = document.getElementById("sidebar");
@@ -496,6 +562,13 @@ if (page === "report") {
   });
 })();
 
+// Bottom nav active state
+const path = window.location.pathname.split('/').pop() || 'index.html';
+const currentPage = path.replace('.html', '') || 'home';
+document.querySelectorAll('.bottom-nav-item').forEach(link => {
+    link.classList.toggle('active', link.dataset.page === currentPage);
+});
+
 // Plan eligibility checker
 function isEligible(minimumPlan) {
   const user = JSON.parse(localStorage.getItem("reh_user") || "{}");
@@ -714,3 +787,36 @@ window.addEventListener('storage', (e) => {
     startPresenceHeartbeat(user.email);
   }
 })();
+
+// load service worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then((registration) => {
+        console.log('Service Worker registered with scope:', registration.scope);
+      })
+      .catch((error) => {
+        console.error('Service Worker registration failed:', error);
+      });
+  });
+}
+
+let deferredPrompt;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  // Show a custom install button or banner
+  const installBtn = document.getElementById('installBtn');
+  if (installBtn) installBtn.style.display = 'block';
+});
+
+document.addEventListener('click', async (e) => {
+  if (e.target && e.target.id === 'installBtn' && deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log(`User response: ${outcome}`);
+    deferredPrompt = null;
+    document.getElementById('installBtn').style.display = 'none';
+  }
+});
