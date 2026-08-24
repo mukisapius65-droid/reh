@@ -27,6 +27,7 @@ import {
   serverTimestamp,
   addDoc,
   deleteDoc,
+  increment
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -67,3 +68,4 @@ window.arrayUnion = arrayUnion;
 window.arrayRemove = arrayRemove;
 window.collectionGroup = collectionGroup;
 window.writeBatch = writeBatch;
+window.increment = increment;

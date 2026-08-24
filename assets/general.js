@@ -152,10 +152,11 @@ const bottomNavHTML = `
       <i class="fa-solid fa-house"></i>
       <span>Home</span>
     </a>
-    <a href="index.html?redirect=messages.html" class="bottom-nav-item" data-page="messages">
-      <i class="fa-solid fa-comment-dots"></i>
-      <span>Messages</span>
-    </a>
+     <a href="messages.html" class="bottom-nav-item" data-page="messages">
+  <i class="fa-solid fa-comment-dots"></i>
+  <span>Chats</span>
+  <span class="nav-badge" id="messagesUnreadBadge" style="display:none;">0</span>
+</a>
     <button class="bottom-nav-add" id="createStoryBtn">
       <i class="fa-solid fa-plus"></i>
     </button>
@@ -291,6 +292,70 @@ function updateNavFromAuth() {
   }
 }
 updateNavFromAuth();
+
+// ── Unread Messages Badge ─────────────────────
+async function updateMessagesBadge() {
+    const badge = document.getElementById('messagesUnreadBadge');
+    if (!badge) return;
+
+    const user = JSON.parse(localStorage.getItem('reh_user') || '{}');
+    if (!user.email) {
+        badge.style.display = 'none';
+        return;
+    }
+
+    try {
+        // Query all chats where current user is a participant
+        const q = window.query(
+            window.collection(window.db, "chats"),
+            window.where("participants", "array-contains", user.email)
+        );
+        const snapshot = await window.getDocs(q);
+        let totalUnread = 0;
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const unreadForUser = data[`unread_${user.email}`] || 0;
+            totalUnread += unreadForUser;
+        });
+
+        if (totalUnread > 0) {
+            badge.textContent = totalUnread;
+            badge.style.display = 'flex';
+        } else {
+            badge.style.display = 'none';
+        }
+    } catch (error) {
+        console.error('Error updating messages badge:', error);
+        badge.style.display = 'none';
+    }
+}
+//run only when firebase is ready
+function waitForFirebaseForBadge(cb) {
+    if (window.db && window.collection && window.query && window.where && window.getDocs && window.arrayContains) {
+        cb();
+    } else {
+        let tries = 0;
+        const timer = setInterval(() => {
+            if (window.db && window.collection && window.query && window.where && window.getDocs) {
+                clearInterval(timer);
+                cb();
+            }
+            if (++tries > 100) {
+                clearInterval(timer);
+                console.error('Firebase not ready for badge');
+            }
+        }, 100);
+    }
+}
+
+waitForFirebaseForBadge(updateMessagesBadge);
+
+// Update when auth state changes
+window.addEventListener('storage', (e) => {
+    if (e.key === 'reh_user') {
+        updateMessagesBadge();
+    }
+});
 
 // avater and logout logic
 const navProfile = document.getElementById("profileArea");

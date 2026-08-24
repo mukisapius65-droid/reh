@@ -1896,6 +1896,27 @@ body {
     box-shadow: 0 10px 30px rgba(200, 40, 55, 0.9);
 }
 
+.bottom-nav-item {
+    position: relative;
+}
+
+.nav-badge {
+    position: absolute;
+    top: -4px;
+    right: 6px;
+    background: var(--ruby, #a82035);
+    color: white;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    font-size: 0.6rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    box-shadow: 0 0 8px rgba(180,30,45,0.6);
+}
+
 /* ── Create Status Modal ─────────────────────── */
 .create-modal-overlay {
     position: fixed;
