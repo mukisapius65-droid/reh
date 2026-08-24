@@ -103,23 +103,36 @@
                     // Fetch all chats collections
 const chatsSnap = await window.getDocs(window.collection(window.db, "chats"));
 for (const chatDoc of chatsSnap.docs) {
+    const chatData = chatDoc.data();
+    // Only process if current user is a participant
+    const participants = chatData.participants || [];
+    if (participants.length > 0 && !participants.includes(currentUser.email)) {
+        continue;   // skip conversations that don't belong to this user
+    }
+
     const messagesSnap = await window.getDocs(
         window.query(
             window.collection(window.db, "chats", chatDoc.id, "messages"),
             window.orderBy("timestamp", "desc"),
-            window.limit(1)   // only latest message per conversation
+            window.limit(1)
         )
     );
     messagesSnap.forEach(doc => {
         const msg = doc.data();
+        // Extra safety: only include if user is sender or receiver
         const otherEmail = msg.from === currentUser.email ? msg.to : msg.from;
         if (!otherEmail) return;
         if (!messageMap.has(otherEmail)) {
-            messageMap.set(otherEmail, { type: 'chat', email: otherEmail, lastMessage: msg.previewText || '🔒 Encrypted message', timestamp: msg.timestamp, unread: msg.to === currentUser.email && !msg.read });
+            messageMap.set(otherEmail, {
+                type: 'chat',
+                email: otherEmail,
+                lastMessage: msg.previewText || '🔒 Encrypted message',
+                timestamp: msg.timestamp,
+                unread: msg.to === currentUser.email && !msg.read
+            });
         }
     });
-}
-                    
+}                    
                     // 2. Fetch all gifts received
                     const giftSnap = await window.getDocs(
                         window.query(
