@@ -257,6 +257,10 @@ async function toggleBookmark(targetEmail, btn) {
       const cur = getCurrentUser();
       if (!cur) return;
       convId = getConvId(cur.email,targetEmail);
+      // Reset unread for current user
+await window.updateDoc(window.doc(window.db, "chats", convId), {
+  [`unread_${cur.email}`]: 0
+});
       const key = await deriveKey(convId,convId);
       const ref = window.collection(window.db,"chats",convId,"messages");
       const q = window.query(ref, window.orderBy("timestamp","asc"));
@@ -291,7 +295,7 @@ async function toggleBookmark(targetEmail, btn) {
         container.scrollTop = container.scrollHeight;
       });
     }
-
+/*
     async function sendMessage(targetEmail) {
       const cur = getCurrentUser();
       if (!cur || !convId) return;
@@ -319,7 +323,36 @@ await window.setDoc(window.doc(window.db, "chats", convId), {
   lastTimestamp: window.serverTimestamp ? window.serverTimestamp() : new Date()
 }, { merge: true });
       } catch(e) { console.error(e); showToast('Failed to send message.'); }
-    }
+    }*/
+    
+    async function sendMessage(targetEmail) {
+  const cur = getCurrentUser();
+  if (!cur || !convId) return;
+  const input = document.getElementById('chatMessageInput');
+  const text = input.value.trim();
+  if (!text) return;
+  const key = await deriveKey(convId, convId);
+  const enc = await encryptMessage(text, key);
+  try {
+    await window.addDoc(window.collection(window.db,"chats",convId,"messages"),{
+      from: cur.email,
+      text: enc,
+      timestamp: new Date(),
+      read: false,
+      previewText: text.substring(0, 60)
+    });
+
+    // Update parent chat doc with participants and unread count for recipient
+    const chatRef = window.doc(window.db, "chats", convId);
+    await window.setDoc(chatRef, {
+      participants: [cur.email, targetEmail],
+      lastTimestamp: window.serverTimestamp ? window.serverTimestamp() : new Date(),
+      [`unread_${targetEmail}`]: window.increment ? window.increment(1) : (await window.getDoc(chatRef)).data()?.[`unread_${targetEmail}`] + 1 || 1
+    }, { merge: true });
+
+    input.value = '';
+  } catch(e) { console.error(e); showToast('Failed to send message.'); }
+}
 
     // Load profile
     const urlParams = new URLSearchParams(window.location.search);
