@@ -115,7 +115,7 @@ for (const chatDoc of chatsSnap.docs) {
         const otherEmail = msg.from === currentUser.email ? msg.to : msg.from;
         if (!otherEmail) return;
         if (!messageMap.has(otherEmail)) {
-            messageMap.set(otherEmail, { type: 'chat', email: otherEmail, lastMessage: msg.text, timestamp: msg.timestamp, unread: msg.to === currentUser.email && !msg.read });
+            messageMap.set(otherEmail, { type: 'chat', email: otherEmail, lastMessage: msg.previewText || '🔒 Encrypted message', timestamp: msg.timestamp, unread: msg.to === currentUser.email && !msg.read });
         }
     });
 }
@@ -186,14 +186,20 @@ for (const chatDoc of chatsSnap.docs) {
                             }
                         }
                     }
-
+/*
                     // Convert map to array and sort
                     const conversations = Array.from(messageMap.values()).sort((a, b) => b.timestamp - a.timestamp);
 
                     if (conversations.length === 0) {
                         container.innerHTML = '<div class="empty-state"><i class="fa-solid fa-inbox"></i><p>No messages yet.</p></div>';
                         return;
-                    }
+                    }*/
+                    
+                    const conversations = Array.from(messageMap.values()).sort((a, b) => {
+  const aTime = a.timestamp?.seconds ? a.timestamp.seconds * 1000 : a.timestamp || 0;
+  const bTime = b.timestamp?.seconds ? b.timestamp.seconds * 1000 : b.timestamp || 0;
+  return bTime - aTime;
+});
 
                     // Render list
                     container.innerHTML = conversations.map(conv => {

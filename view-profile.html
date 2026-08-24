@@ -301,10 +301,23 @@ async function toggleBookmark(targetEmail, btn) {
       const key = await deriveKey(convId,convId);
       const enc = await encryptMessage(text,key);
       try {
+       // await window.addDoc(window.collection(window.db,"chats",convId,"messages"),{
+        //  from: cur.email, text: enc, timestamp: new Date(), read: false
+        //});
+        
         await window.addDoc(window.collection(window.db,"chats",convId,"messages"),{
-          from: cur.email, text: enc, timestamp: new Date(), read: false
-        });
+  from: cur.email,
+  text: enc,
+  timestamp: new Date(),
+  read: false,
+  previewText: text.substring(0, 60)        // ← add this
+});
         input.value = '';
+        // Also create/update the parent conversation document
+await window.setDoc(window.doc(window.db, "chats", convId), {
+  participants: [cur.email, targetEmail],
+  lastTimestamp: window.serverTimestamp ? window.serverTimestamp() : new Date()
+}, { merge: true });
       } catch(e) { console.error(e); showToast('Failed to send message.'); }
     }
 
