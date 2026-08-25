@@ -55,7 +55,6 @@
         .seek-time.duration {
             text-align:right;
         }
-        /* Custom range input with dynamic fill */
         .seek-slider {
             flex:1;
             -webkit-appearance:none;
@@ -68,7 +67,6 @@
             cursor:pointer;
             position:relative;
         }
-        /* We'll set background via JS to show progress, but we need a base */
         .seek-slider::-webkit-slider-thumb {
             -webkit-appearance:none;
             appearance:none;
@@ -94,10 +92,39 @@
 
         .video-title { font-size:1.2rem; font-weight:600; color:white; text-shadow:0 1px 2px rgba(0,0,0,0.8); }
         .video-author { color:var(--gold-light); font-size:0.9rem; }
-        .action-buttons { position:absolute; right:1.5rem; bottom:8rem; display:flex; flex-direction:column; gap:1.5rem; align-items:center; }
-        .action-btn { background:rgba(0,0,0,0.5); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.2); border-radius:50%; width:50px; height:50px; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; color:white; font-size:1.3rem; transition:0.3s; gap:0.2rem; }
+        .action-buttons {
+            position:absolute;
+            right:1.5rem;
+            bottom:8rem;
+            display:flex;
+            flex-direction:column;
+            gap:1.2rem;
+            align-items:center;
+        }
+        .action-btn {
+            background:rgba(0,0,0,0.5);
+            backdrop-filter:blur(10px);
+            border:1px solid rgba(255,255,255,0.2);
+            border-radius:50%;
+            width:50px;
+            height:50px;
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            justify-content:center;
+            cursor:pointer;
+            color:white;
+            font-size:1.2rem;
+            transition:0.3s;
+            gap:0.2rem;
+        }
         .action-btn:hover { background:rgba(200,160,60,0.4); border-color:var(--gold-light); transform:scale(1.1); }
-        .like-count { font-size:0.7rem; }
+        .action-btn .count-label {
+            font-size:0.6rem;
+            font-weight:400;
+            letter-spacing:0.3px;
+            opacity:0.9;
+        }
         .loading-spinner { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); color:var(--gold-light); font-size:2rem; z-index:999; }
     </style>
 </head>
@@ -108,7 +135,24 @@
     <script type="module" src="firebase.js"></script>
     <script>
   (function() {
-    let isMuted = true; // global mute state
+    let isMuted = true;
+    // Session-based viewed video IDs (stored in sessionStorage)
+    const VIEWED_KEY = 'tar_tv_viewed_videos';
+
+    function loadViewedSet() {
+      const stored = sessionStorage.getItem(VIEWED_KEY);
+      if (stored) {
+        try { return new Set(JSON.parse(stored)); }
+        catch(e) { return new Set(); }
+      }
+      return new Set();
+    }
+
+    function saveViewedSet(set) {
+      sessionStorage.setItem(VIEWED_KEY, JSON.stringify([...set]));
+    }
+
+    let viewedSet = loadViewedSet();
 
     function waitForFirebase(cb) {
       if (window.db && window.collection && window.query && window.orderBy && window.getDocs) {
@@ -156,24 +200,42 @@
           entries.forEach(entry => {
             const slide = entry.target;
             const video = slide.querySelector('video');
+            const videoId = slide.dataset.videoId;
+            const viewsElement = slide.querySelector('.view-count');
             if (entry.isIntersecting) {
               if (activeVideo && activeVideo !== video) {
                 activeVideo.pause();
               }
               if (video) {
                 if (!video.src) video.src = video.dataset.src;
-                // Apply current mute state
                 video.muted = isMuted;
                 video.play().catch(e => console.log(e));
               }
               activeVideo = video;
+
+              // --- View counting ---
+              if (videoId && !viewedSet.has(videoId)) {
+                // Increment Firestore views atomically
+                const docRef = window.doc(window.db, "tar_tv_videos", videoId);
+                window.updateDoc(docRef, {
+                  views: window.increment(1)
+                }).then(() => {
+                  // Optimistically update UI
+                  const currentCount = parseInt(viewsElement?.textContent || '0', 10);
+                  if (viewsElement) viewsElement.textContent = currentCount + 1;
+                }).catch(err => {
+                  console.error('Failed to increment views:', err);
+                });
+                viewedSet.add(videoId);
+                saveViewedSet(viewedSet);
+              }
             } else {
               if (video) video.pause();
             }
           });
         }, { threshold: 0.5 });
 
-        // Helper to format time (handles hours if needed)
+        // Helper to format time (handles hours)
         function formatTime(seconds) {
           if (!seconds || isNaN(seconds)) return '0:00';
           const hrs = Math.floor(seconds / 3600);
@@ -188,6 +250,10 @@
         videos.forEach((v) => {
           const slide = document.createElement('div');
           slide.className = 'video-slide';
+          slide.dataset.videoId = v.id; // for view counting
+
+          const views = v.views || 0; // fallback
+
           slide.innerHTML = `
             <div class="video-placeholder" style="background-image:url('${v.thumbnail || ''}')"></div>
             <video data-src="${v.videoUrl}" muted loop playsinline preload="metadata"></video>
@@ -201,8 +267,16 @@
               <div class="video-author">@${v.author || 'Reh'}</div>
             </div>
             <div class="action-buttons">
-              <div class="action-btn like-btn" data-id="${v.id}"><i class="fa-solid fa-heart"></i><div class="like-count">${v.likes || 0}</div></div>
-              <div class="action-btn"><i class="fa-solid fa-comment"></i></div>
+              <!-- Like -->
+              <div class="action-btn like-btn" data-id="${v.id}">
+                <i class="fa-solid fa-heart"></i>
+                <span class="count-label like-count">${v.likes || 0}</span>
+              </div>
+              <!-- Views (new) -->
+              <div class="action-btn" style="pointer-events:none;">
+                <i class="fa-solid fa-eye"></i>
+                <span class="count-label view-count">${views}</span>
+              </div>
               <div class="action-btn sound-btn"><i class="fa-solid fa-volume-mute"></i></div>
               <div class="action-btn"><i class="fa-solid fa-share"></i></div>
             </div>
@@ -220,26 +294,22 @@
               const progress = video.currentTime / video.duration;
               seekSlider.value = progress;
               currentTimeLabel.textContent = formatTime(video.currentTime);
-              // Update track fill gradient
               const percent = progress * 100;
               seekSlider.style.background = `linear-gradient(to right, var(--gold-light) ${percent}%, rgba(255,255,255,0.25) ${percent}%)`;
             }
           });
 
-          // When metadata loads, set duration label and max
           video.addEventListener('loadedmetadata', () => {
             if (video.duration) {
               durationLabel.textContent = formatTime(video.duration);
             }
           });
 
-          // Seek when user interacts with slider
           seekSlider.addEventListener('input', (e) => {
             if (video.duration && !isNaN(video.duration)) {
               const newTime = parseFloat(e.target.value) * video.duration;
               video.currentTime = newTime;
               currentTimeLabel.textContent = formatTime(newTime);
-              // Update fill immediately
               const percent = parseFloat(e.target.value) * 100;
               seekSlider.style.background = `linear-gradient(to right, var(--gold-light) ${percent}%, rgba(255,255,255,0.25) ${percent}%)`;
             }
@@ -248,7 +318,7 @@
           observer.observe(slide);
         });
 
-        // Sound toggle – update global state and apply to active video
+        // Sound toggle (global mute state)
         document.querySelectorAll('.sound-btn').forEach(btn => {
           btn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -265,7 +335,7 @@
           });
         });
 
-        // Like button
+        // Like button (same as before)
         document.querySelectorAll('.like-btn').forEach(btn => {
           btn.addEventListener('click', async (e) => {
             e.stopPropagation();
