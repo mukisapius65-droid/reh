@@ -116,6 +116,11 @@
                         border-radius:50px; color:white; outline:none; font-size:0.9rem; 
                         backdrop-filter:blur(8px);">
         </div>
+        
+        <!-- Stories Row -->
+<div id="stories-row" class="stories-row">
+  <!-- Dynamic story circles will be injected here -->
+</div>
 
         <!-- Card Grid -->
         <div class="card-grid" id="cardGrid">
@@ -124,11 +129,33 @@
         <footer class="footer"></footer>
     </div>
 
+        <!-- Story Viewer Overlay (only for Discover page) -->
+<div id="story-viewer" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index:9999; touch-action:none;">
+  <div id="story-content" style="width:100%; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; position:relative; color:#fff;">
+    <!-- User info -->
+    <div style="position:absolute; top:20px; left:20px; display:flex; align-items:center; gap:10px; z-index:10;">
+      <img id="story-viewer-avatar" src="" alt="avatar" style="width:40px; height:40px; border-radius:50%; border:2px solid #f5a623;">
+      <span id="story-viewer-name" style="font-family:'Playfair Display',serif; font-size:18px;"></span>
+      <span id="story-viewer-time" style="font-size:12px; opacity:0.7; margin-left:8px;"></span>
+    </div>
+    <!-- Close button -->
+    <button id="story-close-btn" style="position:absolute; top:20px; right:20px; background:none; border:none; color:#fff; font-size:30px; z-index:10; cursor:pointer;">✕</button>
+    <!-- Progress bars -->
+    <div id="story-progress" style="position:absolute; top:70px; left:0; right:0; display:flex; gap:4px; padding:0 20px; z-index:5; height:3px;">
+      <!-- dynamically injected -->
+    </div>
+    <!-- Media container -->
+    <div id="story-media" style="flex:1; display:flex; justify-content:center; align-items:center; width:100%; padding:20px 0;"></div>
+    <!-- Tap zones -->
+    <div id="story-left-tap" style="position:absolute; left:0; top:0; width:30%; height:100%; z-index:2; cursor:pointer;"></div>
+    <div id="story-right-tap" style="position:absolute; right:0; top:0; width:30%; height:100%; z-index:2; cursor:pointer;"></div>
+  </div>
+</div>
     
     <script src="assets/general.js"></script>
     <script src="assets/auth.js"></script>
 
-
+<script src="assets/stories.js"></script>
 <script>
     (function () {
   // ── Audio context (for notification sounds) ──
@@ -281,49 +308,49 @@ function hasViewed(targetEmail) {
 
   //   const stored = localStorage.getItem(USERS_KEY);
   //   if (stored) return JSON.parse(stored);
-  //   // Fallback default users if storage is empty
-  //   const defaults = [
-  //     {
-  //       id: "1",
-  //       firstName: "Isabella",
-  //       lastName: "Rossi",
-  //       email: "isabella@example.com",
-  //       age: 26,
-  //       location: "Milan, Italy",
-  //       avatar: "https://randomuser.me/api/portraits/women/44.jpg",
-  //       plan: "premium-monthly",
-  //       banned: false,
-  //       lastActive: Date.now(),
-  //     },
-  //     {
-  //       id: "2",
-  //       firstName: "Sophia",
-  //       lastName: "Laurent",
-  //       email: "sophia@example.com",
-  //       age: 28,
-  //       location: "Paris, France",
-  //       avatar: "https://images.unsplash.com/photo-1606596556957-f6566cc865a9?q=80&w=386&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-  //       plan: "elite-annual",
-  //       banned: false,
-  //       lastActive: Date.now() - 3600000,
-  //     },
-  //     {
-  //       id: "3",
-  //       firstName: "Valentina",
-  //       lastName: "Cruz",
-  //       email: "valentina@example.com",
-  //       age: 29,
-  //       location: "Barcelona, Spain",
-  //       avatar: "https://randomuser.me/api/portraits/women/12.jpg",
-  //       plan: "trial",
-  //       banned: true,
-  //       lastActive: Date.now() - 86400000,
-  //     },
-  //   ];
-  //   localStorage.setItem(USERS_KEY, JSON.stringify(defaults));
-  //   return defaults;
-  // }
-
+          //   // Fallback default users if storage is empty
+    /* const defaults = [
+       {
+         id: "1",
+         firstName: "Isabella",
+         lastName: "Rossi",
+         email: "isabella@example.com",
+         age: 26,
+         location: "Milan, Italy",
+         avatar: "https://randomuser.me/api/portraits/women/44.jpg",
+         plan: "premium-monthly",
+         banned: false,
+         lastActive: Date.now(),
+       },
+       {
+         id: "2",
+         firstName: "Sophia",
+         lastName: "Laurent",
+         email: "sophia@example.com",
+         age: 28,
+         location: "Paris, France",
+         avatar: "https://images.unsplash.com/photo-1606596556957-f6566cc865a9?q=80&w=386&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+         plan: "elite-annual",
+         banned: false,
+         lastActive: Date.now() - 3600000,
+       },
+       {
+         id: "3",
+         firstName: "Valentina",
+         lastName: "Cruz",
+         email: "valentina@example.com",
+         age: 29,
+         location: "Barcelona, Spain",
+         avatar: "https://randomuser.me/api/portraits/women/12.jpg",
+         plan: "trial",
+         banned: true,
+         lastActive: Date.now() - 86400000,
+       },
+     ];
+     localStorage.setItem(USERS_KEY, JSON.stringify(defaults));
+     return defaults;
+   }
+*/
   // ── Get users from Firestore ────────────
 async function getUsers() {
   // 1. Try sessionStorage cache first
@@ -1035,6 +1062,280 @@ grid.innerHTML = html;
 
   window.showToast = showToast; // expose for onclick
   // createParticles();
+        
+        // --- Stories Rendering & Viewer (Discover page) ---
+
+// Cache for story groups (used by viewer)
+let storyGroupsCache = null;
+// Viewer state
+let viewerData = [];
+let viewerIndex = 0;
+let viewerTimer = null;
+
+/**
+ * Render the story circles in the row.
+ * Called after user cards are loaded and whenever the story list changes.
+ */
+async function renderStories() {
+  const container = document.getElementById('stories-row');
+  if (!container) return;
+
+  const currentUser = window.getCurrentUser ? window.getCurrentUser() : null;
+  if (!currentUser) {
+    container.innerHTML = '';
+    return;
+  }
+
+  // Clean up expired stories
+  if (typeof window.cleanupExpiredStories === 'function') {
+    await window.cleanupExpiredStories();
+  }
+    
+    container.innerHTML = `<div style="display:flex; gap:0.5rem; padding:0.5rem;">
+  <div class="story-circle-placeholder" style="width:68px; height:68px; border-radius:50%; background:rgba(255,255,255,0.1); animation:pulse 1.5s infinite;"></div>
+  <div class="story-circle-placeholder" style="width:68px; height:68px; border-radius:50%; background:rgba(255,255,255,0.1); animation:pulse 1.5s infinite;"></div>
+  <div class="story-circle-placeholder" style="width:68px; height:68px; border-radius:50%; background:rgba(255,255,255,0.1); animation:pulse 1.5s infinite;"></div>
+</div>`;
+
+  // Fetch active stories
+  const groups = await window.fetchActiveStories();
+  storyGroupsCache = groups;
+
+  // Filter out blocked users and the current user
+  const blocked = currentUser.blocked || [];
+  const filteredUsers = Object.keys(groups)
+    .filter(uid => !blocked.includes(uid) && uid !== currentUser.email)
+    .map(uid => ({ userId: uid, stories: groups[uid] }));
+
+  // Build HTML
+  let html = '';
+
+  // 1) Your own story circle (always shown, even if no stories)
+  const ownStories = groups[currentUser.email] || [];
+  const hasOwn = ownStories.length > 0;
+  html += `
+    <div class="story-circle" data-user="${currentUser.email}" data-own="true">
+      <div class="story-avatar" style="background-image: url('${currentUser.avatar || 'default.jpg'}')">
+        <span class="add-story-btn">+</span>
+      </div>
+      <span class="story-name">Your Story</span>
+    </div>
+  `;
+
+  // 2) Other users' stories (limit 10 for performance)
+  const topUsers = filteredUsers.slice(0, 10);
+  topUsers.forEach(({ userId, stories }) => {
+    const latest = stories[0]; // newest story (already sorted)
+    const hasUnviewed = !latest.views.includes(currentUser.email);
+    const ringClass = hasUnviewed ? 'unviewed' : 'viewed';
+    const storyIds = stories.map(s => s.id).join(',');
+    html += `
+      <div class="story-circle" data-user="${userId}" data-story-ids="${storyIds}">
+        <div class="story-avatar ${ringClass}" style="background-image: url('${latest.userAvatar || 'default.jpg'}')"></div>
+        <span class="story-name">${latest.userName}</span>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+
+  // Attach click listeners to each circle
+  container.querySelectorAll('.story-circle').forEach(el => {
+    el.addEventListener('click', function(e) {
+      const userId = this.dataset.user;
+      if (this.dataset.own === 'true') {
+        // Open upload modal
+        if (typeof window.openStoryUploadModal === 'function') {
+          window.openStoryUploadModal();
+        }
+      } else {
+        const storyIds = this.dataset.storyIds ? this.dataset.storyIds.split(',') : [];
+        if (storyIds.length > 0 && typeof window.openStoryViewer === 'function') {
+          window.openStoryViewer(userId, storyIds);
+        }
+      }
+    });
+  });
+}
+
+/**
+ * Open the story viewer for a specific user.
+ * @param {string} userId - Email of the user whose stories to show.
+ * @param {string[]} storyIds - Array of story document IDs (optional, we can use groups cache).
+ */
+window.openStoryViewer = function(userId, storyIds) {
+  const groups = storyGroupsCache;
+  if (!groups || !groups[userId]) return;
+  const stories = groups[userId];
+  if (!stories || stories.length === 0) return;
+
+  viewerData = stories;
+  viewerIndex = 0;
+
+  // Show the overlay
+  const viewer = document.getElementById('story-viewer');
+  if (viewer) viewer.style.display = 'block';
+
+  // Display the first story
+  showStory(0);
+};
+
+/**
+ * Display a specific story from viewerData at the given index.
+ */
+function showStory(index) {
+  const story = viewerData[index];
+  if (!story) {
+    closeStoryViewer();
+    return;
+  }
+
+  const currentUser = window.getCurrentUser ? window.getCurrentUser() : null;
+
+  // Update user info
+  const nameEl = document.getElementById('story-viewer-name');
+  const avatarEl = document.getElementById('story-viewer-avatar');
+  const timeEl = document.getElementById('story-viewer-time');
+  if (nameEl) nameEl.textContent = story.userName || 'User';
+  if (avatarEl) avatarEl.src = story.userAvatar || 'default.jpg';
+  if (timeEl) {
+    const ts = story.timestamp && typeof story.timestamp.toMillis === 'function'
+      ? story.timestamp.toMillis()
+      : Date.now();
+    timeEl.textContent = timeSince(ts);
+  }
+
+  // Render content
+  const mediaContainer = document.getElementById('story-media');
+  if (mediaContainer) {
+    mediaContainer.innerHTML = '';
+    if (story.type === 'text') {
+      const div = document.createElement('div');
+      div.textContent = story.content;
+      div.style.fontFamily = "'Cormorant Garamond', serif";
+      div.style.fontSize = '2rem';
+      div.style.padding = '2rem';
+      div.style.textAlign = 'center';
+      div.style.background = 'linear-gradient(135deg, #1a1a2e, #16213e)';
+      div.style.borderRadius = '20px';
+      div.style.maxWidth = '80%';
+      mediaContainer.appendChild(div);
+    } else if (story.type === 'photo') {
+      const img = document.createElement('img');
+      img.src = story.content;
+      img.style.maxWidth = '100%';
+      img.style.maxHeight = '100%';
+      img.style.objectFit = 'contain';
+      mediaContainer.appendChild(img);
+    } else if (story.type === 'audio') {
+      const audio = document.createElement('audio');
+      audio.src = story.content;
+      audio.controls = true;
+      audio.autoplay = true;
+      audio.style.width = '80%';
+      mediaContainer.appendChild(audio);
+    }
+  }
+
+  // Mark as viewed if not own and not already viewed
+  if (currentUser && currentUser.email !== story.userId && !story.views.includes(currentUser.email)) {
+    window.markStoryViewed(story.id, currentUser.email)
+      .then(() => {
+        // Update local view state to prevent re-marking
+        story.views.push(currentUser.email);
+        story.viewCount++;
+      })
+      .catch(err => console.error('Error marking view:', err));
+  }
+
+  // Update progress bars
+  const progressContainer = document.getElementById('story-progress');
+  if (progressContainer) {
+    progressContainer.innerHTML = viewerData.map((_, i) => `
+      <div style="flex:1; height:3px; background:${i <= index ? '#f5a623' : '#555'}; border-radius:2px; transition: background 0.3s;"></div>
+    `).join('');
+  }
+
+  // Reset and start auto-advance timer (5 seconds)
+  clearTimeout(viewerTimer);
+  viewerTimer = setTimeout(() => {
+    if (index < viewerData.length - 1) {
+      showStory(index + 1);
+    } else {
+      closeStoryViewer();
+    }
+  }, 5000);
+}
+
+/**
+ * Close the story viewer and clean up timer.
+ */
+function closeStoryViewer() {
+  const viewer = document.getElementById('story-viewer');
+  if (viewer) viewer.style.display = 'none';
+  clearTimeout(viewerTimer);
+  viewerTimer = null;
+  // Optionally reset progress
+  const progress = document.getElementById('story-progress');
+  if (progress) progress.innerHTML = '';
+}
+
+/**
+ * Relative time helper (e.g., "2h ago").
+ */
+function timeSince(timestamp) {
+  const seconds = Math.floor((Date.now() - timestamp) / 1000);
+  let interval = seconds / 60;
+  if (interval < 1) return 'Just now';
+  if (interval < 60) return Math.floor(interval) + 'm ago';
+  interval = interval / 60;
+  if (interval < 24) return Math.floor(interval) + 'h ago';
+  interval = interval / 24;
+  return Math.floor(interval) + 'd ago';
+}
+
+// --- Attach event listeners for viewer navigation ---
+
+document.addEventListener('DOMContentLoaded', function() {
+  const leftTap = document.getElementById('story-left-tap');
+  const rightTap = document.getElementById('story-right-tap');
+  const closeBtn = document.getElementById('story-close-btn');
+
+  if (leftTap) {
+    leftTap.addEventListener('click', function() {
+      if (viewerIndex > 0) {
+        viewerIndex--;
+        showStory(viewerIndex);
+      } else {
+        // If at first story, close the viewer (or go to previous user? we'll keep it simple)
+        closeStoryViewer();
+      }
+    });
+  }
+
+  if (rightTap) {
+    rightTap.addEventListener('click', function() {
+      if (viewerIndex < viewerData.length - 1) {
+        viewerIndex++;
+        showStory(viewerIndex);
+      } else {
+        closeStoryViewer();
+      }
+    });
+  }
+
+  if (closeBtn) {
+    closeBtn.addEventListener('click', closeStoryViewer);
+  }
+});
+
+// --- Call renderStories after user cards are loaded ---
+// In your existing code, after you fetch users and render the cards,
+// call:
+// renderStories();
+
+// Also expose renderStories globally so it can be called after story upload
+window.renderStories = renderStories;
 })();
 </script>
 <script src="assets/toadmin.js"></script>
