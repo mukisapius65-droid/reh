@@ -163,6 +163,7 @@ const bottomNavHTML = `
     <a href="tartv.html" class="bottom-nav-item" data-page="tartv">
       <i class="fa-solid fa-tv"></i>
       <span>Tar TV</span>
+      <span class="nav-badge" id="messagesUnreadBadge" style="padding: 0px;">New</span>
     </a>
     <a href="index.html?redirect=profile.html" class="bottom-nav-item" data-page="profile">
       <i class="fa-solid fa-user"></i>
