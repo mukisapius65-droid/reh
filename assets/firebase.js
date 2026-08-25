@@ -27,8 +27,16 @@ import {
   serverTimestamp,
   addDoc,
   deleteDoc,
-  increment
+  increment,
+  Timestamp,
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+// 🔽 ADD THIS IMPORT BLOCK
+import {
+  getStorage,
+  ref,
+  uploadBytes,
+  getDownloadURL,
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyClJ9Mlln04N_7XFSvy1zGHaE6w5E2DQ8I",
@@ -42,14 +50,21 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+// 🔽 ADD THIS LINE
+const storage = getStorage(app);
 
 // Expose globally
 window.auth = auth;
 window.db = db;
+window.storage = storage; // 🔽 ADD THIS
+
+// Auth
 window.onAuthStateChanged = onAuthStateChanged;
 window.signInWithEmailAndPassword = signInWithEmailAndPassword;
 window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
 window.signOut = signOut;
+
+// Firestore
 window.doc = doc;
 window.setDoc = setDoc;
 window.getDoc = getDoc;
@@ -69,3 +84,11 @@ window.arrayRemove = arrayRemove;
 window.collectionGroup = collectionGroup;
 window.writeBatch = writeBatch;
 window.increment = increment;
+window.Timestamp = Timestamp; // 🔽 ADD THIS (optional, but good to have)
+
+// 🔽 ADD THESE STORAGE EXPORTS
+window.storageRef = ref;
+window.uploadBytes = uploadBytes;
+window.getDownloadURL = getDownloadURL;
+
+console.log('[firebase] Initialized with Auth, Firestore, and Storage.');

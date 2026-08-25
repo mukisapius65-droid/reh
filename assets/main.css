@@ -1982,3 +1982,68 @@ body {
 .install-btn.show {
     display: block;
 }
+
+.stories-row {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(4px);
+  border-radius: 16px;
+  margin: 1rem 0;
+}
+.stories-row::-webkit-scrollbar {
+  display: none;
+}
+.story-circle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.story-avatar {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  border: 3px solid #555;
+}
+.story-avatar.unviewed {
+  border-color: #f5a623;
+  box-shadow: 0 0 0 2px #f5a623;
+}
+.add-story-btn {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  background: #f5a623;
+  color: #000;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: bold;
+  border: 2px solid #1a1a2e;
+}
+.story-name {
+  font-size: 12px;
+  margin-top: 4px;
+  color: #ccc;
+  white-space: nowrap;
+  max-width: 70px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@keyframes pulse {
+  0% { opacity:0.6; }
+  50% { opacity:1; }
+  100% { opacity:0.6; }
+}
