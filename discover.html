@@ -350,7 +350,8 @@ function hasViewed(targetEmail) {
      localStorage.setItem(USERS_KEY, JSON.stringify(defaults));
      return defaults;
    }
-*/
+
+*/
   // ── Get users from Firestore ────────────
 async function getUsers() {
   // 1. Try sessionStorage cache first
@@ -1035,8 +1036,8 @@ grid.innerHTML = html;
       await loadBookmarkCache();
       await loadAdmirationCache();
        // createParticles();
-        renderCards("all", "");
-
+      await  renderCards("all", "");
+     renderStories();
     }
 
     function waitForFirebase(callback) {
@@ -1080,28 +1081,44 @@ async function renderStories() {
   const container = document.getElementById('stories-row');
   if (!container) return;
 
-  const currentUser = window.getCurrentUser ? window.getCurrentUser() : null;
+  // Wait for user session to be ready (retry up to 3 seconds)
+  let currentUser = window.getCurrentUser ? window.getCurrentUser() : null;
+  let attempts = 0;
+  while (!currentUser && attempts < 10) {
+    await new Promise(resolve => setTimeout(resolve, 300));
+    currentUser = window.getCurrentUser ? window.getCurrentUser() : null;
+    attempts++;
+  }
+
   if (!currentUser) {
-    container.innerHTML = '';
+    container.innerHTML = '<div style="color:#888; padding:0.5rem;">Please log in to see stories</div>';
     return;
   }
+
+  // Show loading placeholders while fetching
+  container.innerHTML = `<div style="display:flex; gap:0.5rem; padding:0.5rem;">
+    <div class="story-circle-placeholder" style="width:68px; height:68px; border-radius:50%; background:rgba(255,255,255,0.1); animation:pulse 1.5s infinite;"></div>
+    <div class="story-circle-placeholder" style="width:68px; height:68px; border-radius:50%; background:rgba(255,255,255,0.1); animation:pulse 1.5s infinite;"></div>
+    <div class="story-circle-placeholder" style="width:68px; height:68px; border-radius:50%; background:rgba(255,255,255,0.1); animation:pulse 1.5s infinite;"></div>
+  </div>`;
 
   // Clean up expired stories
   if (typeof window.cleanupExpiredStories === 'function') {
     await window.cleanupExpiredStories();
   }
-    
-    container.innerHTML = `<div style="display:flex; gap:0.5rem; padding:0.5rem;">
-  <div class="story-circle-placeholder" style="width:68px; height:68px; border-radius:50%; background:rgba(255,255,255,0.1); animation:pulse 1.5s infinite;"></div>
-  <div class="story-circle-placeholder" style="width:68px; height:68px; border-radius:50%; background:rgba(255,255,255,0.1); animation:pulse 1.5s infinite;"></div>
-  <div class="story-circle-placeholder" style="width:68px; height:68px; border-radius:50%; background:rgba(255,255,255,0.1); animation:pulse 1.5s infinite;"></div>
-</div>`;
 
   // Fetch active stories
-  const groups = await window.fetchActiveStories();
+  let groups = {};
+  try {
+    groups = await window.fetchActiveStories();
+  } catch (err) {
+    console.error('Failed to fetch active stories:', err);
+    container.innerHTML = '<div style="color:#888; padding:0.5rem;">Could not load stories.</div>';
+    return;
+  }
   storyGroupsCache = groups;
 
-  // Filter out blocked users and the current user
+  // Filter out blocked users and the current user (for others' stories)
   const blocked = currentUser.blocked || [];
   const filteredUsers = Object.keys(groups)
     .filter(uid => !blocked.includes(uid) && uid !== currentUser.email)
@@ -1115,7 +1132,7 @@ async function renderStories() {
   const hasOwn = ownStories.length > 0;
   html += `
     <div class="story-circle" data-user="${currentUser.email}" data-own="true">
-      <div class="story-avatar" style="background-image: url('${currentUser.avatar || 'default.jpg'}')">
+      <div class="story-avatar ${hasOwn ? 'has-story' : ''}" style="background-image: url('${currentUser.avatar || 'default.jpg'}')">
         <span class="add-story-btn">+</span>
       </div>
       <span class="story-name">Your Story</span>
@@ -1125,7 +1142,7 @@ async function renderStories() {
   // 2) Other users' stories (limit 10 for performance)
   const topUsers = filteredUsers.slice(0, 10);
   topUsers.forEach(({ userId, stories }) => {
-    const latest = stories[0]; // newest story (already sorted)
+    const latest = stories[0]; // newest story
     const hasUnviewed = !latest.views.includes(currentUser.email);
     const ringClass = hasUnviewed ? 'unviewed' : 'viewed';
     const storyIds = stories.map(s => s.id).join(',');
