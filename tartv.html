@@ -24,16 +24,80 @@
         .tv-container { height:100vh; overflow-y:scroll; scroll-snap-type:y mandatory; scrollbar-width:none; -ms-overflow-style:none; }
         .tv-container::-webkit-scrollbar { display:none; }
         .video-slide { position:relative; height:100vh; scroll-snap-align:start; display:flex; align-items:center; justify-content:center; background:#000; }
-        /* 👇 Changed to object-fit: contain to prevent distortion */
         .video-slide video { width:100%; height:100%; object-fit:contain; background:#000; }
         .video-placeholder { position:absolute; inset:0; background-size:cover; background-position:center; filter:blur(10px); }
-        .slide-overlay { position:absolute; bottom:0; left:0; right:0; padding:2rem; background:linear-gradient(transparent, rgba(0,0,0,0.8)); display:flex; flex-direction:column; gap:0.5rem; }
+        .slide-overlay {
+            position:absolute;
+            bottom:0;
+            left:0;
+            right:0;
+            padding: 1.2rem 1.5rem 2rem;
+            background:linear-gradient(transparent, rgba(0,0,0,0.85));
+            display:flex;
+            flex-direction:column;
+            gap:0.3rem;
+        }
+        /* ----- Seek Bar Styles ----- */
+        .seek-container {
+            display:flex;
+            align-items:center;
+            gap:0.8rem;
+            margin-bottom:0.6rem;
+            padding:0 0.2rem;
+        }
+        .seek-time {
+            font-size:0.7rem;
+            color:var(--text-secondary);
+            font-variant-numeric:tabular-nums;
+            min-width:40px;
+            letter-spacing:0.3px;
+        }
+        .seek-time.duration {
+            text-align:right;
+        }
+        /* Custom range input with dynamic fill */
+        .seek-slider {
+            flex:1;
+            -webkit-appearance:none;
+            appearance:none;
+            height:3px;
+            border-radius:2px;
+            background:rgba(255,255,255,0.25);
+            outline:none;
+            transition:height 0.2s;
+            cursor:pointer;
+            position:relative;
+        }
+        /* We'll set background via JS to show progress, but we need a base */
+        .seek-slider::-webkit-slider-thumb {
+            -webkit-appearance:none;
+            appearance:none;
+            width:14px;
+            height:14px;
+            border-radius:50%;
+            background:var(--gold-light);
+            border:2px solid rgba(0,0,0,0.6);
+            box-shadow:0 0 8px rgba(200,160,60,0.4);
+            transition:transform 0.2s;
+            cursor:pointer;
+        }
+        .seek-slider::-webkit-slider-thumb:hover { transform:scale(1.15); }
+        .seek-slider::-moz-range-thumb {
+            width:14px;
+            height:14px;
+            border-radius:50%;
+            background:var(--gold-light);
+            border:2px solid rgba(0,0,0,0.6);
+            cursor:pointer;
+        }
+        .seek-slider:focus { outline:none; }
+
         .video-title { font-size:1.2rem; font-weight:600; color:white; text-shadow:0 1px 2px rgba(0,0,0,0.8); }
         .video-author { color:var(--gold-light); font-size:0.9rem; }
         .action-buttons { position:absolute; right:1.5rem; bottom:8rem; display:flex; flex-direction:column; gap:1.5rem; align-items:center; }
-        .action-btn { background:rgba(0,0,0,0.5); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.2); border-radius:50%; width:50px; height:50px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:white; font-size:1.3rem; transition:0.3s; }
+        .action-btn { background:rgba(0,0,0,0.5); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.2); border-radius:50%; width:50px; height:50px; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; color:white; font-size:1.3rem; transition:0.3s; gap:0.2rem; }
         .action-btn:hover { background:rgba(200,160,60,0.4); border-color:var(--gold-light); transform:scale(1.1); }
-        .like-count { color:white; font-size:0.75rem; text-align:center; }
+        .like-count { font-size:0.7rem; }
         .loading-spinner { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); color:var(--gold-light); font-size:2rem; z-index:999; }
     </style>
 </head>
@@ -44,6 +108,8 @@
     <script type="module" src="firebase.js"></script>
     <script>
   (function() {
+    let isMuted = true; // global mute state
+
     function waitForFirebase(cb) {
       if (window.db && window.collection && window.query && window.orderBy && window.getDocs) {
         cb();
@@ -85,13 +151,19 @@
         }
 
         let activeVideo = null;
+
         const observer = new IntersectionObserver((entries) => {
           entries.forEach(entry => {
-            const video = entry.target.querySelector('video');
+            const slide = entry.target;
+            const video = slide.querySelector('video');
             if (entry.isIntersecting) {
-              if (activeVideo && activeVideo !== video) activeVideo.pause();
+              if (activeVideo && activeVideo !== video) {
+                activeVideo.pause();
+              }
               if (video) {
                 if (!video.src) video.src = video.dataset.src;
+                // Apply current mute state
+                video.muted = isMuted;
                 video.play().catch(e => console.log(e));
               }
               activeVideo = video;
@@ -101,6 +173,18 @@
           });
         }, { threshold: 0.5 });
 
+        // Helper to format time (handles hours if needed)
+        function formatTime(seconds) {
+          if (!seconds || isNaN(seconds)) return '0:00';
+          const hrs = Math.floor(seconds / 3600);
+          const mins = Math.floor((seconds % 3600) / 60);
+          const secs = Math.floor(seconds % 60);
+          if (hrs > 0) {
+            return hrs + ':' + (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
+          }
+          return mins + ':' + (secs < 10 ? '0' : '') + secs;
+        }
+
         videos.forEach((v) => {
           const slide = document.createElement('div');
           slide.className = 'video-slide';
@@ -108,6 +192,11 @@
             <div class="video-placeholder" style="background-image:url('${v.thumbnail || ''}')"></div>
             <video data-src="${v.videoUrl}" muted loop playsinline preload="metadata"></video>
             <div class="slide-overlay">
+              <div class="seek-container">
+                <span class="seek-time current">0:00</span>
+                <input type="range" class="seek-slider" min="0" max="1" step="0.001" value="0" />
+                <span class="seek-time duration">0:00</span>
+              </div>
               <div class="video-title">${v.title}</div>
               <div class="video-author">@${v.author || 'Reh'}</div>
             </div>
@@ -119,17 +208,55 @@
             </div>
           `;
           tvContainer.appendChild(slide);
+
+          const video = slide.querySelector('video');
+          const seekSlider = slide.querySelector('.seek-slider');
+          const currentTimeLabel = slide.querySelector('.seek-time.current');
+          const durationLabel = slide.querySelector('.seek-time.duration');
+
+          // Update seek bar on timeupdate
+          video.addEventListener('timeupdate', () => {
+            if (video.duration && !isNaN(video.duration)) {
+              const progress = video.currentTime / video.duration;
+              seekSlider.value = progress;
+              currentTimeLabel.textContent = formatTime(video.currentTime);
+              // Update track fill gradient
+              const percent = progress * 100;
+              seekSlider.style.background = `linear-gradient(to right, var(--gold-light) ${percent}%, rgba(255,255,255,0.25) ${percent}%)`;
+            }
+          });
+
+          // When metadata loads, set duration label and max
+          video.addEventListener('loadedmetadata', () => {
+            if (video.duration) {
+              durationLabel.textContent = formatTime(video.duration);
+            }
+          });
+
+          // Seek when user interacts with slider
+          seekSlider.addEventListener('input', (e) => {
+            if (video.duration && !isNaN(video.duration)) {
+              const newTime = parseFloat(e.target.value) * video.duration;
+              video.currentTime = newTime;
+              currentTimeLabel.textContent = formatTime(newTime);
+              // Update fill immediately
+              const percent = parseFloat(e.target.value) * 100;
+              seekSlider.style.background = `linear-gradient(to right, var(--gold-light) ${percent}%, rgba(255,255,255,0.25) ${percent}%)`;
+            }
+          });
+
           observer.observe(slide);
         });
 
-        // Sound toggle
+        // Sound toggle – update global state and apply to active video
         document.querySelectorAll('.sound-btn').forEach(btn => {
           btn.addEventListener('click', (e) => {
             e.stopPropagation();
+            isMuted = !isMuted;
             if (activeVideo) {
-              activeVideo.muted = !activeVideo.muted;
+              activeVideo.muted = isMuted;
               const icon = btn.querySelector('i');
-              if (activeVideo.muted) {
+              if (isMuted) {
                 icon.className = 'fa-solid fa-volume-mute';
               } else {
                 icon.className = 'fa-solid fa-volume-up';
