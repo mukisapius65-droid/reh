@@ -725,6 +725,7 @@
             ><i class="fa-solid fa-envelope"></i> Messages</a
           >
           <a href="#" data-page="tartv"><i class="fa-solid fa-tv"></i> Tar TV</a>
+          <a href="#" data-page="tartv-analytics"><i class="fa-solid fa-chart-simple"></i> Tar TV Analytics</a>
           <a href="#" data-page="concierge">
             <i class="fa-solid fa-clipboard-list"></i> Concierge
             <span
@@ -886,6 +887,26 @@
     <table id="tartvTable">
       <thead>
         <tr><th>Thumbnail</th><th>Title</th><th>Author</th><th>Actions</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+        <div id="page-tartv-analytics" class="page">
+  <div class="page-header">
+    <h2 class="page-title"><i class="fa-solid fa-chart-simple"></i> Tar TV Analytics</h2>
+  </div>
+  <div class="table-container">
+    <table id="tartvAnalyticsTable">
+      <thead>
+        <tr>
+          <th>Thumbnail</th>
+          <th>Title</th>
+          <th>Author</th>
+          <th>Views</th>
+          <th>Likes</th>
+          <th>Engagement</th>
+        </tr>
       </thead>
       <tbody></tbody>
     </table>
@@ -2169,6 +2190,52 @@ document.getElementById('saveVideoBtn').addEventListener('click', async function
     btn.innerHTML = orig;
   }
 });
+          async function loadTarTvAnalytics() {
+  const tbody = document.querySelector('#tartvAnalyticsTable tbody');
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;"><i class="fa-solid fa-spinner fa-spin"></i> Loading analytics…</td></tr>';
+
+  try {
+    const snapshot = await window.getDocs(
+      window.collection(window.db, "tar_tv_videos")
+    );
+    tbody.innerHTML = '';
+
+    if (snapshot.empty) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);">No videos yet.</td></tr>';
+      return;
+    }
+
+    const videos = [];
+    snapshot.forEach(doc => {
+      const v = doc.data();
+      v.id = doc.id;
+      videos.push(v);
+    });
+
+    videos.sort((a, b) => (b.views || 0) - (a.views || 0));
+
+    videos.forEach(v => {
+      const views = v.views || 0;
+      const likes = v.likes || 0;
+      const engagement = views > 0 ? ((likes / views) * 100) : 0;
+      const engagementDisplay = engagement.toFixed(1) + '%';
+
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td><img src="${v.thumbnail || ''}" style="width:50px;height:50px;border-radius:6px;object-fit:cover;"></td>
+        <td>${v.title}</td>
+        <td>${v.author || 'Reh'}</td>
+        <td>${views}</td>
+        <td>${likes}</td>
+        <td><span class="badge badge-${engagement > 10 ? 'success' : engagement > 5 ? 'info' : 'warning'}">${engagementDisplay}</span></td>
+      `;
+      tbody.appendChild(row);
+    });
+  } catch (error) {
+    console.error('Error loading Tar TV analytics:', error);
+    tbody.innerHTML = '<tr><td colspan="6" style="color:var(--danger); text-align:center;">Failed to load analytics.</td></tr>';
+  }
+}
           
           /* ===== CONCIERGE ===== */
           async function updateConciergeBadge() {
@@ -2677,6 +2744,7 @@ document.getElementById('saveVideoBtn').addEventListener('click', async function
                 if (page === "events") loadEvents();
                 if (page === "messages") loadMessages();
                 if (page === "tartv") loadTarTv();
+                if (page === "tartv-analytics") loadTarTvAnalytics();
                 if (page === "concierge") loadConciergeRequests();
                 if (page === "notifications") loadNotifications();
                 if (page === "newsletter") loadNewsletterSubscribers();

@@ -26,6 +26,37 @@
         .video-slide { position:relative; height:100vh; scroll-snap-align:start; display:flex; align-items:center; justify-content:center; background:#000; }
         .video-slide video { width:100%; height:100%; object-fit:contain; background:#000; }
         .video-placeholder { position:absolute; inset:0; background-size:cover; background-position:center; filter:blur(10px); }
+
+        /* Tap Zones */
+        .tap-zone-left,
+        .tap-zone-right,
+        .tap-zone-center {
+            position:absolute;
+            top:0;
+            height:100%;
+            z-index:2;
+            cursor:pointer;
+        }
+        .tap-zone-left { left:0; width:30%; }
+        .tap-zone-right { right:0; width:30%; }
+        .tap-zone-center { left:30%; width:40%; }
+
+        /* Mute Overlay Icon */
+        .mute-overlay {
+            position:absolute;
+            top:50%;
+            left:50%;
+            transform:translate(-50%,-50%);
+            font-size:4rem;
+            color:white;
+            pointer-events:none;
+            opacity:0;
+            transition:opacity 0.3s;
+            z-index:3;
+            text-shadow:0 0 20px rgba(0,0,0,0.8);
+        }
+        .mute-overlay.show { opacity:1; }
+
         .slide-overlay {
             position:absolute;
             bottom:0;
@@ -36,7 +67,17 @@
             display:flex;
             flex-direction:column;
             gap:0.3rem;
+            z-index:4;
+            pointer-events:none;
         }
+        .slide-overlay > * { pointer-events:auto; }
+
+        .video-views {
+    font-size:0.75rem;
+    color:var(--text-secondary);
+    margin-top:0.2rem;
+}
+
         /* Seek Bar */
         .seek-container {
             display:flex;
@@ -90,6 +131,7 @@
 
         .video-title { font-size:1.2rem; font-weight:600; color:white; text-shadow:0 1px 2px rgba(0,0,0,0.8); }
         .video-author { color:var(--gold-light); font-size:0.9rem; }
+
         .action-buttons {
             position:absolute;
             right:1.5rem;
@@ -98,7 +140,10 @@
             flex-direction:column;
             gap:1.2rem;
             align-items:center;
+            z-index:5;
+            pointer-events:none;
         }
+        .action-buttons > * { pointer-events:auto; }
         .action-btn {
             background:rgba(0,0,0,0.5);
             backdrop-filter:blur(10px);
@@ -115,6 +160,7 @@
             font-size:1.2rem;
             transition:0.3s;
             gap:0.2rem;
+            position:relative;
         }
         .action-btn:hover { background:rgba(200,160,60,0.4); border-color:var(--gold-light); transform:scale(1.1); }
         .action-btn .count-label {
@@ -123,7 +169,133 @@
             letter-spacing:0.3px;
             opacity:0.9;
         }
+
         .loading-spinner { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); color:var(--gold-light); font-size:2rem; z-index:999; }
+
+        /* ── Comments Panel ──────────────────────────── */
+        .comments-panel {
+            position:fixed;
+            bottom:0;
+            left:0;
+            right:0;
+            background:rgba(8,12,36,0.92);
+            backdrop-filter:blur(20px);
+            border-top:1px solid var(--gold);
+            border-radius:20px 20px 0 0;
+            max-height:60vh;
+            transform:translateY(100%);
+            transition:transform 0.4s cubic-bezier(0.25,0.46,0.45,0.94);
+            z-index:100;
+            display:flex;
+            flex-direction:column;
+            pointer-events:none;
+        }
+        .comments-panel.open {
+            transform:translateY(0);
+            pointer-events:auto;
+        }
+        .comments-panel-header {
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            padding:1rem 1.5rem 0.5rem;
+            border-bottom:1px solid var(--glass-border);
+            flex-shrink:0;
+        }
+        .comments-panel-header h3 {
+            font-family:'Playfair Display',serif;
+            color:var(--gold-light);
+            font-size:1.2rem;
+        }
+        .comments-panel-header button {
+            background:none;
+            border:none;
+            color:var(--text-muted);
+            font-size:1.5rem;
+            cursor:pointer;
+        }
+        .comments-list {
+            flex:1;
+            overflow-y:auto;
+            padding:1rem 1.5rem;
+            display:flex;
+            flex-direction:column;
+            gap:0.8rem;
+        }
+        .comment-item {
+            display:flex;
+            gap:0.8rem;
+            align-items:flex-start;
+            border-bottom:1px solid rgba(255,255,255,0.05);
+            padding-bottom:0.8rem;
+        }
+        .comment-avatar {
+            width:30px;
+            height:30px;
+            border-radius:50%;
+            background:var(--gold);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-weight:600;
+            color:#000;
+            flex-shrink:0;
+            font-size:0.7rem;
+        }
+        .comment-body {
+            flex:1;
+        }
+        .comment-user {
+            font-weight:600;
+            color:var(--gold-light);
+            font-size:0.8rem;
+        }
+        .comment-text {
+            color:var(--text-secondary);
+            font-size:0.85rem;
+            margin:0.2rem 0;
+            word-break:break-word;
+        }
+        .comment-time {
+            font-size:0.6rem;
+            color:var(--text-muted);
+        }
+        .comments-input-area {
+            display:flex;
+            gap:0.5rem;
+            padding:0.8rem 1.5rem;
+            border-top:1px solid var(--glass-border);
+            flex-shrink:0;
+            background:rgba(0,0,0,0.3);
+        }
+        .comments-input-area input {
+            flex:1;
+            padding:0.7rem 1rem;
+            border-radius:20px;
+            border:1px solid var(--glass-border);
+            background:rgba(255,255,255,0.05);
+            color:white;
+            outline:none;
+            font-size:0.85rem;
+        }
+        .comments-input-area input::placeholder {
+            color:var(--text-muted);
+        }
+        .comments-input-area button {
+            background:var(--gold);
+            border:none;
+            border-radius:50%;
+            width:40px;
+            height:40px;
+            color:#000;
+            cursor:pointer;
+            transition:0.3s;
+            font-size:1rem;
+        }
+        .comments-input-area button:hover {
+            transform:scale(1.1);
+        }
+
         #tar-tv-error {
             position:fixed;
             bottom:80px;
@@ -145,7 +317,22 @@
     <div class="loading-spinner" id="loader"><i class="fa-solid fa-spinner fa-spin"></i></div>
     <div class="tv-container" id="tvContainer"></div>
 
-    <!-- Firebase Compat (non-module) -->
+    <!-- Comments Panel -->
+    <div class="comments-panel" id="commentsPanel">
+        <div class="comments-panel-header">
+            <h3><i class="fa-regular fa-comment"></i> Comments</h3>
+            <button id="closeCommentsBtn"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="comments-list" id="commentsList">
+            <!-- injected -->
+        </div>
+        <div class="comments-input-area">
+            <input type="text" id="commentInput" placeholder="Write a comment..." />
+            <button id="sendCommentBtn"><i class="fa-regular fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <!-- Firebase Compat -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
@@ -196,13 +383,22 @@
             }
             let viewedSet = loadViewedSet();
 
+            // ─── Comments Panel State ──────────────────────────────
+            let currentVideoId = null;
+            let commentsListener = null;
+
+            function getCurrentUser() {
+                try {
+                    return JSON.parse(localStorage.getItem('reh_user') || '{}');
+                } catch { return {}; }
+            }
+
             // ─── Main Execution ─────────────────────────────────────
             (async function init() {
                 const tvContainer = document.getElementById('tvContainer');
                 const loader = document.getElementById('loader');
 
                 try {
-                    // Fetch videos
                     const snapshot = await db.collection("tar_tv_videos")
                         .orderBy("createdAt", "desc")
                         .get();
@@ -220,6 +416,7 @@
                     });
 
                     let activeVideo = null;
+                    let activeMuteOverlay = null;
 
                     // ─── Intersection Observer ─────────────────────
                     const observer = new IntersectionObserver((entries) => {
@@ -235,12 +432,12 @@
                                 }
                                 if (video) {
                                     if (!video.src) video.src = video.dataset.src;
-                                    video.muted = isMuted;
+                                    video.muted = isMuted; // global mute state
                                     video.play().catch(e => console.log(e));
                                 }
                                 activeVideo = video;
 
-                                // View counting (once per session)
+                                // View counting
                                 if (videoId && !viewedSet.has(videoId)) {
                                     const docRef = db.collection("tar_tv_videos").doc(videoId);
                                     docRef.update({
@@ -248,9 +445,7 @@
                                     }).then(() => {
                                         const currentCount = parseInt(viewsElement?.textContent || '0', 10);
                                         if (viewsElement) viewsElement.textContent = currentCount + 1;
-                                    }).catch(err => {
-                                        console.error('Failed to increment views:', err);
-                                    });
+                                    }).catch(err => console.error('Failed to increment views:', err));
                                     viewedSet.add(videoId);
                                     saveViewedSet(viewedSet);
                                 }
@@ -282,29 +477,42 @@
 
                         const views = v.views || 0;
                         const likes = v.likes || 0;
+                        const commentsCount = v.commentCount || 0;
 
                         slide.innerHTML = `
                             <div class="video-placeholder" style="background-image:url('${v.thumbnail || ''}')"></div>
                             <video data-src="${v.videoUrl}" muted loop playsinline preload="metadata"></video>
+
+                            <!-- Tap Zones -->
+                            <div class="tap-zone-left"></div>
+                            <div class="tap-zone-center"></div>
+                            <div class="tap-zone-right"></div>
+
+                            <!-- Mute Overlay Icon -->
+                            <div class="mute-overlay"><i class="fa-solid fa-volume-xmark"></i></div>
+
                             <div class="slide-overlay">
                                 <div class="seek-container">
                                     <span class="seek-time current">0:00</span>
                                     <input type="range" class="seek-slider" min="0" max="1" step="0.001" value="0" />
                                     <span class="seek-time duration">0:00</span>
                                 </div>
-                                <div class="video-title">${v.title}</div>
+                                
                                 <div class="video-author">@${v.author || 'Reh'}</div>
+                                <div class="video-title">${v.title}</div>
+                                <div class="video-views"><i class="fa-regular fa-eye"></i> <span class="view-count">${views}</span> views</div>
                             </div>
                             <div class="action-buttons">
                                 <div class="action-btn like-btn" data-id="${v.id}">
                                     <i class="fa-solid fa-heart"></i>
                                     <span class="count-label like-count">${likes}</span>
                                 </div>
-                                <div class="action-btn" style="pointer-events:none;">
-                                    <i class="fa-solid fa-eye"></i>
-                                    <span class="count-label view-count">${views}</span>
+                                <!-- Comment Button -->
+                                <div class="action-btn comment-btn" data-id="${v.id}">
+                                    <i class="fa-regular fa-comment"></i>
+                                    <span class="count-label comment-count">${commentsCount}</span>
+                                   
                                 </div>
-                                <div class="action-btn sound-btn"><i class="fa-solid fa-volume-mute"></i></div>
                                 <div class="action-btn"><i class="fa-solid fa-share"></i></div>
                             </div>
                         `;
@@ -314,8 +522,49 @@
                         const seekSlider = slide.querySelector('.seek-slider');
                         const currentTimeLabel = slide.querySelector('.seek-time.current');
                         const durationLabel = slide.querySelector('.seek-time.duration');
+                        const muteOverlay = slide.querySelector('.mute-overlay');
 
-                        // Seek bar updates
+                        // ─── Tap-to-Mute on Center ──────────────────
+                        const centerTap = slide.querySelector('.tap-zone-center');
+                        centerTap.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            isMuted = !isMuted;
+                            if (video) {
+                                video.muted = isMuted;
+                                // show overlay icon
+                                const icon = muteOverlay.querySelector('i');
+                                if (isMuted) {
+                                    icon.className = 'fa-solid fa-volume-xmark';
+                                } else {
+                                    icon.className = 'fa-solid fa-volume-up';
+                                }
+                                muteOverlay.classList.add('show');
+                                setTimeout(() => {
+                                    muteOverlay.classList.remove('show');
+                                }, 600);
+                            }
+                        });
+
+                        // ─── Left/Right Tap Navigation ──────────────
+                        slide.querySelector('.tap-zone-left').addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            // Navigate to previous video – we can scroll manually
+                            const slides = tvContainer.querySelectorAll('.video-slide');
+                            const idx = Array.from(slides).indexOf(slide);
+                            if (idx > 0) {
+                                slides[idx - 1].scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }
+                        });
+                        slide.querySelector('.tap-zone-right').addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            const slides = tvContainer.querySelectorAll('.video-slide');
+                            const idx = Array.from(slides).indexOf(slide);
+                            if (idx < slides.length - 1) {
+                                slides[idx + 1].scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }
+                        });
+
+                        // ─── Seek Bar ────────────────────────────────
                         video.addEventListener('timeupdate', () => {
                             if (video.duration && !isNaN(video.duration)) {
                                 const progress = video.currentTime / video.duration;
@@ -345,23 +594,6 @@
                         observer.observe(slide);
                     });
 
-                    // ─── Sound Toggle ───────────────────────────────
-                    document.querySelectorAll('.sound-btn').forEach(btn => {
-                        btn.addEventListener('click', (e) => {
-                            e.stopPropagation();
-                            isMuted = !isMuted;
-                            if (activeVideo) {
-                                activeVideo.muted = isMuted;
-                                const icon = btn.querySelector('i');
-                                if (isMuted) {
-                                    icon.className = 'fa-solid fa-volume-mute';
-                                } else {
-                                    icon.className = 'fa-solid fa-volume-up';
-                                }
-                            }
-                        });
-                    });
-
                     // ─── Like Button ─────────────────────────────────
                     document.querySelectorAll('.like-btn').forEach(btn => {
                         btn.addEventListener('click', async (e) => {
@@ -382,6 +614,118 @@
                         });
                     });
 
+                    // ─── Comment Button ─────────────────────────────
+                    document.querySelectorAll('.comment-btn').forEach(btn => {
+                        btn.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            const videoId = this.dataset.id;
+                            openCommentsPanel(videoId);
+                        });
+                    });
+
+                    // ─── Comments Panel Logic ────────────────────────
+                    const panel = document.getElementById('commentsPanel');
+                    const closeBtn = document.getElementById('closeCommentsBtn');
+                    const commentsList = document.getElementById('commentsList');
+                    const commentInput = document.getElementById('commentInput');
+                    const sendBtn = document.getElementById('sendCommentBtn');
+
+                    function openCommentsPanel(videoId) {
+                        if (currentVideoId === videoId && panel.classList.contains('open')) {
+                            // if already open, close it
+                            closeCommentsPanel();
+                            return;
+                        }
+                        currentVideoId = videoId;
+                        panel.classList.add('open');
+                        // Load comments
+                        loadComments(videoId);
+                        // Ensure the panel doesn't interfere with video playback (e.g., pause on open? we keep playing)
+                    }
+
+                    async function loadComments(videoId) {
+                        commentsList.innerHTML = '<div style="color:var(--text-muted);text-align:center;padding:1rem;">Loading comments...</div>';
+                        try {
+                            const snapshot = await db.collection("tar_tv_videos").doc(videoId)
+                                .collection("comments")
+                                .orderBy("timestamp", "desc")
+                                .get();
+
+                            commentsList.innerHTML = '';
+                            if (snapshot.empty) {
+                                commentsList.innerHTML = '<div style="color:var(--text-muted);text-align:center;padding:1rem;">No comments yet. Be the first!</div>';
+                                return;
+                            }
+                            snapshot.forEach(doc => {
+                                const c = doc.data();
+                                const div = document.createElement('div');
+                                div.className = 'comment-item';
+                                const initial = c.userName ? c.userName.charAt(0).toUpperCase() : '?';
+                                const time = c.timestamp?.seconds ? new Date(c.timestamp.seconds * 1000).toLocaleString() : '';
+                                div.innerHTML = `
+                                    <div class="comment-avatar">${initial}</div>
+                                    <div class="comment-body">
+                                        <div class="comment-user">${c.userName || 'Anonymous'}</div>
+                                        <div class="comment-text">${c.text}</div>
+                                        <div class="comment-time">${time}</div>
+                                    </div>
+                                `;
+                                commentsList.appendChild(div);
+                            });
+                        } catch (err) {
+                            console.error('Error loading comments:', err);
+                            commentsList.innerHTML = '<div style="color:var(--danger);text-align:center;padding:1rem;">Failed to load comments.</div>';
+                        }
+                    }
+
+                    function closeCommentsPanel() {
+                        panel.classList.remove('open');
+                        currentVideoId = null;
+                        commentsList.innerHTML = '';
+                        commentInput.value = '';
+                    }
+
+                    closeBtn.addEventListener('click', closeCommentsPanel);
+
+                    sendBtn.addEventListener('click', async function() {
+                        const text = commentInput.value.trim();
+                        if (!text || !currentVideoId) return;
+                        const user = getCurrentUser();
+                        if (!user.email) {
+                            showError('Please log in to comment.');
+                            return;
+                        }
+                        try {
+                            await db.collection("tar_tv_videos").doc(currentVideoId)
+                                .collection("comments")
+                                .add({
+                                    userId: user.email,
+                                    userName: user.firstName + ' ' + user.lastName || user.email,
+                                    text: text,
+                                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                                });
+                            // Increment commentCount on video
+                            await db.collection("tar_tv_videos").doc(currentVideoId)
+                                .update({
+                                    commentCount: FieldValue.increment(1)
+                                });
+                            // Update the badge in the UI
+                            const commentBtns = document.querySelectorAll(`.comment-btn[data-id="${currentVideoId}"]`);
+                            commentBtns.forEach(btn => {
+                            });
+                            commentInput.value = '';
+                            // Reload comments
+                            loadComments(currentVideoId);
+                        } catch (err) {
+                            console.error('Error posting comment:', err);
+                            showError('Failed to post comment.');
+                        }
+                    });
+
+                    commentInput.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') sendBtn.click();
+                    });
+
                 } catch (error) {
                     console.error('Tar TV error:', error);
                     showError('Error: ' + error.message);
@@ -389,7 +733,27 @@
                     tvContainer.innerHTML = '';
                 }
             })();
+        })();
+    </script>
+</body>
+</html>    loadComments(currentVideoId);
+                        } catch (err) {
+                            console.error('Error posting comment:', err);
+                            showError('Failed to post comment.');
+                        }
+                    });
 
+                    commentInput.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') sendBtn.click();
+                    });
+
+                } catch (error) {
+                    console.error('Tar TV error:', error);
+                    showError('Error: ' + error.message);
+                    loader.style.display = 'none';
+                    tvContainer.innerHTML = '';
+                }
+            })();
         })();
     </script>
 </body>
