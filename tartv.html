@@ -37,7 +37,7 @@
             flex-direction:column;
             gap:0.3rem;
         }
-        /* ----- Seek Bar Styles ----- */
+        /* Seek Bar */
         .seek-container {
             display:flex;
             align-items:center;
@@ -52,9 +52,7 @@
             min-width:40px;
             letter-spacing:0.3px;
         }
-        .seek-time.duration {
-            text-align:right;
-        }
+        .seek-time.duration { text-align:right; }
         .seek-slider {
             flex:1;
             -webkit-appearance:none;
@@ -126,235 +124,273 @@
             opacity:0.9;
         }
         .loading-spinner { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); color:var(--gold-light); font-size:2rem; z-index:999; }
+        #tar-tv-error {
+            position:fixed;
+            bottom:80px;
+            left:10px;
+            right:10px;
+            background:rgba(0,0,0,0.85);
+            color:#ff6b6b;
+            padding:1rem;
+            border-radius:8px;
+            z-index:9999;
+            font-size:0.9rem;
+            border:1px solid #ff6b6b;
+            display:none;
+        }
     </style>
 </head>
 <body>
+    <div id="tar-tv-error"></div>
     <div class="loading-spinner" id="loader"><i class="fa-solid fa-spinner fa-spin"></i></div>
     <div class="tv-container" id="tvContainer"></div>
 
-    <script type="module" src="firebase.js"></script>
+    <!-- Firebase Compat (non-module) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
     <script>
-  (function() {
-    let isMuted = true;
-    // Session-based viewed video IDs (stored in sessionStorage)
-    const VIEWED_KEY = 'tar_tv_viewed_videos';
-
-    function loadViewedSet() {
-      const stored = sessionStorage.getItem(VIEWED_KEY);
-      if (stored) {
-        try { return new Set(JSON.parse(stored)); }
-        catch(e) { return new Set(); }
-      }
-      return new Set();
-    }
-
-    function saveViewedSet(set) {
-      sessionStorage.setItem(VIEWED_KEY, JSON.stringify([...set]));
-    }
-
-    let viewedSet = loadViewedSet();
-
-    function waitForFirebase(cb) {
-      if (window.db && window.collection && window.query && window.orderBy && window.getDocs) {
-        cb();
-      } else {
-        let tries = 0;
-        const timer = setInterval(() => {
-          if (window.db && window.collection && window.query && window.orderBy && window.getDocs) {
-            clearInterval(timer);
-            cb();
-          }
-          if (++tries > 100) {
-            clearInterval(timer);
-            console.error('Firebase not ready for Tar TV');
-            document.getElementById('loader').style.display = 'none';
-            document.getElementById('tvContainer').innerHTML = '<p style="color:var(--text-muted);text-align:center;margin-top:40vh;">Failed to load. Please refresh.</p>';
-          }
-        }, 100);
-      }
-    }
-
-    waitForFirebase(async function() {
-      const tvContainer = document.getElementById('tvContainer');
-      const loader = document.getElementById('loader');
-
-      try {
-        const q = window.query(
-          window.collection(window.db, "tar_tv_videos"),
-          window.orderBy("createdAt", "desc")
-        );
-        const snapshot = await window.getDocs(q);
-        const videos = [];
-        snapshot.forEach(doc => videos.push({ id: doc.id, ...doc.data() }));
-
-        loader.style.display = 'none';
-
-        if (videos.length === 0) {
-          tvContainer.innerHTML = '<div style="text-align:center;margin-top:40vh;color:var(--text-muted);">No videos yet</div>';
-          return;
-        }
-
-        let activeVideo = null;
-
-        const observer = new IntersectionObserver((entries) => {
-          entries.forEach(entry => {
-            const slide = entry.target;
-            const video = slide.querySelector('video');
-            const videoId = slide.dataset.videoId;
-            const viewsElement = slide.querySelector('.view-count');
-            if (entry.isIntersecting) {
-              if (activeVideo && activeVideo !== video) {
-                activeVideo.pause();
-              }
-              if (video) {
-                if (!video.src) video.src = video.dataset.src;
-                video.muted = isMuted;
-                video.play().catch(e => console.log(e));
-              }
-              activeVideo = video;
-
-              // --- View counting ---
-              if (videoId && !viewedSet.has(videoId)) {
-                // Increment Firestore views atomically
-                const docRef = window.doc(window.db, "tar_tv_videos", videoId);
-                window.updateDoc(docRef, {
-                  views: window.increment(1)
-                }).then(() => {
-                  // Optimistically update UI
-                  const currentCount = parseInt(viewsElement?.textContent || '0', 10);
-                  if (viewsElement) viewsElement.textContent = currentCount + 1;
-                }).catch(err => {
-                  console.error('Failed to increment views:', err);
-                });
-                viewedSet.add(videoId);
-                saveViewedSet(viewedSet);
-              }
-            } else {
-              if (video) video.pause();
+        (function() {
+            // ─── Error Display ──────────────────────────────────────
+            const errorDiv = document.getElementById('tar-tv-error');
+            function showError(msg) {
+                errorDiv.textContent = '❌ ' + msg;
+                errorDiv.style.display = 'block';
+                document.getElementById('loader').style.display = 'none';
+                console.error(msg);
             }
-          });
-        }, { threshold: 0.5 });
 
-        // Helper to format time (handles hours)
-        function formatTime(seconds) {
-          if (!seconds || isNaN(seconds)) return '0:00';
-          const hrs = Math.floor(seconds / 3600);
-          const mins = Math.floor((seconds % 3600) / 60);
-          const secs = Math.floor(seconds % 60);
-          if (hrs > 0) {
-            return hrs + ':' + (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
-          }
-          return mins + ':' + (secs < 10 ? '0' : '') + secs;
-        }
+            // ─── Firebase Config ────────────────────────────────────
+            const firebaseConfig = {
+                apiKey: "AIzaSyClJ9Mlln04N_7XFSvy1zGHaE6w5E2DQ8I",
+                authDomain: "rehp-c82b8.firebaseapp.com",
+                projectId: "rehp-c82b8",
+                storageBucket: "rehp-c82b8.firebasestorage.app",
+                messagingSenderId: "363083908702",
+                appId: "1:363083908702:web:33e7d66890c9ef79fb96cf",
+                measurementId: "G-KX9ZEBL3E1"
+            };
 
-        videos.forEach((v) => {
-          const slide = document.createElement('div');
-          slide.className = 'video-slide';
-          slide.dataset.videoId = v.id; // for view counting
-
-          const views = v.views || 0; // fallback
-
-          slide.innerHTML = `
-            <div class="video-placeholder" style="background-image:url('${v.thumbnail || ''}')"></div>
-            <video data-src="${v.videoUrl}" muted loop playsinline preload="metadata"></video>
-            <div class="slide-overlay">
-              <div class="seek-container">
-                <span class="seek-time current">0:00</span>
-                <input type="range" class="seek-slider" min="0" max="1" step="0.001" value="0" />
-                <span class="seek-time duration">0:00</span>
-              </div>
-              <div class="video-title">${v.title}</div>
-              <div class="video-author">@${v.author || 'Reh'}</div>
-            </div>
-            <div class="action-buttons">
-              <!-- Like -->
-              <div class="action-btn like-btn" data-id="${v.id}">
-                <i class="fa-solid fa-heart"></i>
-                <span class="count-label like-count">${v.likes || 0}</span>
-              </div>
-              <!-- Views (new) -->
-              <div class="action-btn" style="pointer-events:none;">
-                <i class="fa-solid fa-eye"></i>
-                <span class="count-label view-count">${views}</span>
-              </div>
-              <div class="action-btn sound-btn"><i class="fa-solid fa-volume-mute"></i></div>
-              <div class="action-btn"><i class="fa-solid fa-share"></i></div>
-            </div>
-          `;
-          tvContainer.appendChild(slide);
-
-          const video = slide.querySelector('video');
-          const seekSlider = slide.querySelector('.seek-slider');
-          const currentTimeLabel = slide.querySelector('.seek-time.current');
-          const durationLabel = slide.querySelector('.seek-time.duration');
-
-          // Update seek bar on timeupdate
-          video.addEventListener('timeupdate', () => {
-            if (video.duration && !isNaN(video.duration)) {
-              const progress = video.currentTime / video.duration;
-              seekSlider.value = progress;
-              currentTimeLabel.textContent = formatTime(video.currentTime);
-              const percent = progress * 100;
-              seekSlider.style.background = `linear-gradient(to right, var(--gold-light) ${percent}%, rgba(255,255,255,0.25) ${percent}%)`;
+            try {
+                firebase.initializeApp(firebaseConfig);
+            } catch (e) {
+                showError('Firebase init error: ' + e.message);
+                return;
             }
-          });
 
-          video.addEventListener('loadedmetadata', () => {
-            if (video.duration) {
-              durationLabel.textContent = formatTime(video.duration);
+            const db = firebase.firestore();
+            const FieldValue = firebase.firestore.FieldValue;
+
+            // ─── Session View Tracking ─────────────────────────────
+            const VIEWED_KEY = 'tar_tv_viewed_videos';
+            function loadViewedSet() {
+                const stored = sessionStorage.getItem(VIEWED_KEY);
+                if (stored) {
+                    try { return new Set(JSON.parse(stored)); }
+                    catch(e) { return new Set(); }
+                }
+                return new Set();
             }
-          });
-
-          seekSlider.addEventListener('input', (e) => {
-            if (video.duration && !isNaN(video.duration)) {
-              const newTime = parseFloat(e.target.value) * video.duration;
-              video.currentTime = newTime;
-              currentTimeLabel.textContent = formatTime(newTime);
-              const percent = parseFloat(e.target.value) * 100;
-              seekSlider.style.background = `linear-gradient(to right, var(--gold-light) ${percent}%, rgba(255,255,255,0.25) ${percent}%)`;
+            function saveViewedSet(set) {
+                sessionStorage.setItem(VIEWED_KEY, JSON.stringify([...set]));
             }
-          });
+            let viewedSet = loadViewedSet();
 
-          observer.observe(slide);
-        });
+            // ─── Main Execution ─────────────────────────────────────
+            (async function init() {
+                const tvContainer = document.getElementById('tvContainer');
+                const loader = document.getElementById('loader');
 
-        // Sound toggle (global mute state)
-        document.querySelectorAll('.sound-btn').forEach(btn => {
-          btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            isMuted = !isMuted;
-            if (activeVideo) {
-              activeVideo.muted = isMuted;
-              const icon = btn.querySelector('i');
-              if (isMuted) {
-                icon.className = 'fa-solid fa-volume-mute';
-              } else {
-                icon.className = 'fa-solid fa-volume-up';
-              }
-            }
-          });
-        });
+                try {
+                    // Fetch videos
+                    const snapshot = await db.collection("tar_tv_videos")
+                        .orderBy("createdAt", "desc")
+                        .get();
 
-        // Like button (same as before)
-        document.querySelectorAll('.like-btn').forEach(btn => {
-          btn.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            const id = btn.dataset.id;
-            const docRef = window.doc(window.db, "tar_tv_videos", id);
-            const snap = await window.getDoc(docRef);
-            const currentLikes = snap.data().likes || 0;
-            await window.updateDoc(docRef, { likes: currentLikes + 1 });
-            btn.querySelector('.like-count').textContent = currentLikes + 1;
-          });
-        });
+                    loader.style.display = 'none';
 
-      } catch (error) {
-        console.error('Tar TV error:', error);
-        loader.style.display = 'none';
-        tvContainer.innerHTML = '<p style="color:var(--danger);text-align:center;margin-top:40vh;">Failed to load videos. Check console.</p>';
-      }
-    });
-  })();
+                    if (snapshot.empty) {
+                        tvContainer.innerHTML = '<div style="text-align:center;margin-top:40vh;color:var(--text-muted);">No videos yet</div>';
+                        return;
+                    }
+
+                    const videos = [];
+                    snapshot.forEach(doc => {
+                        videos.push({ id: doc.id, ...doc.data() });
+                    });
+
+                    let activeVideo = null;
+
+                    // ─── Intersection Observer ─────────────────────
+                    const observer = new IntersectionObserver((entries) => {
+                        entries.forEach(entry => {
+                            const slide = entry.target;
+                            const video = slide.querySelector('video');
+                            const videoId = slide.dataset.videoId;
+                            const viewsElement = slide.querySelector('.view-count');
+
+                            if (entry.isIntersecting) {
+                                if (activeVideo && activeVideo !== video) {
+                                    activeVideo.pause();
+                                }
+                                if (video) {
+                                    if (!video.src) video.src = video.dataset.src;
+                                    video.muted = isMuted;
+                                    video.play().catch(e => console.log(e));
+                                }
+                                activeVideo = video;
+
+                                // View counting (once per session)
+                                if (videoId && !viewedSet.has(videoId)) {
+                                    const docRef = db.collection("tar_tv_videos").doc(videoId);
+                                    docRef.update({
+                                        views: FieldValue.increment(1)
+                                    }).then(() => {
+                                        const currentCount = parseInt(viewsElement?.textContent || '0', 10);
+                                        if (viewsElement) viewsElement.textContent = currentCount + 1;
+                                    }).catch(err => {
+                                        console.error('Failed to increment views:', err);
+                                    });
+                                    viewedSet.add(videoId);
+                                    saveViewedSet(viewedSet);
+                                }
+                            } else {
+                                if (video) video.pause();
+                            }
+                        });
+                    }, { threshold: 0.5 });
+
+                    // ─── Helpers ────────────────────────────────────
+                    function formatTime(seconds) {
+                        if (!seconds || isNaN(seconds)) return '0:00';
+                        const hrs = Math.floor(seconds / 3600);
+                        const mins = Math.floor((seconds % 3600) / 60);
+                        const secs = Math.floor(seconds % 60);
+                        if (hrs > 0) {
+                            return hrs + ':' + (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
+                        }
+                        return mins + ':' + (secs < 10 ? '0' : '') + secs;
+                    }
+
+                    let isMuted = true; // global mute state
+
+                    // ─── Build Slides ──────────────────────────────
+                    videos.forEach((v) => {
+                        const slide = document.createElement('div');
+                        slide.className = 'video-slide';
+                        slide.dataset.videoId = v.id;
+
+                        const views = v.views || 0;
+                        const likes = v.likes || 0;
+
+                        slide.innerHTML = `
+                            <div class="video-placeholder" style="background-image:url('${v.thumbnail || ''}')"></div>
+                            <video data-src="${v.videoUrl}" muted loop playsinline preload="metadata"></video>
+                            <div class="slide-overlay">
+                                <div class="seek-container">
+                                    <span class="seek-time current">0:00</span>
+                                    <input type="range" class="seek-slider" min="0" max="1" step="0.001" value="0" />
+                                    <span class="seek-time duration">0:00</span>
+                                </div>
+                                <div class="video-title">${v.title}</div>
+                                <div class="video-author">@${v.author || 'Reh'}</div>
+                            </div>
+                            <div class="action-buttons">
+                                <div class="action-btn like-btn" data-id="${v.id}">
+                                    <i class="fa-solid fa-heart"></i>
+                                    <span class="count-label like-count">${likes}</span>
+                                </div>
+                                <div class="action-btn" style="pointer-events:none;">
+                                    <i class="fa-solid fa-eye"></i>
+                                    <span class="count-label view-count">${views}</span>
+                                </div>
+                                <div class="action-btn sound-btn"><i class="fa-solid fa-volume-mute"></i></div>
+                                <div class="action-btn"><i class="fa-solid fa-share"></i></div>
+                            </div>
+                        `;
+                        tvContainer.appendChild(slide);
+
+                        const video = slide.querySelector('video');
+                        const seekSlider = slide.querySelector('.seek-slider');
+                        const currentTimeLabel = slide.querySelector('.seek-time.current');
+                        const durationLabel = slide.querySelector('.seek-time.duration');
+
+                        // Seek bar updates
+                        video.addEventListener('timeupdate', () => {
+                            if (video.duration && !isNaN(video.duration)) {
+                                const progress = video.currentTime / video.duration;
+                                seekSlider.value = progress;
+                                currentTimeLabel.textContent = formatTime(video.currentTime);
+                                const percent = progress * 100;
+                                seekSlider.style.background = `linear-gradient(to right, var(--gold-light) ${percent}%, rgba(255,255,255,0.25) ${percent}%)`;
+                            }
+                        });
+
+                        video.addEventListener('loadedmetadata', () => {
+                            if (video.duration) {
+                                durationLabel.textContent = formatTime(video.duration);
+                            }
+                        });
+
+                        seekSlider.addEventListener('input', (e) => {
+                            if (video.duration && !isNaN(video.duration)) {
+                                const newTime = parseFloat(e.target.value) * video.duration;
+                                video.currentTime = newTime;
+                                currentTimeLabel.textContent = formatTime(newTime);
+                                const percent = parseFloat(e.target.value) * 100;
+                                seekSlider.style.background = `linear-gradient(to right, var(--gold-light) ${percent}%, rgba(255,255,255,0.25) ${percent}%)`;
+                            }
+                        });
+
+                        observer.observe(slide);
+                    });
+
+                    // ─── Sound Toggle ───────────────────────────────
+                    document.querySelectorAll('.sound-btn').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            isMuted = !isMuted;
+                            if (activeVideo) {
+                                activeVideo.muted = isMuted;
+                                const icon = btn.querySelector('i');
+                                if (isMuted) {
+                                    icon.className = 'fa-solid fa-volume-mute';
+                                } else {
+                                    icon.className = 'fa-solid fa-volume-up';
+                                }
+                            }
+                        });
+                    });
+
+                    // ─── Like Button ─────────────────────────────────
+                    document.querySelectorAll('.like-btn').forEach(btn => {
+                        btn.addEventListener('click', async (e) => {
+                            e.stopPropagation();
+                            const id = btn.dataset.id;
+                            const docRef = db.collection("tar_tv_videos").doc(id);
+                            try {
+                                await docRef.update({
+                                    likes: FieldValue.increment(1)
+                                });
+                                const snap = await docRef.get();
+                                const newLikes = snap.data().likes || 0;
+                                btn.querySelector('.like-count').textContent = newLikes;
+                            } catch (err) {
+                                console.error('Like error:', err);
+                                showError('Like failed: ' + err.message);
+                            }
+                        });
+                    });
+
+                } catch (error) {
+                    console.error('Tar TV error:', error);
+                    showError('Error: ' + error.message);
+                    loader.style.display = 'none';
+                    tvContainer.innerHTML = '';
+                }
+            })();
+
+        })();
     </script>
 </body>
 </html>
