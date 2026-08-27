@@ -54,7 +54,8 @@ const navContainer = document.querySelector(".nav");
 navContainer.innerHTML = `<div class="nav-inner">
   <a href="index.html?redirect=discover.html" class="nav-brand">
 
-    <!--<div class="nav-brand-icon"><i class="fa-solid fa-gem"></i></div>-->
+    <!--<div class="nav-brand-icon"><i class="fa-solid fa-gem"></i></div>
+-->
 
     <div class="nav-brand-icon"><img class="brand-img" style="border-radius: 50%;"src="https://files.catbox.moe/8r2yqf.jpg" loading="lazy"></div>
     <span class="nav-brand-text">Reh</span>
@@ -182,7 +183,13 @@ const bottomNavHTML = `
   </div>
 `;
 
-document.body.insertAdjacentHTML('beforeend', bottomNavHTML);
+const currentPageName = window.location.pathname.split('/').pop().toLowerCase();
+
+// Only inject bottom nav on pages that need it
+if (!['login.html', 'register.html', 'signin.html', 'signup.html', 'dashboard.html', 'plans.html'].includes(currentPageName)) {
+    document.body.insertAdjacentHTML('beforeend', bottomNavHTML);
+}
+//document.body.insertAdjacentHTML('beforeend', bottomNavHTML);
 
 const mobileSidebarContainer = document.querySelector(".sidebar");
 mobileSidebarContainer.innerHTML = `<a href="index.html?redirect=discover.html" class="sidebar-brand">
@@ -547,10 +554,10 @@ footerContainer.innerHTML = `<div class="footer-grid">
         <p>Reh is the world’s most exclusive dating circle — where extraordinary hearts find home. Curated connections,
             luxury events, and a 24/7 concierge make every encounter a masterpiece.</p>
         <div class="footer-social">
-            <a href="#"><i class="fa-brands fa-instagram"></i></a>
-            <a href="#"><i class="fa-brands fa-tiktok"></i></a>
-            <a href="#"><i class="fa-brands fa-x-twitter"></i></a>
-            <a href="https://tiktok.com@reh"><i class="fa-brands fa-youtube"></i></a>
+            <a href="https://www.instagram.com/rehcrown?igsi=ZGRyeGc2NnB3azcz"><i class="fa-brands fa-instagram"></i></a>
+            <a href="https://vm.tiktok.com/ZS9BhLYLd2Jtc-uQBvC"><i class="fa-brands fa-tiktok"></i></a>
+            <a href="https://x.com/Rehhcxm"><i class="fa-brands fa-x-twitter"></i></a>
+            <a href="https://youtube.com/@rehcrown?si=cmEBpwkYZNfYYl9k"><i class="fa-brands fa-youtube"></i></a>
         </div>
     </div>
     <!-- Quick Links -->
