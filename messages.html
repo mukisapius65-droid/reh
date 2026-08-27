@@ -76,9 +76,10 @@
                     }, 100);
                 }
             }
-
+                       
+            const container = document.getElementById('messagesList');
+            container.innerHTML = 'Loading chats..';
             waitForFirebase(async function() {
-                const container = document.getElementById('messagesList');
                 const currentUser = JSON.parse(localStorage.getItem('reh_user') || '{}');
                 if (!currentUser.email) {
                     container.innerHTML = '<p class="empty-state">Please log in.</p>';
@@ -215,6 +216,7 @@ for (const chatDoc of chatsSnap.docs) {
 });
 
                     // Render list
+                    
                     container.innerHTML = conversations.map(conv => {
                         const userName = conv.email.split('@')[0];
                         const preview = conv.lastMessage?.substring(0, 60) || 'No message';

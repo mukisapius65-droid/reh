@@ -604,6 +604,44 @@ function attachInteractionHandlers() {
       admireUser(targetEmail, this);   // ← pass the button
     });
   });
+    //phone card
+    document.querySelectorAll('.card-phone-wrapper').forEach(wrapper => {
+  const phoneDiv = wrapper.querySelector('.card-phone');
+  const dropdown = wrapper.querySelector('.phone-dropdown');
+
+  phoneDiv.addEventListener('click', function(e) {
+    e.stopPropagation();
+    // Close all other dropdowns
+    document.querySelectorAll('.phone-dropdown').forEach(d => {
+      if (d !== dropdown) d.style.display = 'none';
+    });
+    // Toggle this one
+    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+  });
+
+  // Dropdown buttons
+  dropdown.querySelectorAll('.phone-option').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const phone = phoneDiv.getAttribute('data-phone');
+      const action = this.getAttribute('data-action');
+      if (action === 'copy') {
+        navigator.clipboard?.writeText(phone).then(() => showToast('📋 Phone number copied: ' + phone))
+          .catch(() => showToast('Copy failed'));
+      } else if (action === 'call') {
+        window.location.href = 'tel:' + phone.replace(/[^+\d]/g, '');
+      }
+      dropdown.style.display = 'none';
+    });
+  });
+});
+
+// Close dropdown when clicking anywhere else
+document.addEventListener('click', function() {
+  document.querySelectorAll('.phone-dropdown').forEach(d => d.style.display = 'none');
+});
+    
+
 
   // Bookmark button
   document.querySelectorAll('.bookmark-btn').forEach(btn => {
@@ -700,6 +738,7 @@ function renderSingleCard(u, index) {
   const statusText = online ? "Online" : getRelativeStatus(lastMs);
   const statusClass = online ? "online" : "offline";
   const phone = u.phone || "Private";
+  const phoneLink  = phone ? phone.replace(/^[+\d]g/, '') : '';
   const viewedMark = hasViewed(u.email)
     ? `<div class="viewed-badge" style="position:absolute; top:16px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.6); backdrop-filter:blur(10px); padding:4px 12px; border-radius:20px; font-size:0.7rem; color:var(--gold-light); display:flex; align-items:center; gap:4px;"><i class="fa-solid fa-eye"></i> Viewed</div>`
     : '';
@@ -733,8 +772,15 @@ function renderSingleCard(u, index) {
          </button>
       </div>
       
-      <div class="card-phone" data-phone="${phone}"><i class="fa-solid fa-phone"></i> ${phone}</div>
-
+      <div class="card-phone-wrapper" style="position:relative;">
+  <div class="card-phone" data-phone="${phone}" style="cursor:pointer;">
+    <i class="fa-solid fa-phone"></i> ${phone}
+  </div>
+  <div class="phone-dropdown" style="display:none; position:absolute; left:0; bottom:100%; background:rgba(15,20,50,0.95); border:1px solid var(--gold); border-radius:12px; padding:0.5rem; z-index:50; min-width:140px;">
+    <button class="phone-option" data-action="call" style="display:block; width:100%; background:none; border:none; color:var(--gold-light); padding:8px 10px; text-align:left; cursor:pointer;"><i class="fa-solid fa-phone"></i> Call ${phone}</button>
+    <button class="phone-option" data-action="copy" style="display:block; width:100%; background:none; border:none; color:var(--text-secondary); padding:8px 10px; text-align:left; cursor:pointer;"><i class="fa-solid fa-copy"></i> Copy Number</button>
+  </div>
+</div>
       </div>
     </div>`;
 }
@@ -885,7 +931,8 @@ grid.innerHTML = html;
     { threshold: 0.1 },
   );
   cards.forEach((card) => observer.observe(card));
-
+    
+/*
   // Phone copy functionality
   document.querySelectorAll(".card-phone").forEach((el) => {
     el.addEventListener("click", function (e) {
@@ -905,7 +952,7 @@ grid.innerHTML = html;
       this.style.backgroundColor = "rgba(200,155,60,0.25)";
       setTimeout(() => { this.style.backgroundColor = ""; }, 300);
     });
-  });
+  });*/
 
   // Card click navigation
   document.querySelectorAll('.profile-card').forEach(card => {
@@ -1037,7 +1084,8 @@ grid.innerHTML = html;
       await loadAdmirationCache();
        // createParticles();
       await  renderCards("all", "");
-     renderStories();
+   
+  renderStories();
     }
 
     function waitForFirebase(callback) {
