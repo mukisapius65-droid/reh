@@ -30,7 +30,6 @@ import {
   increment,
   Timestamp,
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-// 🔽 ADD THIS IMPORT BLOCK
 import {
   getStorage,
   ref,
@@ -50,13 +49,51 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-// 🔽 ADD THIS LINE
 const storage = getStorage(app);
 
-// Expose globally
+// ── Named exports (for modern ES modules) ──
+export {
+  app,
+  auth,
+  db,
+  storage,
+  // Auth
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  // Firestore
+  writeBatch,
+  doc,
+  setDoc,
+  collectionGroup,
+  getDoc,
+  updateDoc,
+  arrayRemove,
+  collection,
+  getDocs,
+  query,
+  orderBy,
+  limit,
+  where,
+  onSnapshot,
+  arrayUnion,
+  serverTimestamp,
+  addDoc,
+  deleteDoc,
+  increment,
+  Timestamp,
+  // Storage
+  ref as storageRef,
+  uploadBytes,
+  getDownloadURL,
+};
+
+// ── Keep window assignments for legacy pages ──
+window.app = app;
 window.auth = auth;
 window.db = db;
-window.storage = storage; // 🔽 ADD THIS
+window.storage = storage;
 
 // Auth
 window.onAuthStateChanged = onAuthStateChanged;
@@ -84,11 +121,11 @@ window.arrayRemove = arrayRemove;
 window.collectionGroup = collectionGroup;
 window.writeBatch = writeBatch;
 window.increment = increment;
-window.Timestamp = Timestamp; // 🔽 ADD THIS (optional, but good to have)
+window.Timestamp = Timestamp;
 
-// 🔽 ADD THESE STORAGE EXPORTS
+// Storage
 window.storageRef = ref;
 window.uploadBytes = uploadBytes;
 window.getDownloadURL = getDownloadURL;
 
-console.log('[firebase] Initialized with Auth, Firestore, and Storage.');
+console.log('[firebase] Initialized with Auth, Firestore, and Storage (modular exports available).');

@@ -223,6 +223,14 @@ mobileSidebarContainer.innerHTML = `<a href="index.html?redirect=discover.html" 
     <button id="sidebarLogoutBtn"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</button>
 </div>`;
 
+
+// ── Mobile nav toggle ────────────────────────
+const sidebar = document.getElementById("sidebar");
+const hamburger = document.querySelector(".nav-hamburger");
+hamburger.addEventListener("click", () => {
+  sidebar.classList.toggle("invisible");
+});
+
 // Show / hide create modal
 const createStoryBtn = document.getElementById('createStoryBtn');
 const createModal = document.getElementById('createModal');
@@ -411,13 +419,6 @@ if (typeof window.cleanupExpiredStories === 'function') {
     window.cleanupExpiredStories().catch(err => console.warn('Cleanup interval failed:', err));
   }, 300000); // 5 minutes
 }
-
-// ── Mobile nav toggle ────────────────────────
-const sidebar = document.getElementById("sidebar");
-const hamburger = document.querySelector(".nav-hamburger");
-hamburger.addEventListener("click", () => {
-  sidebar.classList.toggle("invisible");
-});
 
 function updateNavFromAuth() {
   const user = JSON.parse(localStorage.getItem(USER_KEY));
@@ -1080,4 +1081,42 @@ document.addEventListener('click', async (e) => {
         deferredPrompt = null;
         installBtn.classList.remove('show');   // hide again
     }
+});
+// ── Notification Bell Dropdown Toggle (Robust) ──
+// Use event delegation on document to handle clicks on both desktop and mobile bells.
+document.addEventListener('click', function(e) {
+    // Check if click is on desktop bell or its children
+    const desktopBell = e.target.closest('#notificationBell');
+    if (desktopBell) {
+        e.stopPropagation();
+        const dropdown = desktopBell.querySelector('.notif-dropdown');
+        if (dropdown) {
+            dropdown.classList.toggle('show');
+            // Optional: log for debugging
+            console.log('Desktop bell toggled, dropdown display:', dropdown.style.display);
+        } else {
+            console.warn('Desktop bell found but .notif-dropdown missing');
+        }
+        return; // prevent other handlers
+    }
+
+    // Check if click is on mobile bell or its children
+    const mobileBell = e.target.closest('#mobileNotificationBell');
+    if (mobileBell) {
+        e.stopPropagation();
+        const dropdown = mobileBell.querySelector('.mobile-notif-dropdown');
+        if (dropdown) {
+            dropdown.classList.toggle('show');
+            console.log('Mobile bell toggled');
+        } else {
+            console.warn('Mobile bell found but .mobile-notif-dropdown missing');
+        }
+        return;
+    }
+
+    // Close any open dropdown when clicking outside (but not on a bell)
+    // We already returned if clicked on a bell, so this closes everything else.
+    document.querySelectorAll('.notif-dropdown.show, .mobile-notif-dropdown.show').forEach(function(d) {
+        d.classList.remove('show');
+    });
 });
