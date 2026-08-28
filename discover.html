@@ -149,6 +149,53 @@
     <!-- Tap zones -->
     <div id="story-left-tap" style="position:absolute; left:0; top:0; width:30%; height:100%; z-index:2; cursor:pointer;"></div>
     <div id="story-right-tap" style="position:absolute; right:0; top:0; width:30%; height:100%; z-index:2; cursor:pointer;"></div>
+    <!-- Reply Bar -->
+<div id="story-reply-bar" style="
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 0.8rem 1rem 1.2rem;
+    background: linear-gradient(transparent, rgba(0,0,0,0.7));
+    backdrop-filter: blur(6px);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    z-index: 6;
+    transition: transform 0.3s;
+">
+    <div class="reply-emoji-row" style="display: flex; gap: 0.8rem; justify-content: center; font-size: 1.6rem;">
+        <span class="reply-emoji" data-emoji="❤️">❤️</span>
+        <span class="reply-emoji" data-emoji="😍">😍</span>
+        <span class="reply-emoji" data-emoji="🔥">🔥</span>
+        <span class="reply-emoji" data-emoji="😂">😂</span>
+        <span class="reply-emoji" data-emoji="👏">👏</span>
+        <span class="reply-emoji" data-emoji="😮">😮</span>
+    </div>
+    <div style="display: flex; gap: 0.5rem; align-items: center;">
+        <input type="text" id="story-reply-input" placeholder="Reply to this story..." style="
+            flex: 1;
+            padding: 0.6rem 1rem;
+            border-radius: 25px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.1);
+            color: white;
+            outline: none;
+            font-size: 0.9rem;
+        " />
+        <button id="story-reply-send" style="
+            background: var(--gold, #c9a84c);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            color: #000;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: 0.3s;
+        "><i class="fa-regular fa-paper-plane"></i></button>
+    </div>
+</div>
   </div>
 </div>
     
@@ -932,7 +979,8 @@ grid.innerHTML = html;
   );
   cards.forEach((card) => observer.observe(card));
     
-/*
+
+/*
   // Phone copy functionality
   document.querySelectorAll(".card-phone").forEach((el) => {
     el.addEventListener("click", function (e) {
@@ -952,7 +1000,8 @@ grid.innerHTML = html;
       this.style.backgroundColor = "rgba(200,155,60,0.25)";
       setTimeout(() => { this.style.backgroundColor = ""; }, 300);
     });
-  });*/
+  });
+*/
 
   // Card click navigation
   document.querySelectorAll('.profile-card').forEach(card => {
@@ -1120,6 +1169,27 @@ let storyGroupsCache = null;
 let viewerData = [];
 let viewerIndex = 0;
 let viewerTimer = null;
+let viewerPaused = false;   // auto-advance pause flag
+
+function pauseStoryTimer() {
+    viewerPaused = true;
+    clearTimeout(viewerTimer);
+    viewerTimer = null;
+}
+
+function resumeStoryTimer() {
+    viewerPaused = false;
+    if (viewerData.length > 0 && viewerIndex < viewerData.length) {
+        clearTimeout(viewerTimer);
+        viewerTimer = setTimeout(() => {
+            if (viewerIndex < viewerData.length - 1) {
+                showStory(viewerIndex + 1);
+            } else {
+                closeStoryViewer();
+            }
+        }, 5000);
+    }
+}
 
 /**
  * Render the story circles in the row.
@@ -1241,6 +1311,11 @@ window.openStoryViewer = function(userId, storyIds) {
   const viewer = document.getElementById('story-viewer');
   if (viewer) viewer.style.display = 'block';
 
+  //Hide bottom nav bar
+  const bottomNav = document.getElementById('mobileBottomNav') || document.querySelector('.mobile-bottom-nav');
+   if (bottomNav) bottomNav.style.display = 'none';
+  
+
   // Display the first story
   showStory(0);
 };
@@ -1256,6 +1331,12 @@ function showStory(index) {
   }
 
   const currentUser = window.getCurrentUser ? window.getCurrentUser() : null;
+  // ── Show/hide reply bar ──────────────────
+const replyBar = document.getElementById('story-reply-bar');
+if (replyBar) {
+    const isOwn = story.userId === currentUser?.email;
+    replyBar.style.display = isOwn ? 'none' : 'flex';
+}
 
   // Update user info
   const nameEl = document.getElementById('story-viewer-name');
@@ -1322,14 +1403,106 @@ function showStory(index) {
   }
 
   // Reset and start auto-advance timer (5 seconds)
-  clearTimeout(viewerTimer);
-  viewerTimer = setTimeout(() => {
-    if (index < viewerData.length - 1) {
-      showStory(index + 1);
-    } else {
-      closeStoryViewer();
+  // Reset and start auto-advance timer (5 seconds) – only if not paused
+clearTimeout(viewerTimer);
+if (!viewerPaused) {
+    viewerTimer = setTimeout(() => {
+        if (index < viewerData.length - 1) {
+            showStory(index + 1);
+        } else {
+            closeStoryViewer();
+        }
+    }, 5000);
+} else {
+    viewerTimer = null; // ensure it's cleared
+}
+}
+
+  // ─── Story Reply / Chat Sending ────────────────────
+async function sendStoryReply(messageText) {
+    const currentUser = window.getCurrentUser ? window.getCurrentUser() : null;
+    if (!currentUser || !currentUser.email) {
+        alert('Please log in to reply.');
+        return;
     }
-  }, 5000);
+
+    // Get the current story owner from viewerData
+    if (!viewerData || viewerData.length === 0 || viewerIndex >= viewerData.length) {
+        alert('No story selected.');
+        return;
+    }
+    const story = viewerData[viewerIndex];
+    const recipientEmail = story.userId;
+    if (!recipientEmail) {
+        alert('Recipient not found.');
+        return;
+    }
+
+    // Build conversation ID (sorted emails)
+    const emails = [currentUser.email, recipientEmail].sort();
+    const convId = emails.join('_');
+
+    // 🔽 FIXED: Use window.serverTimestamp (modular) instead of firebase.firestore
+    const timestamp = window.serverTimestamp ? window.serverTimestamp() : new Date();
+
+    // Prepare message data
+    const messageData = {
+        from: currentUser.email,
+        to: recipientEmail,
+        text: messageText, // plain text (emoji or typed)
+        previewText: messageText, // for preview in messages list
+        timestamp: timestamp,
+        read: false
+    };
+
+    try {
+        // 1. Add message to subcollection
+        const messagesRef = window.collection(window.db, 'chats', convId, 'messages');
+        await window.addDoc(messagesRef, messageData);
+
+        // 2. Update parent chat document (create if not exists)
+        const chatRef = window.doc(window.db, 'chats', convId);
+        const chatSnap = await window.getDoc(chatRef);
+        if (chatSnap.exists()) {
+            // Update lastTimestamp and increment unread for recipient
+            await window.updateDoc(chatRef, {
+                lastTimestamp: timestamp,
+                [`unread_${recipientEmail}`]: window.increment(1)
+            });
+        } else {
+            // Create new chat document
+            await window.setDoc(chatRef, {
+                participants: emails,
+                lastTimestamp: timestamp,
+                [`unread_${recipientEmail}`]: 1,
+                [`unread_${currentUser.email}`]: 0
+            });
+        }
+
+        // 3. Send notification to the story owner
+        await window.addDoc(window.collection(window.db, 'notifications'), {
+            title: 'Story Reply',
+            body: `${currentUser.firstName || 'Someone'} replied to your story: "${messageText}"`,
+            timestamp: timestamp,
+            targetEmail: recipientEmail,
+            readBy: [],
+            senderEmail: currentUser.email,
+            senderUsername: currentUser.firstName || 'Someone'
+        });
+
+        // 4. Clear input and show feedback
+        document.getElementById('story-reply-input').value = '';
+        if (typeof showToast === 'function') {
+            showToast('✅ Reply sent!');
+        } else {
+            alert('Reply sent!');
+        }
+        resumeStoryTimer();
+
+    } catch (error) {
+        console.error('Error sending story reply:', error);
+        alert('Failed to send reply. Please try again.');
+    }
 }
 
 /**
@@ -1338,6 +1511,11 @@ function showStory(index) {
 function closeStoryViewer() {
   const viewer = document.getElementById('story-viewer');
   if (viewer) viewer.style.display = 'none';
+
+  //Show bottom nav bar again 
+  const bottomNav = document.getElementById('mobileBottomNav') || document.querySelector('.mobile-bottom-nav');
+  if (bottomNav) bottomNav.style.display = '';
+
   clearTimeout(viewerTimer);
   viewerTimer = null;
   // Optionally reset progress
@@ -1392,6 +1570,42 @@ document.addEventListener('DOMContentLoaded', function() {
   if (closeBtn) {
     closeBtn.addEventListener('click', closeStoryViewer);
   }
+  
+  // ── Reply bar event listeners ─────────────────
+// Emoji clicks
+document.querySelectorAll('.reply-emoji').forEach(el => {
+    el.addEventListener('click', function(e) {
+        e.stopPropagation();
+        pauseStoryTimer();
+        const emoji = this.dataset.emoji;
+        sendStoryReply(emoji);
+    });
+});
+
+// Send button
+const sendBtn = document.getElementById('story-reply-send');
+if (sendBtn) {
+    sendBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const input = document.getElementById('story-reply-input');
+        const text = input.value.trim();
+        if (text) {
+            pauseStoryTimer();
+            sendStoryReply(text);
+        }
+    });
+}
+
+// Input focus & keydown
+const replyInput = document.getElementById('story-reply-input');
+if (replyInput) {
+    replyInput.addEventListener('focus', function() {
+        pauseStoryTimer();
+    });
+    replyInput.addEventListener('keydown', function() {
+        pauseStoryTimer();
+    });
+}
 });
 
 // --- Call renderStories after user cards are loaded ---
@@ -1400,6 +1614,12 @@ document.addEventListener('DOMContentLoaded', function() {
 // renderStories();
 
 // Also expose renderStories globally so it can be called after story upload
+window.renderStories = renderStories;
+})();
+</script>
+<script src="assets/toadmin.js"></script>
+</body>
+</html>es globally so it can be called after story upload
 window.renderStories = renderStories;
 })();
 </script>
