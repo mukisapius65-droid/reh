@@ -43,13 +43,21 @@ export function initSidebar() {
     link.classList.toggle('active', link.dataset.page === activePage);
   });
 
-  // ─── Mobile sidebar toggle (hamburger) ─────────
-  const hamburger = document.querySelector('.nav-hamburger');
-  if (hamburger) {
-    hamburger.addEventListener('click', () => {
-      sidebarContainer.classList.toggle('invisible');
-    });
-  }
+ // ─── Mobile sidebar toggle (hamburger) ─────────
+const hamburger = document.querySelector('.nav-hamburger');
+if (hamburger) {
+  hamburger.addEventListener('click', () => {
+    const sidebar = document.querySelector('.sidebar');
+    const bottomNav = document.getElementById('mobileBottomNav');
+    if (sidebar) {
+      sidebar.classList.toggle('invisible');
+      // Hide/show bottom nav based on sidebar state
+      if (bottomNav) {
+        bottomNav.style.display = sidebar.classList.contains('invisible') ? '' : 'none';
+      }
+    }
+  });
+}
 
   // ─── Sidebar logout (relies on window.logoutUser from auth.js) ──
   const sidebarLogoutBtn = document.getElementById('sidebarLogoutBtn');
