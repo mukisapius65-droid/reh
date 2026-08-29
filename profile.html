@@ -1040,7 +1040,7 @@
             </div>
             <br />
             <a
-              href="plans.html"
+              href="plans"
               style="
                 font-size: 0.75rem;
                 color: var(--gold-light);
@@ -1736,11 +1736,36 @@ Art curator &amp; passionate about Renaissance history. Looking for genuine conn
     });
 
     // ── Logout ──────────────────────────────
-    document.getElementById('logoutBtn').addEventListener('click', () => {
+    // ── Logout ──────────────────────────────
+function attachLogoutListener() {
+  const logoutBtn = document.getElementById('logoutBtn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
       localStorage.removeItem(SESSION_KEY);
       showToast('🌸 You have been logged out.');
       window.location.href = 'index.html?redirect=discover.html';
     });
+  } else {
+    // If the button isn't in the DOM yet, wait for it using MutationObserver
+    const observer = new MutationObserver(() => {
+      const btn = document.getElementById('logoutBtn');
+      if (btn) {
+        btn.addEventListener('click', () => {
+          localStorage.removeItem(SESSION_KEY);
+          showToast('🌸 You have been logged out.');
+          window.location.href = 'index.html?redirect=discover.html';
+        });
+        observer.disconnect();
+      }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+    // Fallback timeout (safety)
+    setTimeout(() => observer.disconnect(), 5000);
+  }
+}
+
+// Call the function to attach the listener
+attachLogoutListener();
 
     // ── Start ───────────────────────────────
     loadProfile();

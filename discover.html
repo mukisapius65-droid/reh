@@ -198,11 +198,20 @@
 </div>
   </div>
 </div>
+
+<script type="module">
+  import { initNavigation } from './assets/modules/navigation.js';
+  import { initSidebar } from './assets/modules/sidebar.js';
+  import { initBottomNav } from './assets/modules/bottom-nav.js';
+  initNavigation();
+  initSidebar();
+  initBottomNav();
+</script>
     
     <script src="assets/general.js"></script>
     <script src="assets/auth.js"></script>
+    <script src="assets/stories.js"></script>
 
-<script src="assets/stories.js"></script>
 <script>
     (function () {
   // ── Audio context (for notification sounds) ──
