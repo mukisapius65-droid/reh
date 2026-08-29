@@ -3,6 +3,9 @@ const USERS_KEY = "reh_users";
 const AUTH_KEY = "reh_user";
 const SESSION_KEY = "reh_user";
 
+// ── Presence heartbeat interval reference ──
+let presenceInterval = null;
+
 // Save user after login/signup
 function loginUser(userData) {
   localStorage.setItem(AUTH_KEY, JSON.stringify(userData));
@@ -153,7 +156,7 @@ function resetPresence() {
   localStorage.setItem(USERS_KEY, JSON.stringify(allUsers));
   localStorage.removeItem(USER_KEY);
 }
-
+/*
 const sidebarLogoutBtn = document.getElementById("sidebarLogoutBtn");
 if (sidebarLogoutBtn) {
   sidebarLogoutBtn.addEventListener("click", () => {
@@ -175,6 +178,7 @@ if (logoutBtn) {
     showToast("🌸 You have been logged out.");
   });
 }
+*/
 
 // ── Presence: heartbeat to Firestore ─────────────
 
