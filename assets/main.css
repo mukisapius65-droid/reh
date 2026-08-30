@@ -166,6 +166,38 @@ body {
     opacity: 0;
   }
 }
+/* ── Official Verification Badge (blue check) ── */
+.official-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0.2rem;
+  margin-bottom: 5px;
+  width: 15px;
+  height: 15px;
+  background: #3498db;
+  border-radius: 50%;
+  color: white;
+  font-size: 0.7rem;
+  line-height: 1;
+  flex-shrink: 0;
+  box-shadow: 0 0 6px rgba(52, 152, 219, 0.4);
+}
+
+/* For smaller screens, adjust size */
+@media (max-width: 480px) {
+  .official-badge {
+    width: 12px;
+    height: 12px;
+    font-size: 0.5rem;
+  }
+}
+
+/* Alternative: if you want a pure crown icon without zigzag, use this simpler badge */
+.official-badge i {
+  font-size: inherit;
+  line-height: 1;
+}
 
 /* ── Main Wrapper ──────────────────────────── */
 .main-wrapper {
@@ -189,7 +221,7 @@ body {
   overflow-y: auto;
   bottom: 0;
   left: 0;
-  z-index: 100;
+  z-index: 950;
   transition: transform 0.3s;
 }
 .sidebar::-webkit-scrollbar {
@@ -1848,7 +1880,7 @@ body {
     display: none;   /* hidden on desktop */
     justify-content: space-around;
     align-items: center;
-    z-index: 900;
+    z-index: 800;
     padding: 0 1rem;
 }
 
@@ -2024,6 +2056,10 @@ body {
 .story-avatar.unviewed {
   border-color: #f5a623;
   box-shadow: 0 0 0 2px #f5a623;
+}
+#story-views-container {
+  font-family: 'Inter', sans-serif;
+  letter-spacing: 0.02em;
 }
 .add-story-btn {
   position: absolute;
