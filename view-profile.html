@@ -295,7 +295,8 @@ await window.updateDoc(window.doc(window.db, "chats", convId), {
         container.scrollTop = container.scrollHeight;
       });
     }
-/*
+
+/*
     async function sendMessage(targetEmail) {
       const cur = getCurrentUser();
       if (!cur || !convId) return;
@@ -323,7 +324,8 @@ await window.setDoc(window.doc(window.db, "chats", convId), {
   lastTimestamp: window.serverTimestamp ? window.serverTimestamp() : new Date()
 }, { merge: true });
       } catch(e) { console.error(e); showToast('Failed to send message.'); }
-    }*/
+    }
+*/
     
     async function sendMessage(targetEmail) {
   const cur = getCurrentUser();
@@ -413,7 +415,11 @@ await window.setDoc(window.doc(window.db, "chats", convId), {
               </div>
               <img class="main-photo" src="${mainPhoto}" alt="${profile.firstName}">
               <div class="username">${username}</div>
-              <div class="display-name">${profile.firstName} ${profile.lastName} ${isVerified?'<i class="fa-solid fa-circle-check verified-badge" title="Verified Elite"></i>':''}</div>
+              <div class="display-name">
+  ${profile.firstName} ${profile.lastName}
+  ${isOfficial(profile) ? '<span class="official-badge"><i class="fa-solid fa-check"></i></span>' : ''}
+  ${isVerified ? '<i class="fa-solid fa-circle-check verified-badge" title="Verified Elite"></i>' : ''}
+</div>
               <div class="age-badge">${profile.age||''}</div>
               <div class="online-status">${online?'<span class="online-dot"></span> Online':'<span class="offline-dot"></span> Offline'}</div>
               <div class="info-row">

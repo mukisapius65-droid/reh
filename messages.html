@@ -56,6 +56,7 @@
         <div id="messagesList"></div>
     </div>
 
+    <script type="module" src="assets/utils.js"></script>
     <script type="module" src="assets/firebase.js"></script>
     <script>
         (function() {
@@ -207,7 +208,7 @@ for (const chatDoc of chatsSnap.docs) {
                     if (conversations.length === 0) {
                         container.innerHTML = '<div class="empty-state"><i class="fa-solid fa-inbox"></i><p>No messages yet.</p></div>';
                         return;
-                    }*/
+                    }
                     
                     const conversations = Array.from(messageMap.values()).sort((a, b) => {
   const aTime = a.timestamp?.seconds ? a.timestamp.seconds * 1000 : a.timestamp || 0;
@@ -219,13 +220,15 @@ for (const chatDoc of chatsSnap.docs) {
                     
                     container.innerHTML = conversations.map(conv => {
                         const userName = conv.email.split('@')[0];
+                        const officialBadge = isOfficial(senderUser) ? '<span class="official-badge"><i class="fa-solid fa-check"></i></span>' : '';
                         const preview = conv.lastMessage?.substring(0, 60) || 'No message';
                         const time = new Date(conv.timestamp?.seconds ? conv.timestamp.seconds*1000 : conv.timestamp).toLocaleDateString();
                         return `
                             <div class="message-card" onclick="location.href='view-profile.html?email=${conv.email}&chat=open'">
                                 <img src="https://ui-avatars.com/api/?name=${userName}&background=c9a84c&color=080c24" class="message-avatar">
                                 <div class="message-info">
-                                    <div class="message-name">${userName}</div>
+                                   <!--</!> <div class="message-name">${userName}</div>-->
+                        <div class="message-name">${userName} ${officialBadge}</div>
                                     <div class="message-preview">${preview}</div>
                                     <div class="message-time">${time}</div>
                                     ${conv.type === 'gift' ? '<div class="gift-badge"><i class="fa-solid fa-gem"></i> Gift</div>' : ''}
@@ -233,7 +236,51 @@ for (const chatDoc of chatsSnap.docs) {
                                 ${conv.unread ? '<span class="unread-badge">1</span>' : ''}
                             </div>`;
                     }).join('');
+*/
+                    
+                    const conversations = Array.from(messageMap.values()).sort((a, b) => {
+  const aTime = a.timestamp?.seconds ? a.timestamp.seconds * 1000 : a.timestamp || 0;
+  const bTime = b.timestamp?.seconds ? b.timestamp.seconds * 1000 : b.timestamp || 0;
+  return bTime - aTime;
+});
 
+if (conversations.length === 0) {
+  container.innerHTML = '<div class="empty-state"><i class="fa-solid fa-inbox"></i><p>No messages yet.</p></div>';
+  return;
+}
+
+// ── Fetch user data for each conversation participant ──
+const userPromises = conversations.map(conv => window.getDoc(window.doc(window.db, 'users', conv.email)));
+const userSnapshots = await Promise.all(userPromises);
+const userMap = {};
+userSnapshots.forEach((snap, idx) => {
+  if (snap.exists()) {
+    const email = conversations[idx].email;
+    userMap[email] = { ...snap.data(), email: snap.id };
+  }
+});
+
+// ── Render list with official badge ──
+container.innerHTML = conversations.map(conv => {
+  const user = userMap[conv.email] || {};
+  const userName = user.firstName ? `${user.firstName} ${user.lastName}`.trim() : conv.email.split('@')[0];
+  const officialBadge = window.isOfficial && window.isOfficial(user) 
+    ? '<span class="official-badge"><i class="fa-solid fa-check"></i></span>' 
+    : '';
+  const preview = conv.lastMessage?.substring(0, 60) || 'No message';
+  const time = new Date(conv.timestamp?.seconds ? conv.timestamp.seconds * 1000 : conv.timestamp).toLocaleDateString();
+  return `
+    <div class="message-card" onclick="location.href='view-profile.html?email=${conv.email}&chat=open'">
+      <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=c9a84c&color=080c24" class="message-avatar">
+      <div class="message-info">
+        <div class="message-name">${userName} ${officialBadge}</div>
+        <div class="message-preview">${preview}</div>
+        <div class="message-time">${time}</div>
+        ${conv.type === 'gift' ? '<div class="gift-badge"><i class="fa-solid fa-gem"></i> Gift</div>' : ''}
+      </div>
+      ${conv.unread ? '<span class="unread-badge">1</span>' : ''}
+    </div>`;
+}).join('');
                 } catch (error) {
     console.error('Detailed error:', error);
     container.innerHTML = '<p class="empty-state">Failed to load messages. ' + error.message + '</p>';
