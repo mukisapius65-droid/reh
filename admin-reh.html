@@ -1131,6 +1131,12 @@
               ><input type="checkbox" id="editBanned" /> Shadow Ban User</label
             >
           </div>
+          <div class="form-group">
+  <label>
+    <input type="checkbox" id="officialVerified" />
+    Official Verification (Crown Badge)
+  </label>
+</div>
           <div class="modal-actions">
             <button class="btn btn-secondary" id="closeUserModal">
               Cancel
@@ -1657,6 +1663,7 @@
               document.getElementById("editAvatar").value = u.avatar || "";
               document.getElementById("editPlan").value = u.plan || "trial";
               document.getElementById("editBanned").checked = !!u.banned;
+              document.getElementById('officialVerified').checked = !!u.officialVerified;
               document.getElementById("userModalTitle").textContent =
                 "Edit User";
             } else {
@@ -1679,6 +1686,7 @@
               });
               document.getElementById("editPlan").value = "trial";
               document.getElementById("editBanned").checked = false;
+              document.getElementById('officialVerified').checked = false;
               document.getElementById("userModalTitle").textContent =
                 "Add User";
             }
@@ -1726,6 +1734,7 @@
                 avatar: document.getElementById("editAvatar").value.trim(),
                 plan: document.getElementById("editPlan").value,
                 banned: document.getElementById("editBanned").checked,
+                officialVerified: document.getElementById('officialVerified').checked,
               };
               var pw = document.getElementById("editPassword").value.trim();
               if (pw) data.password = pw;
@@ -1745,6 +1754,7 @@
                       lastActive: window.serverTimestamp(),
                       uid: docId,
                       banned: false,
+                      
                       incognito: false,
                       visibility: true,
                     }),
