@@ -1343,7 +1343,7 @@ window.openStoryViewer = function(userId, storyIds) {
 /**
  * Display a specific story from viewerData at the given index.
  */
-function showStory(index) {
+async function showStory(index) {
   const story = viewerData[index];
   if (!story) {
     closeStoryViewer();
@@ -1387,7 +1387,7 @@ if (isOwnStory) {
 } else {
   viewsContainer.onclick = null;
 }
-
+/*
   // Update user info
   const nameEl = document.getElementById('story-viewer-name');
   const avatarEl = document.getElementById('story-viewer-avatar');
@@ -1400,7 +1400,38 @@ if (isOwnStory) {
       : Date.now();
     timeEl.textContent = timeSince(ts);
   }
+*/
+    
+    const nameEl = document.getElementById('story-viewer-name');
+const avatarEl = document.getElementById('story-viewer-avatar');
+const timeEl = document.getElementById('story-viewer-time');
 
+if (avatarEl) avatarEl.src = story.userAvatar || 'default.jpg';
+if (timeEl) {
+  const ts = story.timestamp && typeof story.timestamp.toMillis === 'function'
+    ? story.timestamp.toMillis()
+    : Date.now();
+  timeEl.textContent = timeSince(ts);
+}
+
+// ── Official badge for story owner ──
+if (nameEl) {
+  let ownerName = story.userName || 'User';
+  let officialBadge = '';
+  try {
+    const ownerDoc = await window.getDoc(window.doc(window.db, 'users', story.userId));
+    if (ownerDoc.exists()) {
+      const owner = ownerDoc.data();
+      if (typeof window.isOfficial === 'function' && window.isOfficial(owner)) {
+        officialBadge = '<span class="official-badge"><i class="fa-solid fa-check"></i></span>';
+      }
+    }
+  } catch (e) {
+    console.warn('Failed to fetch owner for official badge:', e);
+  }
+  nameEl.innerHTML = `${ownerName} ${officialBadge}`;
+}
+    
   // Render content
   const mediaContainer = document.getElementById('story-media');
   if (mediaContainer) {
