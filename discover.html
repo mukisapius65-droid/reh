@@ -793,6 +793,7 @@ function renderSingleCard(u, index) {
   const online = (now - lastMs) < 20000;
   const statusText = online ? "Online" : getRelativeStatus(lastMs);
   const statusClass = online ? "online" : "offline";
+  const officialBadge = isOfficial(u) ? `<span class="official-badge"><i class="fa-solid fa-check"></i></span>` : '';
   const phone = u.phone || "Private";
   const phoneLink  = phone ? phone.replace(/^[+\d]g/, '') : '';
   const viewedMark = hasViewed(u.email)
@@ -817,7 +818,8 @@ function renderSingleCard(u, index) {
       </div>
       <div class="card-body">
         <span class="card-age">${u.age || ""}</span>
-        <div class="card-name">${u.firstName} ${u.lastName}</div>
+        <!--<div class="card-name">${u.firstName} ${u.lastName}</div>-->
+          <div class="card-name">${u.firstName} ${u.lastName} ${officialBadge}</div>
         <div class="card-location"><i class="fa-solid fa-location-dot"></i> ${u.location || "Unknown"}</div>
         ${u.distance !== false ? `<div class="card-distance" data-location="${u.location || ""}"><i class="fa-solid fa-route"></i> <span class="dist-text">— km</span></div>` : ""}
         <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap; margin-bottom: 5px;">
