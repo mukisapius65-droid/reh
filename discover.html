@@ -1584,42 +1584,7 @@ function timeSince(timestamp) {
   interval = interval / 24;
   return Math.floor(interval) + 'd ago';
 }
-
-// --- Attach event listeners for viewer navigation ---
-
-document.addEventListener('DOMContentLoaded', function() {
-  const leftTap = document.getElementById('story-left-tap');
-  const rightTap = document.getElementById('story-right-tap');
-  const closeBtn = document.getElementById('story-close-btn');
-
-  if (leftTap) {
-    leftTap.addEventListener('click', function() {
-      if (viewerIndex > 0) {
-        viewerIndex--;
-        showStory(viewerIndex);
-      } else {
-        // If at first story, close the viewer (or go to previous user? we'll keep it simple)
-        closeStoryViewer();
-      }
-    });
-  }
-
-  if (rightTap) {
-    rightTap.addEventListener('click', function() {
-      if (viewerIndex < viewerData.length - 1) {
-        viewerIndex++;
-        showStory(viewerIndex);
-      } else {
-        closeStoryViewer();
-      }
-    });
-  }
-
-  if (closeBtn) {
-    closeBtn.addEventListener('click', closeStoryViewer);
-  }
-
-  // ─── Viewers Modal ────────────────────────────────
+    //   ─── Viewers Modal ────────────────────────────────
 async function openViewersModal(story) {
   // Create modal if not exists
   let modal = document.getElementById('viewersModal');
@@ -1673,6 +1638,42 @@ async function openViewersModal(story) {
     list.innerHTML = '<p style="color:var(--danger);">Failed to load viewers.</p>';
   }
 }
+
+// --- Attach event listeners for viewer navigation ---
+
+document.addEventListener('DOMContentLoaded', function() {
+  const leftTap = document.getElementById('story-left-tap');
+  const rightTap = document.getElementById('story-right-tap');
+  const closeBtn = document.getElementById('story-close-btn');
+
+  if (leftTap) {
+    leftTap.addEventListener('click', function() {
+      if (viewerIndex > 0) {
+        viewerIndex--;
+        showStory(viewerIndex);
+      } else {
+        // If at first story, close the viewer (or go to previous user? we'll keep it simple)
+        closeStoryViewer();
+      }
+    });
+  }
+
+  if (rightTap) {
+    rightTap.addEventListener('click', function() {
+      if (viewerIndex < viewerData.length - 1) {
+        viewerIndex++;
+        showStory(viewerIndex);
+      } else {
+        closeStoryViewer();
+      }
+    });
+  }
+
+  if (closeBtn) {
+    closeBtn.addEventListener('click', closeStoryViewer);
+  }
+
+  //
   
   // ── Reply bar event listeners ─────────────────
 // Emoji clicks
