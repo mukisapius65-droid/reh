@@ -98,3 +98,19 @@ if (typeof window !== 'undefined') {
   window.isUserOnline = isUserOnline;
   window.getConversationId = getConversationId;
 }
+
+// assets/utils.js – add after existing functions
+
+/**
+ * Check if a user is officially verified (Reh Crown or admin‑approved).
+ * @param {Object} user - User object with officialVerified field.
+ * @returns {boolean}
+ */
+export function isOfficial(user) {
+  return !!(user && user.officialVerified === true);
+}
+
+// ── Add to window fallbacks ──
+if (typeof window !== 'undefined') {
+  window.isOfficial = isOfficial;
+}
