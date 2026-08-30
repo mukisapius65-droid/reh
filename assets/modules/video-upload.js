@@ -122,13 +122,20 @@ export function initVideoUpload() {
 
       const response = await new Promise((resolve, reject) => {
         xhr.onload = () => {
-          if (xhr.status >= 200 && xhr.status < 300) {
-            resolve(JSON.parse(xhr.responseText));
-          } else {
-            reject(new Error(xhr.statusText || 'Upload failed'));
+          try {
+            const parsed = JSON.parse(xhr.responseText);
+            if (xhr.status >= 200 && xhr.status < 300) {
+              resolve(parsed);
+            } else {
+              const errorMsg = parsed.error || parsed.message || xhr.statusText || 'Unknown error';
+              reject(new Error(`${xhr.status}: ${errorMsg}`));
+            }
+          } catch (parseError) {
+            // If response is not JSON
+            reject(new Error(`${xhr.status}: ${xhr.responseText || xhr.statusText}`));
           }
         };
-        xhr.onerror = () => reject(new Error('Network error'));
+        xhr.onerror = () => reject(new Error('Network error – /api/upload unreachable'));
         xhr.send(formData);
       });
 
@@ -151,7 +158,6 @@ export function initVideoUpload() {
 
       showToast('✅ Video posted successfully!');
       closeUploadModal();
-      // Refresh Tar TV if visible
       if (typeof window.loadTarTVVideos === 'function') {
         window.loadTarTVVideos();
       }
