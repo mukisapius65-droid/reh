@@ -105,10 +105,11 @@ export function initVideoUpload() {
     submitBtn.textContent = 'Uploading…';
 
     try {
-      // ── Upload to Catbox via proxy ──
-      const formData = new FormData();
-      formData.append('file', file);
-
+      // ── Upload to Catbox via proxy
+const formData = new FormData();
+formData.append('fileToUpload', file);     // Correct field name
+formData.append('reqtype', 'fileupload');  // Required field
+      
       const xhr = new XMLHttpRequest();
       xhr.open('POST', '/api/upload');
 
