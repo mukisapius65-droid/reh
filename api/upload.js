@@ -1,7 +1,7 @@
-// api/upload.js – Vercel serverless function (CommonJS)
-const Busboy = require('busboy');
+// api/upload.js – Vercel serverless function (ES Module)
+import Busboy from 'busboy';
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   // Only allow POST
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -57,4 +57,4 @@ module.exports = async function handler(req, res) {
     console.error('Proxy error:', error);
     res.status(500).json({ error: 'Internal server error: ' + error.message });
   }
-};
+}
