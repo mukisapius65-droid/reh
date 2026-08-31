@@ -1,4 +1,4 @@
-// api/upload.js – Vercel serverless function using multer + form-data
+// api/upload.js – Vercel serverless function (ES Module)
 import multer from 'multer';
 import FormData from 'form-data';
 
@@ -8,7 +8,7 @@ function runMiddleware(req, res, fn) {
   return new Promise((resolve, reject) => {
     fn(req, res, (result) => {
       if (result instanceof Error) return reject(result);
-      return resolve(result);
+      resolve(result);
     });
   });
 }
@@ -19,26 +19,30 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Parse file using multer
     await runMiddleware(req, res, upload.single('file'));
 
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    // Build multipart form for Catbox using form-data
+    // Build multipart form for Catbox
     const form = new FormData();
     form.append('reqtype', 'fileupload');
+    // Append file with proper filename and contentType
     form.append('fileToUpload', req.file.buffer, {
       filename: req.file.originalname,
       contentType: req.file.mimetype || 'video/mp4',
     });
 
+    // Upload to Catbox
     const catboxRes = await fetch('https://catbox.moe/user/api.php', {
       method: 'POST',
       body: form,
       headers: form.getHeaders(),
     });
 
+    // Read response as text (Catbox returns plain URL on success)
     const text = await catboxRes.text();
 
     if (catboxRes.ok && text.startsWith('https://')) {
