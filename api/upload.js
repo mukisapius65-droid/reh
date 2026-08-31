@@ -1,4 +1,21 @@
-// api/upload.js – Vercel serverless function (ES Module)
+// api/upload.js – Vercel serverless function using multer
+import multer from 'multer';
+
+// Configure multer to store file in memory
+const upload = multer({ storage: multer.memoryStorage() });
+
+// Helper to run middleware (multer)
+function runMiddleware(req, res, fn) {
+  return new Promise((resolve, reject) => {
+    fn(req, res, (result) => {
+      if (result instanceof Error) {
+        return reject(result);
+      }
+      return resolve(result);
+    });
+  });
+}
+
 export default async function handler(req, res) {
   // Only allow POST
   if (req.method !== 'POST') {
@@ -6,19 +23,23 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Parse multipart form data using built‑in Node.js method
-    const formData = await req.formData();
-    const file = formData.get('file');
+    // Run multer to parse the file
+    await runMiddleware(req, res, upload.single('file'));
 
-    if (!file || !file.name) {
+    // Check if file was received
+    if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    // Prepare form data for Catbox
+    const fileBuffer = req.file.buffer;
+    const filename = req.file.originalname;
+
+    // Prepare FormData for Catbox
     const catboxForm = new FormData();
     catboxForm.append('reqtype', 'fileupload');
-    catboxForm.append('fileToUpload', file, file.name);
+    catboxForm.append('fileToUpload', new Blob([fileBuffer]), filename);
 
+    // Upload to Catbox
     const catboxRes = await fetch('https://catbox.moe/user/api.php', {
       method: 'POST',
       body: catboxForm,
@@ -36,4 +57,4 @@ export default async function handler(req, res) {
     console.error('Upload proxy error:', error);
     return res.status(500).json({ error: 'Internal server error: ' + error.message });
   }
-}
+      }
