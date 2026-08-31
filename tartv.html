@@ -315,7 +315,8 @@
 <body>
     <div id="tar-tv-error"></div>
     <div class="loading-spinner" id="loader"><i class="fa-solid fa-spinner fa-spin"></i></div>
-    <!-- ─── Floating Upload Button ─────────────────────── -->
+    <div style="display: none;">
+ <!-- ─── Floating Upload Button ─────────────────────── -->
 <div id="floatingUploadBtn" style="
     position: fixed;
     bottom: 10px;  /* above bottom nav (70px) + extra margin */
@@ -329,6 +330,7 @@
     gap: 4px;
 ">
   <button onclick="window.openVideoUploadModal()" style="
+      display: none;
       width: 64px;
       height: 64px;
       border-radius: 50%;
@@ -352,6 +354,7 @@
       font-weight: 500;
   ">Upload</span>
 </div>
+    </div>
     <div class="tv-container" id="tvContainer"></div>
 
     <!-- Comments Panel -->
@@ -372,6 +375,7 @@
     <!-- Firebase Compat -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
     <!-- ─── Video Upload Module ─── -->
 <script type="module">
   import { initVideoUpload } from './assets/modules/video-upload.js';
