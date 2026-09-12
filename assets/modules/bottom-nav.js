@@ -24,16 +24,6 @@ const bottomNavHTML = `
         <span>Profile</span>
     </a>
 </div>
-<!-- Create Status Modal -->
-<div class="create-modal-overlay" id="createModal">
-    <div class="create-modal">
-        <h3>Create Status / Story</h3>
-        <button class="btn btn-gold" id="uploadStoryBtn"><i class="fa-solid fa-image"></i> Photo</button>
-        <button class="btn btn-gold" id="videoStoryBtn"><i class="fa-solid fa-video"></i> Video</button>
-        <button class="btn btn-gold" id="textStoryBtn"><i class="fa-solid fa-font"></i> Text</button>
-        <button class="btn btn-close" id="closeCreateModal">Cancel</button>
-    </div>
-</div>
 `;
 
 export function initBottomNav() {
@@ -52,44 +42,4 @@ export function initBottomNav() {
   document.querySelectorAll('.bottom-nav-item').forEach(link => {
     link.classList.toggle('active', link.dataset.page === currentPageName);
   });
-
-  // ─── Create modal logic ──────────────────────────
-  const createBtn = document.getElementById('createStoryBtn');
-  const createModal = document.getElementById('createModal');
-  const closeModal = document.getElementById('closeCreateModal');
-
-  if (createBtn && createModal) {
-    createBtn.addEventListener('click', () => {
-      createModal.classList.add('show');
-    });
-  }
-
-  if (closeModal && createModal) {
-    closeModal.addEventListener('click', () => {
-      createModal.classList.remove('show');
-    });
-  }
-
-  // Placeholder for story upload – will be replaced later
-  const uploadBtn = document.getElementById('uploadStoryBtn');
-  if (uploadBtn) {
-    uploadBtn.addEventListener('click', () => {
-      alert('Photo story feature coming soon');
-      createModal?.classList.remove('show');
-    });
-  }
-  const videoBtn = document.getElementById('videoStoryBtn');
-  if (videoBtn) {
-    videoBtn.addEventListener('click', () => {
-      alert('Video story feature coming soon');
-      createModal?.classList.remove('show');
-    });
-  }
-  const textBtn = document.getElementById('textStoryBtn');
-  if (textBtn) {
-    textBtn.addEventListener('click', () => {
-      alert('Text story feature coming soon');
-      createModal?.classList.remove('show');
-    });
-  }
 }
