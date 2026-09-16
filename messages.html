@@ -20,34 +20,236 @@
             --text: #f0ece6;
             --text2: #c5bfb3;
             --muted: #8a857a;
+            --ruby: #a82035;
         }
         * { margin:0; padding:0; box-sizing:border-box; }
-        body { font-family:'Inter',sans-serif; background:var(--deep-navy); color:var(--text); min-height:100vh; }
+        body { font-family:'Inter',sans-serif; background:var(--deep-navy); color:var(--text); min-height:100vh; overflow-x:hidden; }
         .messages-container { max-width:800px; margin:2rem auto; padding:0 1rem; }
         .page-title { font-family:'Playfair Display',serif; font-size:2.2rem; color:var(--gold-light); margin-bottom:2rem; display:flex; align-items:center; gap:0.8rem; }
         .message-card {
-            background: var(--glass-card);
-            border:1px solid var(--glass-border);
-            border-radius:20px;
-            padding:1.2rem;
-            margin-bottom:1rem;
-            display:flex;
-            align-items:center;
-            gap:1rem;
-            cursor:pointer;
-            transition:0.3s;
-            position:relative;
-        }
-        .message-card:hover { border-color:var(--gold); transform:translateY(-2px); }
-        .message-avatar { width:60px; height:60px; border-radius:50%; object-fit:cover; border:2px solid var(--gold-light); }
-        .message-info { flex:1; }
-        .message-name { font-weight:600; color:white; font-size:1rem; }
-        .message-preview { color:var(--text2); font-size:0.8rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-        .message-time { font-size:0.7rem; color:var(--muted); }
-        .unread-badge { position:absolute; top:1rem; right:1rem; background:var(--ruby); color:white; border-radius:50%; width:22px; height:22px; font-size:0.65rem; display:flex; align-items:center; justify-content:center; font-weight:700; }
+    background: var(--glass-card);
+    border:1px solid var(--glass-border);
+    border-radius:20px;
+    padding:1.2rem;
+    margin-bottom:1rem;
+    display:flex;
+    align-items:center;
+    gap:1rem;
+    cursor:pointer;
+    transition:0.3s;
+    position:relative;
+    overflow:hidden;           /* no bleed outside the card */
+    max-width:100%;
+    box-sizing:border-box;
+}
+.message-card:hover { border-color:var(--gold); transform:translateY(-2px); }
+
+.message-avatar {
+    width:60px;
+    height:60px;
+    border-radius:50%;
+    object-fit:cover;
+    border:2px solid var(--gold-light);
+    flex-shrink:0;             /* avatar never shrinks */
+}
+
+.message-info {
+    flex:1;
+    min-width:0;               /* CRITICAL: allows flex child to shrink and ellipsis to work */
+    overflow:hidden;
+}
+
+.message-name {
+    font-weight:600;
+    color:white;
+    font-size:1rem;
+    display:flex;
+    align-items:center;
+    gap:0.3rem;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    min-width:0;
+    max-width:100%;
+}
+
+.message-preview {
+    color:var(--text2);
+    font-size:0.8rem;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    min-width:0;
+    max-width:100%;
+}
+
+.message-time {
+    font-size:0.7rem;
+    color:var(--muted);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+      .unread-badge { position:absolute; top:1rem; right:1rem; background:var(--ruby); color:white; border-radius:50%; width:22px; height:22px; font-size:0.65rem; display:flex; align-items:center; justify-content:center; font-weight:700; }
         .gift-badge { color:var(--gold-light); font-size:0.8rem; }
         .empty-state { text-align:center; padding:3rem; color:var(--muted); }
         .empty-state i { font-size:3rem; margin-bottom:1rem; }
+
+        /* ─── Inline Chat Panel ─────────────────────── */
+        .chat-panel {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(10, 15, 35, 0.98);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border-top: 1px solid var(--gold);
+            border-radius: 20px 20px 0 0;
+            padding: 1rem;
+            z-index: 1000;
+            transform: translateY(100%);
+            transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+        }
+        .chat-panel.open {
+            transform: translateY(0);
+        }
+        .chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.4rem 0.5rem 1rem;
+            border-bottom: 1px solid var(--glass-border);
+            flex-shrink: 0;
+        }
+        .chat-header-left {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+        }
+        .chat-header-left img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--gold-light);
+        }
+        .chat-header-left span {
+    font-family: 'Playfair Display', serif;
+    color: var(--gold-light);
+    font-size: 1rem;
+    font-weight: 600;
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+        }
+        .chat-close-btn {
+            background: none;
+            border: none;
+            color: var(--gold-light);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.2rem 0.5rem;
+        }
+        .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;          /* prevent horizontal overflow */
+    padding: 0.8rem 0.4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-height: 200px;
+    max-width: 100%;
+        }
+        .chat-msg {
+    max-width: 75%;
+    padding: 0.5rem 0.8rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    word-wrap: break-word;       /* legacy */
+    overflow-wrap: break-word;   /* modern standard */
+    word-break: break-word;      /* handles long words without spaces */
+    hyphens: auto;               /* optional: hyphenates when possible */
+    position: relative;
+    line-height: 1.4;
+    white-space: normal;         /* ensure wrapping (not nowrap) */
+    overflow: hidden;            /* no bleed */
+        }
+        .chat-msg.sent {
+            align-self: flex-end;
+            background: rgba(200, 160, 60, 0.2);
+            border: 1px solid var(--gold);
+            color: var(--text);
+        }
+        .chat-msg.received {
+            align-self: flex-start;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text);
+        }
+        .chat-msg small {
+            display: block;
+            font-size: 0.6rem;
+            color: var(--muted);
+            margin-top: 0.2rem;
+        }
+        .msg-status {
+            font-size: 0.7rem;
+            margin-left: 0.3rem;
+        }
+        .single-check { color: var(--muted); }
+        .double-golden { color: var(--gold); }
+        .chat-input-area {
+            display: flex;
+            gap: 0.5rem;
+            padding-top: 0.8rem;
+            border-top: 1px solid var(--glass-border);
+            flex-shrink: 0;
+        }
+        .chat-input-area input {
+            flex: 1;
+            padding: 0.6rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 25px;
+            color: white;
+            outline: none;
+            font-size: 0.9rem;
+            font-family: 'Inter', sans-serif;
+        }
+        .chat-input-area input:focus {
+            border-color: var(--gold);
+        }
+        .chat-input-area button {
+            background: linear-gradient(135deg, var(--ruby), #162464);
+            border: none;
+            color: white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+        .chat-input-area button:hover {
+            transform: scale(1.05);
+        }
+        .chat-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            display: none;
+        }
+        .chat-backdrop.open {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -56,17 +258,230 @@
         <div id="messagesList"></div>
     </div>
 
+    <!-- Chat Backdrop -->
+    <div class="chat-backdrop" id="chatBackdrop"></div>
+
+    <!-- Inline Chat Panel -->
+    <div class="chat-panel" id="chatPanel">
+        <div class="chat-header">
+            <div class="chat-header-left">
+                <img id="chatHeaderAvatar" src="" alt="avatar">
+                <span id="chatHeaderName">Chat</span>
+            </div>
+            <button class="chat-close-btn" id="closeChatBtn"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-input-area">
+            <input type="text" id="chatMessageInput" placeholder="Type a message...">
+            <button id="sendChatBtn"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+    </div>
+
     <script type="module" src="assets/utils.js"></script>
     <script type="module" src="assets/firebase.js"></script>
     <script>
         (function() {
+            // ─── Chat state ─────────────────────────────────
+            let currentChatEmail = null;
+            let convId = null;
+            let chatUnsubscribe = null;
+            let currentUserEmail = null;
+
+            // ─── Encryption helpers (same as view-profile.html) ───
+            async function deriveKey(salt, pass) {
+                const enc = new TextEncoder();
+                const km = await crypto.subtle.importKey('raw', enc.encode(pass), { name: 'PBKDF2' }, false, ['deriveKey']);
+                return crypto.subtle.deriveKey(
+                    { name: 'PBKDF2', salt: enc.encode(salt), iterations: 100000, hash: 'SHA-256' },
+                    km,
+                    { name: 'AES-GCM', length: 256 },
+                    false,
+                    ['encrypt', 'decrypt']
+                );
+            }
+            async function encryptMessage(text, key) {
+                const iv = crypto.getRandomValues(new Uint8Array(12));
+                const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, new TextEncoder().encode(text));
+                return { iv: Array.from(iv), ciphertext: Array.from(new Uint8Array(ct)) };
+            }
+            async function decryptMessage(obj, key) {
+                const iv = new Uint8Array(obj.iv);
+                const ct = new Uint8Array(obj.ciphertext);
+                return new TextDecoder().decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ct));
+            }
+            function getConvId(a, b) { return [a, b].sort().join('_'); }
+
+            // ─── Open inline chat ───────────────────────────
+            window.openInlineChat = async function(otherEmail) {
+                const currentUser = JSON.parse(localStorage.getItem('reh_user') || '{}');
+                if (!currentUser.email) {
+                    alert('Please log in.');
+                    return;
+                }
+                currentUserEmail = currentUser.email;
+                currentChatEmail = otherEmail;
+                convId = getConvId(currentUserEmail, otherEmail);
+
+                // Fetch other user's display info
+                try {
+                    const otherDoc = await window.getDoc(window.doc(window.db, 'users', otherEmail));
+                    if (otherDoc.exists()) {
+                        const other = otherDoc.data();
+                        const displayName = other.firstName ? `${other.firstName} ${other.lastName || ''}`.trim() : otherEmail;
+                        document.getElementById('chatHeaderName').textContent = displayName;
+                        document.getElementById('chatHeaderAvatar').src = other.avatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(displayName) + '&background=c9a84c&color=080c24';
+                    } else {
+                        document.getElementById('chatHeaderName').textContent = otherEmail.split('@')[0];
+                        document.getElementById('chatHeaderAvatar').src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(otherEmail) + '&background=c9a84c&color=080c24';
+                    }
+                } catch (e) {
+                    console.warn('Could not load user info:', e);
+                }
+
+                // Reset unread count for current user
+                try {
+                    const chatRef = window.doc(window.db, 'chats', convId);
+                    const chatSnap = await window.getDoc(chatRef);
+                    if (chatSnap.exists()) {
+                        await window.updateDoc(chatRef, {
+                            [`unread_${currentUserEmail}`]: 0
+                        });
+                    }
+                } catch (e) {
+                    console.warn('Could not reset unread:', e);
+                }
+
+                // Show panel
+                document.getElementById('chatPanel').classList.add('open');
+                document.getElementById('chatBackdrop').classList.add('open');
+
+                // Start listener
+                startChatListener();
+            };
+
+            function closeInlineChat() {
+                document.getElementById('chatPanel').classList.remove('open');
+                document.getElementById('chatBackdrop').classList.remove('open');
+                if (chatUnsubscribe) {
+                    chatUnsubscribe();
+                    chatUnsubscribe = null;
+                }
+                currentChatEmail = null;
+                convId = null;
+                document.getElementById('chatMessages').innerHTML = '';
+                document.getElementById('chatMessageInput').value = '';
+            }
+
+            // ─── Real-time chat listener ────────────────────
+            async function startChatListener() {
+                if (!convId) return;
+                const key = await deriveKey(convId, convId);
+                const messagesRef = window.collection(window.db, 'chats', convId, 'messages');
+                const q = window.query(messagesRef, window.orderBy('timestamp', 'asc'));
+
+                if (chatUnsubscribe) chatUnsubscribe();
+
+                chatUnsubscribe = window.onSnapshot(q, async (snap) => {
+                    const container = document.getElementById('chatMessages');
+                    container.innerHTML = '';
+                    for (const doc of snap.docs) {
+                        const msg = doc.data();
+                        let text = '';
+                        try {
+                            text = typeof msg.text === 'string'
+                                ? msg.text
+                                : await decryptMessage(msg.text, key);
+                        } catch (e) {
+                            text = '[Decryption failed]';
+                        }
+                        const div = document.createElement('div');
+                        div.className = `chat-msg ${msg.from === currentUserEmail ? 'sent' : 'received'}`;
+                        const time = new Date(msg.timestamp?.seconds ? msg.timestamp.seconds * 1000 : msg.timestamp).toLocaleString();
+                        let statusHtml = '';
+                        if (msg.from === currentUserEmail) {
+                            if (msg.read) {
+                                statusHtml = '<span class="msg-status double-golden"><i class="fa-solid fa-check-double"></i></span>';
+                            } else {
+                                statusHtml = '<span class="msg-status single-check"><i class="fa-solid fa-check"></i></span>';
+                            }
+                        } else if (!msg.read) {
+                            // Mark received message as read
+                            try {
+                                await window.updateDoc(window.doc(window.db, 'chats', convId, 'messages', doc.id), { read: true });
+                            } catch (e) {}
+                        }
+                        div.innerHTML = `${escapeHtml(text)}<small>${time} ${statusHtml}</small>`;
+                        container.appendChild(div);
+                    }
+                    container.scrollTop = container.scrollHeight;
+                });
+            }
+
+            function escapeHtml(s) {
+                const div = document.createElement('div');
+                div.textContent = s;
+                return div.innerHTML;
+            }
+
+            // ─── Send message ──────────────────────────────
+            async function sendInlineMessage() {
+                const input = document.getElementById('chatMessageInput');
+                const text = input.value.trim();
+                if (!text || !convId || !currentChatEmail) return;
+
+                const key = await deriveKey(convId, convId);
+                const enc = await encryptMessage(text, key);
+
+                try {
+                    await window.addDoc(window.collection(window.db, 'chats', convId, 'messages'), {
+                        from: currentUserEmail,
+                        to: currentChatEmail,
+                        text: enc,
+                        previewText: text.substring(0, 60),
+                        timestamp: window.serverTimestamp ? window.serverTimestamp() : new Date(),
+                        read: false
+                    });
+
+                    // Update parent chat doc
+                    const chatRef = window.doc(window.db, 'chats', convId);
+                    const chatSnap = await window.getDoc(chatRef);
+                    if (chatSnap.exists()) {
+                        await window.updateDoc(chatRef, {
+                            lastTimestamp: window.serverTimestamp ? window.serverTimestamp() : new Date(),
+                            [`unread_${currentChatEmail}`]: window.increment(1)
+                        });
+                    } else {
+                        await window.setDoc(chatRef, {
+                            participants: [currentUserEmail, currentChatEmail],
+                            lastTimestamp: window.serverTimestamp ? window.serverTimestamp() : new Date(),
+                            [`unread_${currentChatEmail}`]: 1,
+                            [`unread_${currentUserEmail}`]: 0
+                        });
+                    }
+
+                    input.value = '';
+                } catch (err) {
+                    console.error('Send error:', err);
+                    alert('Failed to send message.');
+                }
+            }
+
+            // ─── Event listeners ────────────────────────────
+            document.getElementById('closeChatBtn').addEventListener('click', closeInlineChat);
+            document.getElementById('chatBackdrop').addEventListener('click', closeInlineChat);
+            document.getElementById('sendChatBtn').addEventListener('click', sendInlineMessage);
+            document.getElementById('chatMessageInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') sendInlineMessage();
+            });
+
+            // ─── Firebase readiness ─────────────────────────
             function waitForFirebase(cb) {
-                if (window.db && window.collection && window.getDocs && window.query && window.where && window.orderBy && window.collectionGroup) {
+                if (window.db && window.collection && window.getDocs && window.query && window.where && window.orderBy) {
                     cb();
                 } else {
                     let tries = 0;
                     const timer = setInterval(() => {
-                        if (window.db && window.collection && window.getDocs && window.query && window.where && window.orderBy && window.collectionGroup) {
+                        if (window.db && window.collection && window.getDocs && window.query && window.where && window.orderBy) {
                             clearInterval(timer);
                             cb();
                         }
@@ -77,158 +492,142 @@
                     }, 100);
                 }
             }
-                       
+
             const container = document.getElementById('messagesList');
             container.innerHTML = 'Loading chats..';
+
             waitForFirebase(async function() {
                 const currentUser = JSON.parse(localStorage.getItem('reh_user') || '{}');
                 if (!currentUser.email) {
                     container.innerHTML = '<p class="empty-state">Please log in.</p>';
                     return;
                 }
+                currentUserEmail = currentUser.email;
 
                 try {
-                    
-                    // Build a unified list
                     const messageMap = new Map();
-                    // 1. Fetch all encrypted chat messages where user is involved
-                    
-                    /*
-                    const chatSnap = await window.getDocs(
-                        window.query(
-                            window.collectionGroup(window.db, 'messages'),
-                            window.orderBy('timestamp', 'desc'),
-                            window.limit(500)
-                        )
-                    );
-*/
-                    // Fetch all chats collections
-const chatsSnap = await window.getDocs(window.collection(window.db, "chats"));
-for (const chatDoc of chatsSnap.docs) {
-    const chatData = chatDoc.data();
-    // Only process if current user is a participant
-    const participants = chatData.participants || [];
-    if (participants.length > 0 && !participants.includes(currentUser.email)) {
-        continue;   // skip conversations that don't belong to this user
-    }
 
-    const messagesSnap = await window.getDocs(
-        window.query(
-            window.collection(window.db, "chats", chatDoc.id, "messages"),
-            window.orderBy("timestamp", "desc"),
-            window.limit(1)
-        )
-    );
-    messagesSnap.forEach(doc => {
-        const msg = doc.data();
-        // Extra safety: only include if user is sender or receiver
-        const otherEmail = msg.from === currentUser.email ? msg.to : msg.from;
-        if (!otherEmail) return;
-        if (!messageMap.has(otherEmail)) {
-            messageMap.set(otherEmail, {
-                type: 'chat',
-                email: otherEmail,
-                lastMessage: msg.previewText || '🔒 Encrypted message',
-                timestamp: msg.timestamp,
-                unread: msg.to === currentUser.email && !msg.read
-            });
-        }
-    });
-}                    
-                    // 2. Fetch all gifts received
+                    // ── 1. Fetch all chats ──
+                    const chatsSnap = await window.getDocs(window.collection(window.db, "chats"));
+                    for (const chatDoc of chatsSnap.docs) {
+                        const chatData = chatDoc.data();
+                        const participants = chatData.participants || [];
+                        if (participants.length > 0 && !participants.includes(currentUserEmail)) {
+                            continue;
+                        }
+
+                        const messagesSnap = await window.getDocs(
+                            window.query(
+                                window.collection(window.db, "chats", chatDoc.id, "messages"),
+                                window.orderBy("timestamp", "desc"),
+                                window.limit(1)
+                            )
+                        );
+                        messagesSnap.forEach(doc => {
+                            const msg = doc.data();
+                            const otherEmail = msg.from === currentUserEmail ? msg.to : msg.from;
+                            if (!otherEmail) return;
+                            if (!messageMap.has(otherEmail)) {
+                                messageMap.set(otherEmail, {
+                                    type: 'chat',
+                                    email: otherEmail,
+                                    lastMessage: msg.previewText || '🔒 Encrypted message',
+                                    timestamp: msg.timestamp,
+                                    unread: msg.to === currentUserEmail && !msg.read
+                                });
+                            }
+                        });
+                    }
+
+                    // ── 2. Gifts ──
                     const giftSnap = await window.getDocs(
                         window.query(
                             window.collection(window.db, "gifts"),
-                            window.where("to", "==", currentUser.email),
+                            window.where("to", "==", currentUserEmail),
                             window.orderBy("timestamp", "desc")
                         )
                     );
+                    for (const doc of giftSnap.docs) {
+                        const gift = doc.data();
+                        const fromEmail = gift.from;
+                        if (!fromEmail || fromEmail === currentUserEmail) continue;
+                        if (!messageMap.has(fromEmail)) {
+                            messageMap.set(fromEmail, {
+                                type: 'gift',
+                                email: fromEmail,
+                                lastMessage: '💎 Sent you a Diamond Rose',
+                                timestamp: gift.timestamp,
+                                unread: false
+                            });
+                        }
+                    }
 
-                    // 3. Fetch admin notifications targeted at user
+                    // ── 3. Admin notifications ──
                     const notifSnap = await window.getDocs(
                         window.query(
                             window.collection(window.db, "notifications"),
-                            window.where("targetEmail", "==", currentUser.email),
+                            window.where("targetEmail", "==", currentUserEmail),
                             window.orderBy("timestamp", "desc"),
                             window.limit(100)
                         )
                     );
-
-                    // Build a unified list
-                  //  const messageMap = new Map();
-/*
-                    // Process chat messages (encrypted)
-                    for (const doc of chatSnap.docs) {
-                        const msg = doc.data();
-                        const otherEmail = msg.from === currentUser.email ? msg.to : msg.from;
-                        if (!otherEmail || otherEmail === currentUser.email) continue;
-                        if (!messageMap.has(otherEmail)) {
-                            messageMap.set(otherEmail, { type: 'chat', email: otherEmail, lastMessage: msg.text, timestamp: msg.timestamp, unread: msg.to === currentUser.email && !msg.read });
-                        } else {
-                            const existing = messageMap.get(otherEmail);
-                            if (msg.timestamp > existing.timestamp) {
-                                existing.lastMessage = msg.text;
-                                existing.timestamp = msg.timestamp;
-                                if (msg.to === currentUser.email && !msg.read) existing.unread = true;
-                            }
-                        }
-                    }
-*/
-                    // Process gifts
-                    for (const doc of giftSnap.docs) {
-                        const gift = doc.data();
-                        const fromEmail = gift.from;
-                        if (!fromEmail || fromEmail === currentUser.email) continue;
-                        if (!messageMap.has(fromEmail)) {
-                            messageMap.set(fromEmail, { type: 'gift', email: fromEmail, lastMessage: '💎 Sent you a Diamond Rose', timestamp: gift.timestamp, unread: false });
-                        }
-                    }
-
-                    // Process admin notifications
                     for (const doc of notifSnap.docs) {
                         const notif = doc.data();
-                        if (!notif.senderEmail && !notif.fromEmail) continue; // skip global
+                        if (!notif.senderEmail && !notif.fromEmail) continue;
                         const fromEmail = notif.senderEmail || notif.fromEmail || 'admin';
-                        if (fromEmail === currentUser.email) continue;
+                        if (fromEmail === currentUserEmail) continue;
                         if (!messageMap.has(fromEmail)) {
-                            messageMap.set(fromEmail, { type: 'admin', email: fromEmail, lastMessage: notif.body, timestamp: notif.timestamp, unread: !(notif.readBy && notif.readBy.includes(currentUser.email)) });
-                        } else {
-                            const existing = messageMap.get(fromEmail);
-                            if (notif.timestamp > existing.timestamp) {
-                                existing.lastMessage = notif.body;
-                                existing.timestamp = notif.timestamp;
-                                if (!(notif.readBy && notif.readBy.includes(currentUser.email))) existing.unread = true;
-                            }
+                            messageMap.set(fromEmail, {
+                                type: 'admin',
+                                email: fromEmail,
+                                lastMessage: notif.body,
+                                timestamp: notif.timestamp,
+                                unread: !(notif.readBy && notif.readBy.includes(currentUserEmail))
+                            });
                         }
                     }
-/*
-                    // Convert map to array and sort
-                    const conversations = Array.from(messageMap.values()).sort((a, b) => b.timestamp - a.timestamp);
+
+                    // ── Sort ──
+                    const conversations = Array.from(messageMap.values()).sort((a, b) => {
+                        const aTime = a.timestamp?.seconds ? a.timestamp.seconds * 1000 : a.timestamp || 0;
+                        const bTime = b.timestamp?.seconds ? b.timestamp.seconds * 1000 : b.timestamp || 0;
+                        return bTime - aTime;
+                    });
 
                     if (conversations.length === 0) {
                         container.innerHTML = '<div class="empty-state"><i class="fa-solid fa-inbox"></i><p>No messages yet.</p></div>';
                         return;
                     }
-                    
-                    const conversations = Array.from(messageMap.values()).sort((a, b) => {
-  const aTime = a.timestamp?.seconds ? a.timestamp.seconds * 1000 : a.timestamp || 0;
-  const bTime = b.timestamp?.seconds ? b.timestamp.seconds * 1000 : b.timestamp || 0;
-  return bTime - aTime;
-});
 
-                    // Render list
-                    
+                    // ── Fetch user data ──
+                    const userPromises = conversations.map(conv => window.getDoc(window.doc(window.db, 'users', conv.email)));
+                    const userSnapshots = await Promise.all(userPromises);
+                    const userMap = {};
+                    userSnapshots.forEach((snap, idx) => {
+                        if (snap.exists()) {
+                            userMap[conversations[idx].email] = { ...snap.data(), email: snap.id };
+                        }
+                    });
+
+                    // ── Render list ──
                     container.innerHTML = conversations.map(conv => {
-                        const userName = conv.email.split('@')[0];
-                        const officialBadge = isOfficial(senderUser) ? '<span class="official-badge"><i class="fa-solid fa-check"></i></span>' : '';
+                        const user = userMap[conv.email] || {};
+                        const userName = user.firstName
+                            ? `${user.firstName} ${user.lastName || ''}`.trim()
+                            : conv.email.split('@')[0];
+                        const officialBadge = window.isOfficial && window.isOfficial(user)
+                            ? '<span class="official-badge"><i class="fa-solid fa-check"></i></span>'
+                            : '';
                         const preview = conv.lastMessage?.substring(0, 60) || 'No message';
-                        const time = new Date(conv.timestamp?.seconds ? conv.timestamp.seconds*1000 : conv.timestamp).toLocaleDateString();
+                        const time = new Date(
+                            conv.timestamp?.seconds ? conv.timestamp.seconds * 1000 : conv.timestamp
+                        ).toLocaleDateString();
+
                         return `
-                            <div class="message-card" onclick="location.href='view-profile.html?email=${conv.email}&chat=open'">
-                                <img src="https://ui-avatars.com/api/?name=${userName}&background=c9a84c&color=080c24" class="message-avatar">
+                            <div class="message-card" onclick="openInlineChat('${conv.email.replace(/'/g, "\\'")}')">
+                                <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=c9a84c&color=080c24" class="message-avatar">
                                 <div class="message-info">
-                                   <!--</!> <div class="message-name">${userName}</div>-->
-                        <div class="message-name">${userName} ${officialBadge}</div>
+                                    <div class="message-name">${userName} ${officialBadge}</div>
                                     <div class="message-preview">${preview}</div>
                                     <div class="message-time">${time}</div>
                                     ${conv.type === 'gift' ? '<div class="gift-badge"><i class="fa-solid fa-gem"></i> Gift</div>' : ''}
@@ -236,55 +635,20 @@ for (const chatDoc of chatsSnap.docs) {
                                 ${conv.unread ? '<span class="unread-badge">1</span>' : ''}
                             </div>`;
                     }).join('');
-*/
-                    
-                    const conversations = Array.from(messageMap.values()).sort((a, b) => {
-  const aTime = a.timestamp?.seconds ? a.timestamp.seconds * 1000 : a.timestamp || 0;
-  const bTime = b.timestamp?.seconds ? b.timestamp.seconds * 1000 : b.timestamp || 0;
-  return bTime - aTime;
-});
 
-if (conversations.length === 0) {
-  container.innerHTML = '<div class="empty-state"><i class="fa-solid fa-inbox"></i><p>No messages yet.</p></div>';
-  return;
-}
-
-// ── Fetch user data for each conversation participant ──
-const userPromises = conversations.map(conv => window.getDoc(window.doc(window.db, 'users', conv.email)));
-const userSnapshots = await Promise.all(userPromises);
-const userMap = {};
-userSnapshots.forEach((snap, idx) => {
-  if (snap.exists()) {
-    const email = conversations[idx].email;
-    userMap[email] = { ...snap.data(), email: snap.id };
-  }
-});
-
-// ── Render list with official badge ──
-container.innerHTML = conversations.map(conv => {
-  const user = userMap[conv.email] || {};
-  const userName = user.firstName ? `${user.firstName} ${user.lastName}`.trim() : conv.email.split('@')[0];
-  const officialBadge = window.isOfficial && window.isOfficial(user) 
-    ? '<span class="official-badge"><i class="fa-solid fa-check"></i></span>' 
-    : '';
-  const preview = conv.lastMessage?.substring(0, 60) || 'No message';
-  const time = new Date(conv.timestamp?.seconds ? conv.timestamp.seconds * 1000 : conv.timestamp).toLocaleDateString();
-  return `
-    <div class="message-card" onclick="location.href='view-profile.html?email=${conv.email}&chat=open'">
-      <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=c9a84c&color=080c24" class="message-avatar">
-      <div class="message-info">
-        <div class="message-name">${userName} ${officialBadge}</div>
-        <div class="message-preview">${preview}</div>
-        <div class="message-time">${time}</div>
-        ${conv.type === 'gift' ? '<div class="gift-badge"><i class="fa-solid fa-gem"></i> Gift</div>' : ''}
-      </div>
-      ${conv.unread ? '<span class="unread-badge">1</span>' : ''}
-    </div>`;
-}).join('');
+                    // ── Auto-open chat if ?open= present ──
+                    const params = new URLSearchParams(window.location.search);
+                    const openEmail = params.get('open');
+                    if (openEmail) {
+                        // Small delay to ensure DOM is ready
+                        setTimeout(() => {
+                            window.openInlineChat(decodeURIComponent(openEmail));
+                        }, 300);
+                    }
                 } catch (error) {
-    console.error('Detailed error:', error);
-    container.innerHTML = '<p class="empty-state">Failed to load messages. ' + error.message + '</p>';
-}
+                    console.error('Detailed error:', error);
+                    container.innerHTML = '<p class="empty-state">Failed to load messages. ' + error.message + '</p>';
+                }
             });
         })();
     </script>
