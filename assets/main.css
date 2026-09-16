@@ -166,6 +166,171 @@ body {
     opacity: 0;
   }
 }
+/* ─── Global Skeleton Loading ─────────────────── */
+@keyframes shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(200, 160, 60, 0.10) 50%,
+    rgba(255, 255, 255, 0.03) 100%
+  );
+  background-size: 800px 100%;
+  animation: shimmer 1.6s infinite linear;
+  border-radius: 8px;
+}
+
+/* Skeleton message card (messages.html) */
+.skeleton-card {
+  background: var(--glass-card, rgba(15,20,50,0.55));
+  border: 1px solid var(--glass-border, rgba(255,255,255,0.08));
+  border-radius: 20px;
+  padding: 1.2rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.skeleton-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(200, 160, 60, 0.12) 50%,
+    rgba(255, 255, 255, 0.03) 100%
+  );
+  background-size: 800px 100%;
+  animation: shimmer 1.6s infinite linear;
+}
+
+.skeleton-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.skeleton-line {
+  height: 12px;
+  border-radius: 6px;
+}
+
+.skeleton-line.name { width: 45%; height: 14px; }
+.skeleton-line.preview { width: 80%; }
+.skeleton-line.time { width: 25%; height: 9px; }
+
+/* ─── Discover Card Skeleton ─────────────────── */
+.skeleton-profile-card {
+  background: var(--glass-bg-card, rgba(15,20,50,0.55));
+  border: 1px solid var(--glass-border, rgba(255,255,255,0.08));
+  border-radius: 22px;
+  overflow: hidden;
+  position: relative;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.skeleton-image {
+  width: 100%;
+  height: 360px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(200, 160, 60, 0.10) 50%,
+    rgba(255, 255, 255, 0.03) 100%
+  );
+  background-size: 800px 100%;
+  animation: shimmer 1.6s infinite linear;
+}
+
+@media (max-width: 1024px) {
+  .skeleton-image { height: 270px; }
+}
+@media (max-width: 768px) {
+  .skeleton-image { height: 240px; }
+}
+@media (max-width: 480px) {
+  .skeleton-image { height: 180px; }
+}
+
+.skeleton-body {
+  padding: 1.4rem 1.3rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.skeleton-status-blob {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 80px;
+  height: 24px;
+  border-radius: 50px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(200, 160, 60, 0.12) 50%,
+    rgba(255, 255, 255, 0.03) 100%
+  );
+  background-size: 800px 100%;
+  animation: shimmer 1.6s infinite linear;
+}
+
+/* ─── Discover Carousel Circle Skeleton ──────── */
+.skeleton-people-circle {
+  flex: 0 0 80px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.skeleton-circle {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(200, 160, 60, 0.12) 50%,
+    rgba(255, 255, 255, 0.03) 100%
+  );
+  background-size: 800px 100%;
+  animation: shimmer 1.6s infinite linear;
+}
+
+.skeleton-people-name {
+  width: 55px;
+  height: 10px;
+  border-radius: 5px;
+}
+
+.skeleton-people-age {
+  width: 35px;
+  height: 8px;
+  border-radius: 4px;
+}
+
+/* ─── Optional fade-in for real content ──────── */
+.fade-in-content {
+  animation: fadeInContent 0.4s ease-out;
+}
+@keyframes fadeInContent {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* ── Official Verification Badge (blue check) ── */
 .official-badge {
   display: inline-flex;

@@ -247,6 +247,38 @@
   return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
 }
 
+      // ─── Skeleton Loaders ─────────────────────────────
+function renderSkeletonCards(count = 6) {
+  let html = '';
+  for (let i = 0; i < count; i++) {
+    html += `
+      <div class="skeleton-profile-card">
+        <div class="skeleton-image"></div>
+        <div class="skeleton-status-blob"></div>
+        <div class="skeleton-body">
+          <div class="skeleton skeleton-line name"></div>
+          <div class="skeleton skeleton-line preview" style="width:60%;"></div>
+          <div class="skeleton skeleton-line time" style="width:40%;"></div>
+          <div class="skeleton skeleton-line" style="width:70%; height:10px;"></div>
+        </div>
+      </div>`;
+  }
+  return html;
+}
+
+function renderSkeletonCircles(count = 6) {
+  let html = '';
+  for (let i = 0; i < count; i++) {
+    html += `
+      <div class="skeleton-people-circle">
+        <div class="skeleton-circle"></div>
+        <div class="skeleton skeleton-people-name"></div>
+        <div class="skeleton skeleton-people-age"></div>
+      </div>`;
+  }
+  return html;
+}
+      
 async function loadBookmarkCache() {
   const session = JSON.parse(localStorage.getItem('reh_user') || '{}');
   if (!session.email) return;
@@ -847,6 +879,40 @@ function renderSingleCard(u, index) {
 // ── MAIN RENDERING FUNCTION ───────────────────
 async function renderCards(filter = "all", searchTerm = "") {
   activeFilter = filter;
+
+  // ─── Show skeletons immediately ───
+  const grid = document.getElementById("cardGrid");
+  if (grid) {
+    let skelHtml = '';
+
+    // 1) Daily Matches skeleton (only when no filter/search)
+    if (filter === "all" && !searchTerm) {
+      skelHtml += `
+        <div style="grid-column: 1 / -1; margin-bottom: 2.5rem;">
+          <h2 style="font-family:'Playfair Display',serif; color:var(--gold-light); margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem; opacity:0.4;">
+            <i class="fa-solid fa-star"></i> Daily Matches
+          </h2>
+          <div class="people-row" style="margin:0 0 1rem 0; display:flex; gap:1rem; overflow-x:auto; padding-bottom:1rem;">
+            ${renderSkeletonCircles(5)}
+          </div>
+        </div>`;
+    }
+
+    // 2) People You May Know skeleton
+    skelHtml += `
+      <div style="grid-column: 1 / -1; margin: 1.5rem 0;">
+        <div class="people-row" style="display:flex; gap:1rem; overflow-x:auto; padding-bottom:1rem;">
+          ${renderSkeletonCircles(6)}
+        </div>
+      </div>`;
+
+    // 3) Profile card skeletons
+    skelHtml += renderSkeletonCards(6);
+
+    grid.innerHTML = skelHtml;
+  }
+
+  // ─── Fetch and render real data ───
   const allUsers = await getUsers();
   const sessionUser = JSON.parse(localStorage.getItem(USER_KEY) || "{}");
   const currentUid = sessionUser?.email || null;
@@ -905,7 +971,7 @@ async function renderCards(filter = "all", searchTerm = "") {
     });
   }
 
-  const grid = document.getElementById("cardGrid");
+ // const grid = document.getElementById("cardGrid");
   if (!filtered.length && !getSmartMatches(displayUsers, sessionUser).length) {
     grid.innerHTML = `<div style="text-align:center; padding:3rem; color:var(--text-muted);"><i class="fa-solid fa-users-slash"></i><p style="margin-top:1rem;">No profiles match this filter.</p></div>`;
     return;
