@@ -124,9 +124,38 @@
 </div>
 
         <!-- Card Grid -->
-        <div class="card-grid" id="cardGrid">
-            <!-- Cards injected by JavaScript -->
+       <div class="card-grid" id="cardGrid">
+    <!-- Skeleton loading placeholders — replaced by JS -->
+    <div style="grid-column: 1 / -1; margin-bottom: 2.5rem;">
+        <h2 style="font-family:'Playfair Display',serif; color:var(--gold-light); margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem; opacity:0.4;">
+            <i class="fa-solid fa-star"></i> Daily Matches
+        </h2>
+        <div class="people-row" style="margin:0 0 1rem 0; display:flex; gap:1rem; overflow-x:auto; padding-bottom:1rem;">
+            <div class="skeleton-people-circle"><div class="skeleton-circle"></div><div class="skeleton skeleton-people-name"></div><div class="skeleton skeleton-people-age"></div></div>
+            <div class="skeleton-people-circle"><div class="skeleton-circle"></div><div class="skeleton skeleton-people-name"></div><div class="skeleton skeleton-people-age"></div></div>
+            <div class="skeleton-people-circle"><div class="skeleton-circle"></div><div class="skeleton skeleton-people-name"></div><div class="skeleton skeleton-people-age"></div></div>
+            <div class="skeleton-people-circle"><div class="skeleton-circle"></div><div class="skeleton skeleton-people-name"></div><div class="skeleton skeleton-people-age"></div></div>
+            <div class="skeleton-people-circle"><div class="skeleton-circle"></div><div class="skeleton skeleton-people-name"></div><div class="skeleton skeleton-people-age"></div></div>
         </div>
+    </div>
+    <div style="grid-column: 1 / -1; margin: 1.5rem 0;">
+        <div class="people-row" style="display:flex; gap:1rem; overflow-x:auto; padding-bottom:1rem;">
+            <div class="skeleton-people-circle"><div class="skeleton-circle"></div><div class="skeleton skeleton-people-name"></div><div class="skeleton skeleton-people-age"></div></div>
+            <div class="skeleton-people-circle"><div class="skeleton-circle"></div><div class="skeleton skeleton-people-name"></div><div class="skeleton skeleton-people-age"></div></div>
+            <div class="skeleton-people-circle"><div class="skeleton-circle"></div><div class="skeleton skeleton-people-name"></div><div class="skeleton skeleton-people-age"></div></div>
+            <div class="skeleton-people-circle"><div class="skeleton-circle"></div><div class="skeleton skeleton-people-name"></div><div class="skeleton skeleton-people-age"></div></div>
+            <div class="skeleton-people-circle"><div class="skeleton-circle"></div><div class="skeleton skeleton-people-name"></div><div class="skeleton skeleton-people-age"></div></div>
+            <div class="skeleton-people-circle"><div class="skeleton-circle"></div><div class="skeleton skeleton-people-name"></div><div class="skeleton skeleton-people-age"></div></div>
+        </div>
+    </div>
+    <div class="skeleton-profile-card"><div class="skeleton-image"></div><div class="skeleton-status-blob"></div><div class="skeleton-body"><div class="skeleton skeleton-line name"></div><div class="skeleton skeleton-line preview" style="width:60%;"></div><div class="skeleton skeleton-line time" style="width:40%;"></div></div></div>
+    <div class="skeleton-profile-card"><div class="skeleton-image"></div><div class="skeleton-status-blob"></div><div class="skeleton-body"><div class="skeleton skeleton-line name"></div><div class="skeleton skeleton-line preview" style="width:60%;"></div><div class="skeleton skeleton-line time" style="width:40%;"></div></div></div>
+    <div class="skeleton-profile-card"><div class="skeleton-image"></div><div class="skeleton-status-blob"></div><div class="skeleton-body"><div class="skeleton skeleton-line name"></div><div class="skeleton skeleton-line preview" style="width:60%;"></div><div class="skeleton skeleton-line time" style="width:40%;"></div></div></div>
+    <div class="skeleton-profile-card"><div class="skeleton-image"></div><div class="skeleton-status-blob"></div><div class="skeleton-body"><div class="skeleton skeleton-line name"></div><div class="skeleton skeleton-line preview" style="width:60%;"></div><div class="skeleton skeleton-line time" style="width:40%;"></div></div></div>
+    <div class="skeleton-profile-card"><div class="skeleton-image"></div><div class="skeleton-status-blob"></div><div class="skeleton-body"><div class="skeleton skeleton-line name"></div><div class="skeleton skeleton-line preview" style="width:60%;"></div><div class="skeleton skeleton-line time" style="width:40%;"></div></div></div>
+    <div class="skeleton-profile-card"><div class="skeleton-image"></div><div class="skeleton-status-blob"></div><div class="skeleton-body"><div class="skeleton skeleton-line name"></div><div class="skeleton skeleton-line preview" style="width:60%;"></div><div class="skeleton skeleton-line time" style="width:40%;"></div></div></div>
+       </div>
+      
         <footer class="footer"></footer>
     </div>
 
@@ -882,35 +911,6 @@ async function renderCards(filter = "all", searchTerm = "") {
 
   // ─── Show skeletons immediately ───
   const grid = document.getElementById("cardGrid");
-  if (grid) {
-    let skelHtml = '';
-
-    // 1) Daily Matches skeleton (only when no filter/search)
-    if (filter === "all" && !searchTerm) {
-      skelHtml += `
-        <div style="grid-column: 1 / -1; margin-bottom: 2.5rem;">
-          <h2 style="font-family:'Playfair Display',serif; color:var(--gold-light); margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem; opacity:0.4;">
-            <i class="fa-solid fa-star"></i> Daily Matches
-          </h2>
-          <div class="people-row" style="margin:0 0 1rem 0; display:flex; gap:1rem; overflow-x:auto; padding-bottom:1rem;">
-            ${renderSkeletonCircles(5)}
-          </div>
-        </div>`;
-    }
-
-    // 2) People You May Know skeleton
-    skelHtml += `
-      <div style="grid-column: 1 / -1; margin: 1.5rem 0;">
-        <div class="people-row" style="display:flex; gap:1rem; overflow-x:auto; padding-bottom:1rem;">
-          ${renderSkeletonCircles(6)}
-        </div>
-      </div>`;
-
-    // 3) Profile card skeletons
-    skelHtml += renderSkeletonCards(6);
-
-    grid.innerHTML = skelHtml;
-  }
 
   // ─── Fetch and render real data ───
   const allUsers = await getUsers();
