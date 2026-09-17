@@ -129,8 +129,13 @@
     <i class="fa-solid fa-crown"></i> On Tar TV
   </h2>
   <div id="tvPreviewRow" class="tv-preview-row">
-    <!-- Rendered by JS -->
-  </div>
+    <!-- Skeleton placeholders — replaced by JS -->
+    <div class="tv-preview-skeleton"></div>
+    <div class="tv-preview-skeleton"></div>
+    <div class="tv-preview-skeleton"></div>
+    <div class="tv-preview-skeleton"></div>
+    <div class="tv-preview-skeleton"></div>
+</div>
 </div>
 
         <!-- Card Grid -->
@@ -931,9 +936,6 @@ function renderSkeletonTvPreviews(count = 5) {
 async function loadTvPreviews() {
   const row = document.getElementById('tvPreviewRow');
   if (!row) return;
-
-  // Show skeletons immediately
-  renderSkeletonTvPreviews(5);
 
   try {
     const q = window.query(
