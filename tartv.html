@@ -26,6 +26,7 @@
         .video-slide { position:relative; height:100vh; scroll-snap-align:start; display:flex; align-items:center; justify-content:center; background:#000; }
         .video-slide video { width:100%; height:100%; object-fit:contain; background:#000; }
         .video-placeholder { position:absolute; inset:0; background-size:cover; background-position:center; filter:blur(10px); }
+      
 
         /* Tap Zones */
         .tap-zone-left,
@@ -408,6 +409,87 @@
             border:1px solid #ff6b6b;
             display:none;
         }
+
+      /* ─── Tar TV Skeleton Slides ────────────────── */
+.tv-skeleton-slide {
+  position: relative;
+  height: 100vh;
+  scroll-snap-align: start;
+  background: #0a0f24;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.tv-skeleton-media {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.02) 0%,
+    rgba(200, 160, 60, 0.08) 50%,
+    rgba(255, 255, 255, 0.02) 100%
+  );
+  background-size: 800px 100%;
+  animation: shimmer 1.6s infinite linear;
+}
+
+/* Bottom overlay skeleton */
+.tv-skeleton-overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 1.2rem 1.5rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.85));
+}
+
+.tv-skeleton-line {
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(200, 160, 60, 0.12) 50%,
+    rgba(255, 255, 255, 0.03) 100%
+  );
+  background-size: 800px 100%;
+  animation: shimmer 1.6s infinite linear;
+  height: 12px;
+}
+.tv-skeleton-line.title { width: 55%; height: 16px; }
+.tv-skeleton-line.author { width: 30%; height: 12px; }
+.tv-skeleton-line.views { width: 22%; height: 10px; }
+
+/* Action buttons placeholder (right side) */
+.tv-skeleton-actions {
+  position: absolute;
+  right: 1.5rem;
+  bottom: 8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  align-items: center;
+}
+.tv-skeleton-action-circle {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(200, 160, 60, 0.12) 50%,
+    rgba(255, 255, 255, 0.03) 100%
+  );
+  background-size: 800px 100%;
+  animation: shimmer 1.6s infinite linear;
+}
+
+/* Hide the old spinner once skeletons exist */
+.loading-spinner.hidden { display: none; }
     </style>
 </head>
 <body>
@@ -550,6 +632,36 @@
             }
             let viewedSet = loadViewedSet();
 
+          // ─── Skeleton Slide Renderer ───────────────────
+function renderSkeletonSlides(count = 3) {
+  const tvContainer = document.getElementById('tvContainer');
+  if (!tvContainer) return;
+  // Hide old spinner if present
+  const loader = document.getElementById('loader');
+  if (loader) loader.classList.add('hidden');
+
+  let html = '';
+  for (let i = 0; i < count; i++) {
+    html += `
+      <div class="tv-skeleton-slide">
+        <div class="tv-skeleton-media"></div>
+        <div class="tv-skeleton-actions">
+          <div class="tv-skeleton-action-circle"></div>
+          <div class="tv-skeleton-action-circle"></div>
+          <div class="tv-skeleton-action-circle"></div>
+        </div>
+        <div class="tv-skeleton-overlay">
+          <div class="tv-skeleton-line title"></div>
+          <div class="tv-skeleton-line author"></div>
+          <div class="tv-skeleton-line views"></div>
+        </div>
+      </div>
+    `;
+  }
+  tvContainer.innerHTML = html;
+}
+          
+
             // ─── Comments Panel State ──────────────────────────────
             let currentVideoId = null;
             let commentsListener = null;
@@ -564,7 +676,10 @@
             (async function init() {
                 const tvContainer = document.getElementById('tvContainer');
                 const loader = document.getElementById('loader');
-
+              
+              //---- show skeleton slides immediately ----//
+              renderSkeletonSlides();
+              
                 try {
                     const snapshot = await db.collection("tar_tv_videos")
                         .orderBy("createdAt", "desc")
@@ -581,6 +696,9 @@
                     snapshot.forEach(doc => {
                         videos.push({ id: doc.id, ...doc.data() });
                     });
+
+                  // ─── Clear skeleton slides ───
+                  tvContainer.innerHTML = '';
 
                     let activeVideo = null;
                     let activeMuteOverlay = null;
