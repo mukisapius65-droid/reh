@@ -764,6 +764,31 @@
                         observer.observe(slide);
                     });
 
+                  // ─── Deep link: ?video=<id> ─────────────────────
+const params = new URLSearchParams(window.location.search);
+const targetVideoId = params.get('video');
+if (targetVideoId) {
+  setTimeout(() => {
+    const slides = tvContainer.querySelectorAll('.video-slide');
+    let found = false;
+    slides.forEach(slide => {
+      if (slide.dataset.videoId === targetVideoId) {
+        slide.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        found = true;
+      }
+    });
+    if (!found) {
+      if (typeof showError === 'function') {
+        showError('Video unavailable — showing latest.');
+      }
+      const firstSlide = slides[0];
+      if (firstSlide) {
+        firstSlide.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  }, 400);
+}
+
                     // ─── Like Button ─────────────────────────────────
                     document.querySelectorAll('.like-btn').forEach(btn => {
                         btn.addEventListener('click', async (e) => {

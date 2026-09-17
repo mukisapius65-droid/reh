@@ -123,6 +123,16 @@
   <!-- Dynamic story circles will be injected here -->
 </div>
 
+      <!-- ─── On Tar TV Preview Row ──────────────────── -->
+<div style="max-width:1400px; margin:0 auto 1.5rem; padding:0 2rem;">
+  <h2 class="tv-preview-heading">
+    <i class="fa-solid fa-crown"></i> On Tar TV
+  </h2>
+  <div id="tvPreviewRow" class="tv-preview-row">
+    <!-- Rendered by JS -->
+  </div>
+</div>
+
         <!-- Card Grid -->
        <div class="card-grid" id="cardGrid">
     <!-- Skeleton loading placeholders — replaced by JS -->
@@ -905,6 +915,109 @@ function renderSingleCard(u, index) {
     </div>`;
 }
 
+      // ─── Tar TV Preview Row ────────────────────────
+let tvPreviewObserver = null;
+
+function renderSkeletonTvPreviews(count = 5) {
+  const row = document.getElementById('tvPreviewRow');
+  if (!row) return;
+  let html = '';
+  for (let i = 0; i < count; i++) {
+    html += `<div class="tv-preview-skeleton"></div>`;
+  }
+  row.innerHTML = html;
+}
+
+async function loadTvPreviews() {
+  const row = document.getElementById('tvPreviewRow');
+  if (!row) return;
+
+  // Show skeletons immediately
+  renderSkeletonTvPreviews(5);
+
+  try {
+    const q = window.query(
+      window.collection(window.db, 'tar_tv_videos'),
+      window.orderBy('createdAt', 'desc'),
+      window.limit(10)
+    );
+    const snap = await window.getDocs(q);
+    const videos = [];
+    snap.forEach(doc => {
+      const v = doc.data();
+      if (v.status === 'removed') return; // skip moderated
+      videos.push({ id: doc.id, ...v });
+    });
+
+    if (videos.length === 0) {
+      row.innerHTML = '<div style="color:var(--text-muted); padding:1rem;">No videos yet.</div>';
+      return;
+    }
+
+    // Render preview cards
+    row.innerHTML = videos.map(v => `
+      <div class="tv-preview-item" data-id="${v.id}" onclick="location.href='tartv.html?video=${v.id}'">
+        <video
+          class="tv-preview-video"
+          src="${v.videoUrl}"
+          muted
+          loop
+          playsinline
+          preload="metadata"
+          data-src="${v.videoUrl}"></video>
+        <div class="tv-preview-crown"><i class="fa-solid fa-crown"></i></div>
+        <div class="tv-preview-overlay">
+          <div class="tv-preview-title">${escapeHtml(v.title || 'Untitled')}</div>
+          <div class="tv-preview-author">@${escapeHtml(v.author || 'Reh')}</div>
+        </div>
+      </div>
+    `).join('') + `
+      <a href="tartv.html" class="tv-preview-see-more">
+        <i class="fa-solid fa-tv"></i>
+        <span>See more</span>
+      </a>
+    `;
+
+    // ─── IntersectionObserver: play only visible previews ───
+    if (tvPreviewObserver) tvPreviewObserver.disconnect();
+
+    tvPreviewObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        const video = entry.target.querySelector('video');
+        if (!video) return;
+        if (entry.isIntersecting) {
+          // Play with a cap of 5 seconds
+          video.play().catch(() => {});
+          if (video._capTimer) clearTimeout(video._capTimer);
+          video._capTimer = setTimeout(() => {
+            video.pause();
+            video.currentTime = 0;
+          }, 5000);
+        } else {
+          video.pause();
+          if (video._capTimer) clearTimeout(video._capTimer);
+        }
+      });
+    }, { threshold: 0.6 });
+
+    row.querySelectorAll('.tv-preview-item').forEach(el => {
+      tvPreviewObserver.observe(el);
+    });
+
+  } catch (err) {
+    console.error('Error loading Tar TV previews:', err);
+    row.innerHTML = '<div style="color:var(--danger); padding:1rem;">Could not load videos.</div>';
+  }
+}
+
+// Helper (if not already present)
+function escapeHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+    }
+      
+
 // ── MAIN RENDERING FUNCTION ───────────────────
 async function renderCards(filter = "all", searchTerm = "") {
   activeFilter = filter;
@@ -1213,6 +1326,7 @@ grid.innerHTML = html;
       await  renderCards("all", "");
    
   renderStories();
+      loadTvPreviews();
     }
 
     function waitForFirebase(callback) {
