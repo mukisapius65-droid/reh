@@ -42,6 +42,276 @@
       .video-slide {
   animation: fadeInSlide 0.35s ease-out;
 }
+            /* ─── Tar TV Top Nav ───────────────────────── */
+.tv-topnav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 90; /* below modals (150+) and share modal (200) */
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 56px;
+  padding: 0 16px;
+  padding-top: calc(env(safe-area-inset-top, 0px) + 8px);
+  height: calc(56px + env(safe-area-inset-top, 0px));
+  background: linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.25) 60%, transparent 100%);
+  pointer-events: none;
+  font-family: 'Inter', sans-serif;
+  color: #fff;
+}
+.tv-topnav > * { pointer-events: auto; }
+
+.tv-topnav-btn {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.35);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: #fff;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  transition: 0.2s;
+}
+.tv-topnav-btn:hover { background: rgba(200,160,60,0.4); border-color: #dfc278; }
+.tv-topnav-btn:active { transform: scale(0.94); }
+
+.tv-topnav-segment {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 180px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.15rem;
+  background: rgba(0,0,0,0.35);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 20px;
+  padding: 3px;
+}
+.tv-topnav-segment button {
+  flex: 1 1 0;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  color: rgba(255,255,255,0.65);
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 5px 6px;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: 0.2s;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: inherit;
+}
+.tv-topnav-segment button.active {
+  background: rgba(200,160,60,0.85);
+  color: #080c24;
+}
+
+.tv-topnav-pill {
+  padding: 8px 12px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(200,160,60,0.9), rgba(223,194,120,0.95));
+  color: #080c24;
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-shadow: 0 4px 14px rgba(200,160,60,0.4);
+  transition: 0.2s;
+  font-family: inherit;
+}
+.tv-topnav-pill:hover { transform: translateY(-1px); }
+.tv-topnav-pill:active { transform: scale(0.96); }
+.tv-topnav-pill i { font-size: 0.7rem; }
+
+@media (max-width: 420px) {
+  .tv-topnav-pill span { display: none; }
+  .tv-topnav-pill { padding: 8px 10px; }
+  .tv-topnav-segment button { font-size: 0.65rem; }
+}
+
+/* ─── Tar TV Bottom Sheets ──────────────────── */
+.tv-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 150;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+.tv-sheet-overlay.show { display: flex; opacity: 1; }
+.tv-sheet {
+  width: 100%;
+  max-width: 480px;
+  background: rgba(15,20,50,0.96);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid #c9a84c;
+  border-radius: 24px 24px 0 0;
+  padding: 1.5rem 1.25rem calc(1.5rem + env(safe-area-inset-bottom, 0px));
+  transform: translateY(30px);
+  transition: transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94);
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+.tv-sheet-overlay.show .tv-sheet { transform: translateY(0); }
+.tv-sheet h3 {
+  font-family: 'Playfair Display', serif;
+  color: #dfc278;
+  font-size: 1.15rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.tv-sheet-item {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.9rem 1rem;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  color: #f0ece6;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: 0.2s;
+  margin-bottom: 0.5rem;
+  text-decoration: none;
+}
+.tv-sheet-item:hover { background: rgba(200,160,60,0.12); border-color: rgba(200,160,60,0.4); }
+.tv-sheet-item > i:first-child { width: 20px; text-align: center; color: #dfc278; }
+.tv-sheet-item .chev { margin-left: auto; color: #8a857a; font-size: 0.75rem; }
+
+.tv-sheet-search-input {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 14px;
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.9rem;
+  outline: none;
+  margin-bottom: 1rem;
+}
+.tv-sheet-search-input:focus { border-color: #c9a84c; }
+
+.tv-search-results {
+  max-height: 45vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.tv-search-result {
+  display: flex;
+  gap: 0.8rem;
+  padding: 0.6rem;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.03);
+  cursor: pointer;
+  transition: 0.2s;
+  align-items: center;
+}
+.tv-search-result:hover { background: rgba(200,160,60,0.12); }
+.tv-search-result img {
+  width: 48px; height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: #111;
+}
+.tv-search-result .info { flex: 1; min-width: 0; }
+.tv-search-result .t {
+  font-size: 0.85rem; font-weight: 600;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.tv-search-result .a { font-size: 0.72rem; color: #dfc278; }
+
+.tv-setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.9rem 0.2rem;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.tv-setting-row:last-of-type { border-bottom: none; }
+.tv-setting-row .label {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  font-size: 0.88rem;
+  color: #c5bfb3;
+}
+.tv-setting-row .label i { color: #dfc278; width: 20px; text-align: center; }
+
+.tv-switch {
+  position: relative;
+  width: 42px; height: 24px;
+  flex-shrink: 0;
+}
+.tv-switch input { opacity: 0; width: 0; height: 0; }
+.tv-switch .slider {
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.15);
+  border-radius: 24px;
+  transition: 0.3s;
+  cursor: pointer;
+}
+.tv-switch .slider::before {
+  content: '';
+  position: absolute;
+  height: 18px; width: 18px;
+  left: 3px; top: 3px;
+  background: #fff;
+  border-radius: 50%;
+  transition: 0.3s;
+}
+.tv-switch input:checked + .slider { background: #c9a84c; }
+.tv-switch input:checked + .slider::before { transform: translateX(18px); }
+
+.tv-sheet-cancel {
+  width: 100%;
+  padding: 0.9rem;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #c5bfb3;
+  border-radius: 50px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  font-family: inherit;
+}
+.tv-sheet-cancel:hover { border-color: #c9a84c; color: #f0e4c8; }
+      
 @keyframes fadeInSlide {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -569,6 +839,108 @@
   ">Upload</span>
 </div>
     </div>
+  <!-- ─── Tar TV Top Nav ─────────────────────────── -->
+<nav class="tv-topnav" id="tvTopNav" aria-label="Tar TV navigation">
+  <button class="tv-topnav-btn" id="tvBackBtn" aria-label="Back">
+    <i class="fa-solid fa-chevron-left"></i>
+  </button>
+  <button class="tv-topnav-btn" id="tvSearchBtn" aria-label="Search">
+    <i class="fa-solid fa-magnifying-glass"></i>
+  </button>
+  <div class="tv-topnav-segment" id="tvSegment" role="tablist">
+    <button class="active" data-seg="tars" role="tab">Tars</button>
+    <button data-seg="videos" role="tab">Videos</button>
+    <button data-seg="reels" role="tab">Reels</button>
+  </div>
+  <button class="tv-topnav-pill" id="tvFullVideosBtn" aria-label="Watch full videos">
+    <i class="fa-solid fa-play"></i><span>Full videos</span>
+  </button>
+  <button class="tv-topnav-btn" id="tvKebabBtn" aria-label="Menu">
+    <i class="fa-solid fa-ellipsis-vertical"></i>
+  </button>
+</nav>
+
+<!-- ─── Search Sheet ──────────────────────────── -->
+<div class="tv-sheet-overlay" id="tvSearchSheet">
+  <div class="tv-sheet">
+    <h3><i class="fa-solid fa-magnifying-glass"></i> Search Tar TV</h3>
+    <input type="text" class="tv-sheet-search-input" id="tvSearchInput"
+           placeholder="Search by title or author…" autocomplete="off">
+    <div class="tv-search-results" id="tvSearchResults"></div>
+    <button class="tv-sheet-cancel" data-close-sheet>Cancel</button>
+  </div>
+</div>
+
+<!-- ─── Kebab Menu Sheet ──────────────────────── -->
+<div class="tv-sheet-overlay" id="tvKebabSheet">
+  <div class="tv-sheet">
+    <h3><i class="fa-solid fa-bars"></i> Menu</h3>
+    <div class="tv-sheet-item" id="tvOfflineItem">
+      <i class="fa-solid fa-download"></i>
+      <span>Offline videos</span>
+      <i class="fa-solid fa-chevron-right chev"></i>
+    </div>
+    <div class="tv-sheet-item" id="tvSettingsItem">
+      <i class="fa-solid fa-gear"></i>
+      <span>Settings</span>
+      <i class="fa-solid fa-chevron-right chev"></i>
+    </div>
+    <div class="tv-sheet-item" id="tvSupportItem">
+      <i class="fa-solid fa-headset"></i>
+      <span>Support Tar TV</span>
+      <i class="fa-solid fa-chevron-right chev"></i>
+    </div>
+    <div class="tv-sheet-item" id="tvRemoveAdsItem">
+      <i class="fa-solid fa-crown"></i>
+      <span>Remove ads</span>
+      <i class="fa-solid fa-chevron-right chev"></i>
+    </div>
+    <button class="tv-sheet-cancel" data-close-sheet>Cancel</button>
+  </div>
+</div>
+
+<!-- ─── Settings Sheet ────────────────────────── -->
+<div class="tv-sheet-overlay" id="tvSettingsSheet">
+  <div class="tv-sheet">
+    <h3><i class="fa-solid fa-gear"></i> Settings</h3>
+    <div class="tv-setting-row">
+      <div class="label"><i class="fa-solid fa-volume-xmark"></i> Start muted</div>
+      <label class="tv-switch">
+        <input type="checkbox" id="tvStartMutedToggle" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div class="tv-setting-row">
+      <div class="label"><i class="fa-solid fa-wifi"></i> Data saver</div>
+      <label class="tv-switch">
+        <input type="checkbox" id="tvDataSaverToggle">
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div class="tv-sheet-item" id="tvSettingsSupportItem" style="margin-top:1rem;">
+      <i class="fa-solid fa-headset"></i>
+      <span>Support Tar TV</span>
+      <i class="fa-solid fa-chevron-right chev"></i>
+    </div>
+    <button class="tv-sheet-cancel" data-close-sheet>Close</button>
+  </div>
+</div>
+
+<!-- ─── Support Sheet ─────────────────────────── -->
+<div class="tv-sheet-overlay" id="tvSupportSheet">
+  <div class="tv-sheet">
+    <h3><i class="fa-solid fa-headset"></i> Support Tar TV</h3>
+    <p style="color:#c5bfb3; font-size:0.9rem; line-height:1.6; margin-bottom:1.25rem;">
+      Thank you for watching Tar TV. If you have questions, feedback, or need assistance, our concierge is here for you.
+    </p>
+    <a href="index.html?redirect=concierge.html" class="tv-sheet-item" style="justify-content:center;">
+      <i class="fa-solid fa-comment-dots"></i>
+      <span>Contact Concierge</span>
+    </a>
+    <button class="tv-sheet-cancel" data-close-sheet>Close</button>
+  </div>
+</div>
+  
     <div class="tv-container" id="tvContainer"></div>
 
     <!-- Comments Panel -->
@@ -749,11 +1121,20 @@ function renderSkeletonSlides(count = 3) {
                                 if (activeVideo && activeVideo !== video) {
                                     activeVideo.pause();
                                 }
-                                if (video) {
-                                    if (!video.src) video.src = video.dataset.src;
-                                    video.muted = isMuted; // global mute state
-                                    video.play().catch(e => console.log(e));
-                                }
+                              if (video) {
+    if (!video.src) video.src = video.dataset.src;
+    video.muted = isMuted; // global mute state
+    video.play().catch(() => {
+        // Autoplay with sound blocked — retry muted
+        if (!video.muted) {
+            video.muted = true;
+            isMuted = true; // ✅ sync global state so tap-to-unmute works
+            video.play().catch(() => {});
+            const icon = slide.querySelector('.mute-overlay i');
+            if (icon) icon.className = 'fa-solid fa-volume-xmark';
+        }
+    });
+}
                                 activeVideo = video;
                               window._activeTvVideoId = slide.dataset.videoId;
 
@@ -787,7 +1168,8 @@ function renderSkeletonSlides(count = 3) {
                         return mins + ':' + (secs < 10 ? '0' : '') + secs;
                     }
 
-                    let isMuted = true; // global mute state
+                    // Read initial mute preference; default muted for autoplay compliance
+let isMuted = localStorage.getItem('tar_tv_initial_muted') !== 'false';
 
                     // ─── Build Slides ──────────────────────────────
                     videos.forEach((v) => {
@@ -961,9 +1343,14 @@ if (targetVideoId) {
 
                     // ─── Like Button ─────────────────────────────────
                     document.querySelectorAll('.like-btn').forEach(btn => {
-                        btn.addEventListener('click', async (e) => {
-                            e.stopPropagation();
-                            const id = btn.dataset.id;
+    btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const user = getCurrentUser();
+        if (!user || !user.email) {
+            window.location.href = 'index.html?redirect=register.html';
+            return;
+        }
+        const id = btn.dataset.id;
                             const docRef = db.collection("tar_tv_videos").doc(id);
                             try {
                                 await docRef.update({
@@ -981,12 +1368,17 @@ if (targetVideoId) {
 
                     // ─── Comment Button ─────────────────────────────
                     document.querySelectorAll('.comment-btn').forEach(btn => {
-                        btn.addEventListener('click', function(e) {
-                            e.stopPropagation();
-                            const videoId = this.dataset.id;
-                            openCommentsPanel(videoId);
-                        });
-                    });
+    btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const user = getCurrentUser();
+        if (!user || !user.email) {
+            window.location.href = 'index.html?redirect=register.html';
+            return;
+        }
+        const videoId = this.dataset.id;
+        openCommentsPanel(videoId);
+    });
+});
 
                     // ─── Comments Panel Logic ────────────────────────
                     const panel = document.getElementById('commentsPanel');
@@ -1056,10 +1448,10 @@ if (targetVideoId) {
                         const text = commentInput.value.trim();
                         if (!text || !currentVideoId) return;
                         const user = getCurrentUser();
-                        if (!user.email) {
-                            showError('Please log in to comment.');
-                            return;
-                        }
+if (!user || !user.email) {
+    window.location.href = 'index.html?redirect=register.html';
+    return;
+}
                         try {
                             await db.collection("tar_tv_videos").doc(currentVideoId)
                                 .collection("comments")
@@ -1219,6 +1611,220 @@ document.addEventListener('click', function(e) {
     }
   }
 });
+          // ─── Tar TV Top Nav & Bottom Sheets ─────────────
+(function initTvTopNav() {
+  const SETTINGS_KEYS = {
+    muted: 'tar_tv_initial_muted',
+    dataSaver: 'tar_tv_data_saver'
+  };
+
+  // Load persisted settings
+ const initialMuted = localStorage.getItem(SETTINGS_KEYS.muted) !== 'false';
+const dataSaverOn = localStorage.getItem(SETTINGS_KEYS.dataSaver) === 'true';
+window._tvDataSaver = dataSaverOn;
+// NOTE: Data saver currently only toggles video.preload attributes.
+// Future: wire into preloadAdjacentVideos() when that function is restored.
+
+  // ─── Nav toast (self-contained) ─────────
+  function showTvToast(msg) {
+    let toast = document.getElementById('tvNavToast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'tvNavToast';
+      toast.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(20,30,60,0.95);color:#f0e4c8;border:1px solid #c9a84c;padding:12px 24px;border-radius:50px;font-size:0.85rem;z-index:400;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;font-family:Inter,sans-serif;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);max-width:85%;text-align:center;';
+      document.body.appendChild(toast);
+    }
+    toast.textContent = msg;
+    requestAnimationFrame(() => {
+      toast.style.opacity = '1';
+      toast.style.transform = 'translateX(-50%) translateY(0)';
+    });
+    clearTimeout(showTvToast._t);
+    showTvToast._t = setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateX(-50%) translateY(20px)';
+    }, 2400);
+  }
+
+  // ─── Sheet helpers ─────────────────────
+  function openSheet(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('show');
+  }
+  function closeSheet(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('show');
+  }
+  function closeAllSheets() {
+    document.querySelectorAll('.tv-sheet-overlay.show').forEach(el => el.classList.remove('show'));
+  }
+  document.querySelectorAll('.tv-sheet-overlay').forEach(overlay => {
+    overlay.addEventListener('click', function(e) {
+      if (e.target === overlay || e.target.closest('[data-close-sheet]')) {
+        closeAllSheets();
+      }
+    });
+  });
+
+  // ─── Back button ────────────────────────
+  document.getElementById('tvBackBtn').addEventListener('click', () => {
+  // Same-origin referrer → real history back (deeplink-safe).
+  // Otherwise (e.g. WhatsApp deeplink) → fall back to Discover.
+  if (document.referrer && document.referrer.includes(window.location.host)) {
+    history.back();
+  } else {
+    window.location.href = 'discover.html';
+  }
+});
+
+  // ─── Search sheet ───────────────────────
+  const searchInput = document.getElementById('tvSearchInput');
+  const searchResults = document.getElementById('tvSearchResults');
+
+  function getVideoList() {
+    return Array.from(document.querySelectorAll('.video-slide')).map(slide => {
+      const t = slide.querySelector('.video-title');
+      const a = slide.querySelector('.video-author');
+      const ph = slide.querySelector('.video-placeholder');
+      let thumb = '';
+      if (ph && ph.style.backgroundImage) {
+        thumb = ph.style.backgroundImage.replace(/^url\(["']?/, '').replace(/["']?\)$/, '');
+      }
+      return {
+        id: slide.dataset.videoId,
+        title: t ? t.textContent.trim() : '',
+        author: a ? a.textContent.replace(/^@/, '').trim() : '',
+        thumbnail: thumb
+      };
+    });
+  }
+  function escHtml(s) {
+    const d = document.createElement('div');
+    d.textContent = String(s);
+    return d.innerHTML;
+  }
+  function renderSearchResults(query) {
+    const q = (query || '').toLowerCase().trim();
+    const all = getVideoList();
+    const list = q ? all.filter(v =>
+      v.title.toLowerCase().includes(q) || v.author.toLowerCase().includes(q)
+    ) : all.slice(0, 20);
+
+    if (!list.length) {
+      searchResults.innerHTML = '<p style="color:#8a857a;text-align:center;padding:1rem;font-size:0.85rem;">No videos match.</p>';
+      return;
+    }
+    searchResults.innerHTML = list.map(v => `
+      <div class="tv-search-result" data-video-id="${v.id}">
+        ${v.thumbnail
+          ? `<img src="${v.thumbnail}" alt="" onerror="this.style.display='none'">`
+          : '<div style="width:48px;height:48px;border-radius:8px;background:#111;flex-shrink:0;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-video" style="color:#c9a84c;opacity:.5;"></i></div>'}
+        <div class="info">
+          <div class="t">${escHtml(v.title || 'Untitled')}</div>
+          <div class="a">@${escHtml(v.author || 'Reh')}</div>
+        </div>
+      </div>
+    `).join('');
+    searchResults.querySelectorAll('.tv-search-result').forEach(el => {
+      el.addEventListener('click', () => {
+        const slide = document.querySelector(`.video-slide[data-video-id="${el.dataset.videoId}"]`);
+        if (slide) slide.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        closeAllSheets();
+      });
+    });
+  }
+  document.getElementById('tvSearchBtn').addEventListener('click', () => {
+    openSheet('tvSearchSheet');
+    renderSearchResults('');
+    setTimeout(() => searchInput.focus(), 320);
+  });
+  searchInput.addEventListener('input', e => renderSearchResults(e.target.value));
+
+  // ─── Segment (visual only) ──────────────
+  document.querySelectorAll('#tvSegment button').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('#tvSegment button').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      showTvToast(`Switched to ${this.textContent}`);
+    });
+  });
+
+  // ─── Watch full videos placeholder ──────
+  document.getElementById('tvFullVideosBtn').addEventListener('click', () => {
+    showTvToast('🎬 Full videos coming soon.');
+  });
+
+  // ─── Kebab menu ─────────────────────────
+  document.getElementById('tvKebabBtn').addEventListener('click', () => openSheet('tvKebabSheet'));
+
+  document.getElementById('tvOfflineItem').addEventListener('click', () => {
+    closeAllSheets();
+    showTvToast('📥 Offline videos coming soon.');
+  });
+  document.getElementById('tvSettingsItem').addEventListener('click', () => {
+    closeSheet('tvKebabSheet');
+    openSheet('tvSettingsSheet');
+  });
+  document.getElementById('tvSupportItem').addEventListener('click', () => {
+    closeSheet('tvKebabSheet');
+    openSheet('tvSupportSheet');
+  });
+  document.getElementById('tvSettingsSupportItem').addEventListener('click', () => {
+    closeSheet('tvSettingsSheet');
+    openSheet('tvSupportSheet');
+  });
+  document.getElementById('tvRemoveAdsItem').addEventListener('click', () => {
+    closeAllSheets();
+    showTvToast('👑 Ad-free experience coming soon. Available in a future update.');
+  });
+
+  // ─── Settings toggles ───────────────────
+  const mutedToggle = document.getElementById('tvStartMutedToggle');
+  const dataSaverToggle = document.getElementById('tvDataSaverToggle');
+  mutedToggle.checked = initialMuted;
+  dataSaverToggle.checked = dataSaverOn;
+
+  mutedToggle.addEventListener('change', function() {
+    localStorage.setItem(SETTINGS_KEYS.muted, this.checked ? 'true' : 'false');
+    // Apply live to current active video
+    const active = document.querySelector('.video-slide video:not([paused])');
+    if (active) {
+      if (this.checked) {
+        active.muted = true;
+      } else {
+        active.muted = false;
+        active.play().catch(() => { active.muted = true; });
+      }
+    }
+    showTvToast(this.checked ? '🔇 Videos will start muted' : '🔊 Videos will start unmuted');
+  });
+
+  dataSaverToggle.addEventListener('change', function() {
+    const on = this.checked;
+    localStorage.setItem(SETTINGS_KEYS.dataSaver, on ? 'true' : 'false');
+    window._tvDataSaver = on;
+    applyDataSaver();
+    showTvToast(on ? '📶 Data saver ON' : '📶 Data saver OFF');
+  });
+
+  function applyDataSaver() {
+    const on = window._tvDataSaver;
+    document.querySelectorAll('.video-slide video').forEach(v => {
+      if (v.src && !v.paused) return; // don't disturb the active video
+      v.preload = on ? 'none' : 'metadata';
+    });
+  }
+  applyDataSaver();
+
+  // Reapply when slides are (re)built (skeleton → real transition)
+  const tvC = document.getElementById('tvContainer');
+  if (tvC && window.MutationObserver) {
+    const mo = new MutationObserver(() => applyDataSaver());
+    mo.observe(tvC, { childList: true, subtree: true });
+  }
+  setTimeout(applyDataSaver, 2500);
+  setTimeout(applyDataSaver, 6000);
+})();
         })();
     </script>
 </body>
