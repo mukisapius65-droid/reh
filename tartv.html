@@ -46,8 +46,21 @@
   from { opacity: 0; }
   to { opacity: 1; }
 }
-        .video-placeholder { position:absolute; inset:0; background-size:cover; background-position:center; filter:blur(10px); }
-      
+        .video-placeholder {
+  position:absolute;
+  inset:0;
+  background-size:cover;
+  background-position:center;
+  filter:blur(10px);
+  z-index:0;
+  opacity:1;
+  transition:opacity 0.4s ease;
+  pointer-events:none;
+}
+.video-placeholder.hidden {
+  opacity:0;
+  visibility:hidden;
+}
 
         /* Tap Zones */
         .tap-zone-left,
@@ -826,7 +839,24 @@ function renderSkeletonSlides(count = 3) {
 </div>
                         </div>
                         `;
-                        tvContainer.appendChild(slide);
+                       tvContainer.appendChild(slide);
+
+// ─── Hide placeholder once video actually plays ───
+const placeholderEl = slide.querySelector('.video-placeholder');
+const videoEl = slide.querySelector('video');
+
+if (videoEl && placeholderEl) {
+  videoEl.addEventListener('playing', () => {
+    placeholderEl.classList.add('hidden');
+    setTimeout(() => {
+      if (placeholderEl.parentNode) placeholderEl.remove();
+    }, 500);
+  }, { once: true });
+
+  videoEl.addEventListener('error', () => {
+    placeholderEl.classList.add('hidden');
+  }, { once: true });
+}
 
                         const video = slide.querySelector('video');
                         const seekSlider = slide.querySelector('.seek-slider');
@@ -1189,27 +1219,6 @@ document.addEventListener('click', function(e) {
     }
   }
 });
-        })();
-    </script>
-</body>
-</html>    loadComments(currentVideoId);
-                        } catch (err) {
-                            console.error('Error posting comment:', err);
-                            showError('Failed to post comment.');
-                        }
-                    });
-
-                    commentInput.addEventListener('keydown', (e) => {
-                        if (e.key === 'Enter') sendBtn.click();
-                    });
-
-                } catch (error) {
-                    console.error('Tar TV error:', error);
-                    showError('Error: ' + error.message);
-                    loader.style.display = 'none';
-                    tvContainer.innerHTML = '';
-                }
-            })();
         })();
     </script>
 </body>
