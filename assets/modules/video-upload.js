@@ -1,6 +1,6 @@
 // assets/modules/video-upload.js
 import { getCurrentUser, showToast } from '../utils.js';
-
+import { generateVideoThumbnail } from './video-thumbnail.js';
 // ─── Upload Modal HTML ──────────────────────────────
 const modalHTML = `
 <div id="video-upload-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:9998; justify-content:center; align-items:center; backdrop-filter:blur(8px);">
@@ -141,7 +141,25 @@ formData.append('reqtype', 'fileupload');  // Required field
       });
 
       const videoUrl = response.url;
+      
       if (!videoUrl) throw new Error('No URL returned from proxy');
+
+      // ── Generate first-frame thumbnail ──
+let thumbnailUrl = '';
+try {
+  const thumbBlob = await generateVideoThumbnail(file);
+  if (thumbBlob) {
+    const thumbPath = `tar_tv_videos/${user.email}/thumbs/${Date.now()}_thumb.jpg`;
+    const thumbRef = window.storageRef(window.storage, thumbPath);
+    const thumbSnap = await window.uploadBytes(thumbRef, thumbBlob, {
+      contentType: 'image/jpeg',
+      customMetadata: { uploadedBy: user.email, kind: 'tar_tv_thumbnail' }
+    });
+    thumbnailUrl = await window.getDownloadURL(thumbSnap.ref);
+  }
+} catch (e) {
+  console.warn('[thumb] generation/upload failed, falling back to none:', e);
+}
 
       // ── Create Firestore document ──
       const videoData = {
@@ -149,7 +167,7 @@ formData.append('reqtype', 'fileupload');  // Required field
         author: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email,
         authorEmail: user.email,
         videoUrl: videoUrl,
-        thumbnail: thumbnail || '',
+        thumbnail: thumbnailUrl || thumbnail || '',
         likes: 0,
         views: 0,
         createdAt: window.serverTimestamp ? window.serverTimestamp() : new Date(),

@@ -1136,8 +1136,8 @@ shareCopyLinkBtn.addEventListener('click', function() {
   // Build Reh deeplink from active video ID
   const videoId = window._activeTvVideoId;
   const deeplink = videoId
-    ? `https://reh-crown.vercel.app/tartv.html?video=${encodeURIComponent(videoId)}`
-    : window.location.href;
+  ? `https://reh-crown.vercel.app/api/og?video=${encodeURIComponent(videoId)}`
+  : window.location.href;
 
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(deeplink)
