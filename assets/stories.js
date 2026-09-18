@@ -8,47 +8,60 @@
   /**
    * Upload a new story (text, photo, or audio).
    */
-  window.uploadStory = async function(user, type, content) {
-    try {
-      // Validate globals
-      if (!window.storage) throw new Error('window.storage is not defined.');
-      if (!window.storageRef) throw new Error('window.storageRef is not defined.');
-      if (!window.uploadBytes) throw new Error('window.uploadBytes is not defined.');
-      if (!window.getDownloadURL) throw new Error('window.getDownloadURL is not defined.');
-      if (!window.db) throw new Error('window.db is not defined.');
+ window.uploadStory = async function(user, type, content) {
+  try {
+    if (!window.db) throw new Error('window.db is not defined.');
 
-      let finalContent = content;
+    let finalContent = content;
 
-      if (type === 'photo' || type === 'audio') {
-        const path = `stories/${user.email}/${Date.now()}_${content.name}`;
-        const fileRef = window.storageRef(window.storage, path);
-        await window.uploadBytes(fileRef, content);
-        finalContent = await window.getDownloadURL(fileRef);
+    if (type === 'photo') {
+      // Upload to Cloudinary via unsigned preset — no Firebase Storage needed.
+      // Free tier: 25GB storage / 25GB bandwidth per month.
+      const fd = new FormData();
+      fd.append('file', content);
+      fd.append('upload_preset', 'reh_stories');
+
+      const res = await fetch(
+        'https://api.cloudinary.com/v1_1/dxd5hibh7/image/upload',
+        { method: 'POST', body: fd }
+      );
+
+      if (!res.ok) {
+        throw new Error('Cloudinary upload failed: HTTP ' + res.status);
       }
-
-      // expiresAt as a plain Date object – Firestore will convert it.
-      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
-
-      const storyData = {
-        userId: user.email,
-        userName: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
-        userAvatar: user.avatar || '',
-        type: type,
-        content: finalContent,
-        timestamp: window.serverTimestamp(), // this is a Firestore sentinel
-        expiresAt: expiresAt, // plain Date
-        views: [],
-        viewCount: 0
-      };
-
-      const docRef = await window.addDoc(window.collection(window.db, 'stories'), storyData);
-      return docRef.id;
-    } catch (err) {
-      console.error('[uploadStory] Error:', err);
-      // Re-throw so the caller can catch it
-      throw err;
+      const data = await res.json();
+      if (!data.secure_url) {
+        throw new Error('Cloudinary: no secure_url in response');
+      }
+      finalContent = data.secure_url;
     }
-  };
+    // NOTE: 'audio' type intentionally unsupported — parked per Boss.
+    // 'text' type passes through as-is.
+
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    const storyData = {
+      userId: user.email,
+      userName: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+      userAvatar: user.avatar || '',
+      type: type,
+      content: finalContent,
+      timestamp: window.serverTimestamp(),
+      expiresAt: expiresAt,
+      views: [],
+      viewCount: 0
+    };
+
+    const docRef = await window.addDoc(
+      window.collection(window.db, 'stories'),
+      storyData
+    );
+    return docRef.id;
+  } catch (err) {
+    console.error('[uploadStory] Error:', err);
+    throw err;
+  }
+};
 
   /**
    * Fetch all active stories, grouped by userId, newest first.
