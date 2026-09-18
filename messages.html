@@ -56,7 +56,6 @@
       }
 
       /* ─── Skeleton Loading ──────────────────────── */
-    
 
       .skeleton {
         background: linear-gradient(
@@ -234,6 +233,7 @@
         transform: translateY(100%);
         transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         max-height: 80vh;
+        min-height: 0;
         display: flex;
         flex-direction: column;
         box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
@@ -281,28 +281,30 @@
       }
       .chat-messages {
         flex: 1;
+        min-height: 0; /* ← the fix */
         overflow-y: auto;
-        overflow-x: hidden; /* prevent horizontal overflow */
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
         padding: 0.8rem 0.4rem;
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
-        min-height: 200px;
         max-width: 100%;
       }
       .chat-msg {
+        flex-shrink: 0; /* ← bubbles keep natural height */
         max-width: 75%;
         padding: 0.5rem 0.8rem;
         border-radius: 12px;
         font-size: 0.85rem;
-        word-wrap: break-word; /* legacy */
-        overflow-wrap: break-word; /* modern standard */
-        word-break: break-word; /* handles long words without spaces */
-        hyphens: auto; /* optional: hyphenates when possible */
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        word-break: break-word;
+        hyphens: auto;
         position: relative;
         line-height: 1.4;
-        white-space: normal; /* ensure wrapping (not nowrap) */
-        overflow: hidden; /* no bleed */
+        white-space: normal;
+        overflow: hidden;
       }
       .chat-msg.sent {
         align-self: flex-end;
@@ -411,50 +413,63 @@
         </button>
       </div>
     </div>
-<script>
-  // ─── Vercel Analytics bootstrap (inline + synchronous, always runs) ───
-  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
-</script>
-<script>
-  // ─── Analytics loader with team-account exclusion ───
-  (function () {
-    var ANALYTICS_SKIP_EMAILS = [
-      'rehcrown@gmail.com',   // Boss
-      // 'gem@example.com',
-      // 'dev@example.com',
-    ];
+    <script>
+      // ─── Vercel Analytics bootstrap (inline + synchronous, always runs) ───
+      window.va =
+        window.va ||
+        function () {
+          (window.vaq = window.vaq || []).push(arguments);
+        };
+    </script>
+    <script>
+      // ─── Analytics loader with team-account exclusion ───
+      (function () {
+        var ANALYTICS_SKIP_EMAILS = [
+          "rehcrown@gmail.com", // Boss
+          // 'gem@example.com',
+          // 'dev@example.com',
+        ];
 
-    function loadAnalytics() {
-      var s = document.createElement('script');
-      s.src = '/_vercel/insights/script.js';
-      document.head.appendChild(s);
-    }
+        function loadAnalytics() {
+          var s = document.createElement("script");
+          s.src = "/_vercel/insights/script.js";
+          document.head.appendChild(s);
+        }
 
-    try {
-      var session = {};
-      try { session = JSON.parse(localStorage.getItem('reh_user') || '{}'); } catch (e) {}
+        try {
+          var session = {};
+          try {
+            session = JSON.parse(localStorage.getItem("reh_user") || "{}");
+          } catch (e) {}
 
-      var userEmail = (session.email || '').toLowerCase().trim();
-      var params    = new URLSearchParams(window.location.search);
+          var userEmail = (session.email || "").toLowerCase().trim();
+          var params = new URLSearchParams(window.location.search);
 
-      var skipByUrl     = params.has('noanalytics');
-      var skipByFlag    = localStorage.getItem('reh_skip_analytics') === 'true';
-      var skipByAccount = !!userEmail && ANALYTICS_SKIP_EMAILS.indexOf(userEmail) !== -1;
+          var skipByUrl = params.has("noanalytics");
+          var skipByFlag =
+            localStorage.getItem("reh_skip_analytics") === "true";
+          var skipByAccount =
+            !!userEmail && ANALYTICS_SKIP_EMAILS.indexOf(userEmail) !== -1;
 
-      if (skipByUrl || skipByFlag || skipByAccount) {
-        console.log('[analytics] Skipped — reason:',
-          skipByUrl ? 'url param' : skipByFlag ? 'localStorage flag' : 'team account');
-        return;
-      }
+          if (skipByUrl || skipByFlag || skipByAccount) {
+            console.log(
+              "[analytics] Skipped — reason:",
+              skipByUrl
+                ? "url param"
+                : skipByFlag
+                  ? "localStorage flag"
+                  : "team account",
+            );
+            return;
+          }
 
-      loadAnalytics();
-    } catch (err) {
-      loadAnalytics();
-    }
-  })();
-</script>
-    
-    
+          loadAnalytics();
+        } catch (err) {
+          loadAnalytics();
+        }
+      })();
+    </script>
+
     <script type="module" src="assets/utils.js"></script>
     <script type="module" src="assets/firebase.js"></script>
     <script>
