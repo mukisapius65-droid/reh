@@ -14,29 +14,33 @@
 
     let finalContent = content;
 
-    if (type === 'photo') {
-      // Upload to Cloudinary via unsigned preset — no Firebase Storage needed.
-      // Free tier: 25GB storage / 25GB bandwidth per month.
-      const fd = new FormData();
-      fd.append('file', content);
-      fd.append('upload_preset', 'reh_stories');
+   if (type === 'photo' || type === 'audio') {
+  // Upload to Cloudinary via unsigned preset — no Firebase Storage needed.
+  // Photos go to /image/upload, audio goes to /video/upload (Cloudinary
+  // treats audio as a "video" resource type).
+  const fd = new FormData();
+  fd.append('file', content);
 
-      const res = await fetch(
-        'https://api.cloudinary.com/v1_1/hqhzolpo/image/upload',
-        { method: 'POST', body: fd }
-      );
+  const resource = type === 'photo' ? 'image' : 'video';
+  const preset = type === 'photo' ? 'reh_stories' : 'reh_stories_audio';
+  fd.append('upload_preset', preset);
 
-      if (!res.ok) {
-  let body = '';
-  try { body = JSON.stringify(await res.json()); } catch (e) { body = await res.text().catch(() => ''); }
-  throw new Error('Cloudinary HTTP ' + res.status + ' — ' + body);
+  const res = await fetch(
+    `https://api.cloudinary.com/v1_1/hqhzolpo/${resource}/upload`,
+    { method: 'POST', body: fd }
+  );
+
+  if (!res.ok) {
+    let body = '';
+    try { body = JSON.stringify(await res.json()); } catch (e) { body = await res.text().catch(() => ''); }
+    throw new Error('Cloudinary HTTP ' + res.status + ' — ' + body);
+  }
+  const data = await res.json();
+  if (!data.secure_url) {
+    throw new Error('Cloudinary: no secure_url in response');
+  }
+  finalContent = data.secure_url;
 }
-      const data = await res.json();
-      if (!data.secure_url) {
-        throw new Error('Cloudinary: no secure_url in response');
-      }
-      finalContent = data.secure_url;
-    }
     // NOTE: 'audio' type intentionally unsupported — parked per Boss.
     // 'text' type passes through as-is.
 
