@@ -22,13 +22,15 @@
       fd.append('upload_preset', 'reh_stories');
 
       const res = await fetch(
-        'https://api.cloudinary.com/v1_1/dxd5hibh7/image/upload',
+        'https://api.cloudinary.com/v1_1/hqhzolpo/image/upload',
         { method: 'POST', body: fd }
       );
 
       if (!res.ok) {
-        throw new Error('Cloudinary upload failed: HTTP ' + res.status);
-      }
+  let body = '';
+  try { body = JSON.stringify(await res.json()); } catch (e) { body = await res.text().catch(() => ''); }
+  throw new Error('Cloudinary HTTP ' + res.status + ' — ' + body);
+}
       const data = await res.json();
       if (!data.secure_url) {
         throw new Error('Cloudinary: no secure_url in response');
