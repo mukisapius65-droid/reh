@@ -980,8 +980,49 @@
     </div>
   </div>
 </div>
-  <script defer src="/_vercel/insights/script.js"></script>
+  <script>
+  // ─── Vercel Analytics bootstrap (inline + synchronous, always runs) ───
+  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+</script>
+<script>
+  // ─── Analytics loader with team-account exclusion ───
+  (function () {
+    var ANALYTICS_SKIP_EMAILS = [
+      'rehcrown@gmail.com',   // Boss
+      // 'gem@example.com',
+      // 'dev@example.com',
+    ];
 
+    function loadAnalytics() {
+      var s = document.createElement('script');
+      s.src = '/_vercel/insights/script.js';
+      document.head.appendChild(s);
+    }
+
+    try {
+      var session = {};
+      try { session = JSON.parse(localStorage.getItem('reh_user') || '{}'); } catch (e) {}
+
+      var userEmail = (session.email || '').toLowerCase().trim();
+      var params    = new URLSearchParams(window.location.search);
+
+      var skipByUrl     = params.has('noanalytics');
+      var skipByFlag    = localStorage.getItem('reh_skip_analytics') === 'true';
+      var skipByAccount = !!userEmail && ANALYTICS_SKIP_EMAILS.indexOf(userEmail) !== -1;
+
+      if (skipByUrl || skipByFlag || skipByAccount) {
+        console.log('[analytics] Skipped — reason:',
+          skipByUrl ? 'url param' : skipByFlag ? 'localStorage flag' : 'team account');
+        return;
+      }
+
+      loadAnalytics();
+    } catch (err) {
+      loadAnalytics();
+    }
+  })();
+</script>
+  
     <!-- Firebase Compat -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
