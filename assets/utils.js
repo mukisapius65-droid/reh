@@ -6,27 +6,44 @@
  * @returns {Object|null} The user object or null if not logged in.
  */
 export function getCurrentUser() {
-  const data = localStorage.getItem('reh_user');
-  return data ? JSON.parse(data) : null;
+  const local = localStorage.getItem('reh_user');
+  if (local) {
+    try { return JSON.parse(local); } catch (e) { /* fall through */ }
+  }
+  const session = sessionStorage.getItem('reh_user');
+  if (session) {
+    try { return JSON.parse(session); } catch (e) { /* fall through */ }
+  }
+  return null;
 }
 
+/**
+ * Clear the cached session from both localStorage and sessionStorage.
+ * Called by logoutUser() before redirect.
+ */
+export function clearSession() {
+  try {
+    localStorage.removeItem('reh_user');
+    sessionStorage.removeItem('reh_user');
+  } catch (e) { /* storage unavailable — ignore */ }
+}
 /**
  * Show a toast message (if the toast element exists on the page).
  * @param {string} message - The message to display.
  */
 export function showToast(message) {
-  const toast = document.getElementById('toast');
+  const toast = document.getElementById("toast");
   if (!toast) return;
-  const toastMsg = document.getElementById('toastMsg') || toast;
+  const toastMsg = document.getElementById("toastMsg") || toast;
   if (toastTimer) clearTimeout(toastTimer);
   // ✅ Fixed: check toastMsg before .tagName access
-  if (toastMsg && toastMsg.tagName === 'SPAN') {
+  if (toastMsg && toastMsg.tagName === "SPAN") {
     toastMsg.textContent = message;
   } else {
     toast.textContent = message;
   }
-  toast.classList.add('show');
-  toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+  toast.classList.add("show");
+  toastTimer = setTimeout(() => toast.classList.remove("show"), 3000);
 }
 let toastTimer;
 
@@ -36,10 +53,10 @@ let toastTimer;
  * @returns {string} Formatted string.
  */
 export function formatCount(num) {
-  if (num === undefined || num === null || isNaN(num)) return '0';
+  if (num === undefined || num === null || isNaN(num)) return "0";
   if (num < 1000) return num.toString();
-  if (num < 1000000) return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
-  return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+  if (num < 1000000) return (num / 1000).toFixed(1).replace(/\.0$/, "") + "K";
+  return (num / 1000000).toFixed(1).replace(/\.0$/, "") + "M";
 }
 
 /**
@@ -49,20 +66,20 @@ export function formatCount(num) {
  */
 export function timeAgo(timestamp) {
   let ms = timestamp;
-  if (timestamp && typeof timestamp.toMillis === 'function') {
+  if (timestamp && typeof timestamp.toMillis === "function") {
     ms = timestamp.toMillis();
   } else if (timestamp instanceof Date) {
     ms = timestamp.getTime();
   }
-  if (!ms) return 'Just now';
+  if (!ms) return "Just now";
   const seconds = Math.floor((Date.now() - ms) / 1000);
   let interval = seconds / 60;
-  if (interval < 1) return 'Just now';
-  if (interval < 60) return Math.floor(interval) + 'm ago';
+  if (interval < 1) return "Just now";
+  if (interval < 60) return Math.floor(interval) + "m ago";
   interval = interval / 60;
-  if (interval < 24) return Math.floor(interval) + 'h ago';
+  if (interval < 24) return Math.floor(interval) + "h ago";
   interval = interval / 24;
-  return Math.floor(interval) + 'd ago';
+  return Math.floor(interval) + "d ago";
 }
 
 /**
@@ -73,10 +90,10 @@ export function timeAgo(timestamp) {
 export function isUserOnline(user) {
   if (!user || !user.lastActive) return false;
   let lastMs = user.lastActive;
-  if (typeof lastMs === 'object' && typeof lastMs.toMillis === 'function') {
+  if (typeof lastMs === "object" && typeof lastMs.toMillis === "function") {
     lastMs = lastMs.toMillis();
   }
-  return (Date.now() - lastMs) < 20000;
+  return Date.now() - lastMs < 20000;
 }
 
 /**
@@ -86,12 +103,13 @@ export function isUserOnline(user) {
  * @returns {string} e.g., "alice@example.com_bob@example.com"
  */
 export function getConversationId(email1, email2) {
-  return [email1, email2].sort().join('_');
+  return [email1, email2].sort().join("_");
 }
 
 // ── Legacy window assignments (for pages not yet using ES modules) ──
 if (typeof window !== 'undefined') {
   window.getCurrentUser = getCurrentUser;
+  window.clearSession = clearSession;
   window.showToast = showToast;
   window.formatCount = formatCount;
   window.timeAgo = timeAgo;
@@ -111,6 +129,6 @@ export function isOfficial(user) {
 }
 
 // ── Add to window fallbacks ──
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   window.isOfficial = isOfficial;
 }

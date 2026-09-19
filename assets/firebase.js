@@ -6,7 +6,13 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
+  // sendPasswordResetEmail: exported here for PR 2 (recovery rewrite). Not used in PR 1.
+  sendPasswordResetEmail,
+  setPersistence,
+  browserLocalPersistence,
+  browserSessionPersistence,
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
 import {
   getFirestore,
   writeBatch,
@@ -29,7 +35,9 @@ import {
   deleteDoc,
   increment,
   Timestamp,
+  deleteField,
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
 import {
   getStorage,
   ref,
@@ -62,6 +70,10 @@ export {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
+  sendPasswordResetEmail,
+  setPersistence,
+  browserLocalPersistence,
+  browserSessionPersistence,
   // Firestore
   writeBatch,
   doc,
@@ -83,6 +95,7 @@ export {
   deleteDoc,
   increment,
   Timestamp,
+  deleteField,
   // Storage
   ref as storageRef,
   uploadBytes,
@@ -100,6 +113,10 @@ window.onAuthStateChanged = onAuthStateChanged;
 window.signInWithEmailAndPassword = signInWithEmailAndPassword;
 window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
 window.signOut = signOut;
+window.sendPasswordResetEmail = sendPasswordResetEmail;
+window.setPersistence = setPersistence;
+window.browserLocalPersistence = browserLocalPersistence;
+window.browserSessionPersistence = browserSessionPersistence;
 
 // Firestore
 window.doc = doc;
@@ -122,10 +139,29 @@ window.collectionGroup = collectionGroup;
 window.writeBatch = writeBatch;
 window.increment = increment;
 window.Timestamp = Timestamp;
+window.deleteField = deleteField;
 
 // Storage
 window.storageRef = ref;
 window.uploadBytes = uploadBytes;
 window.getDownloadURL = getDownloadURL;
 
-console.log('[firebase] Initialized with Auth, Firestore, and Storage (modular exports available).');
+console.log(
+  "[firebase] Initialized with Auth, Firestore, and Storage (modular exports available).",
+);
+
+// ── Auth state guard ─────────────────────────────
+// authStateReady() resolves after Firebase Auth finishes initializing.
+// Without it, the listener would fire null during init and wipe valid sessions.
+auth.authStateReady().then(() => {
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      try {
+        localStorage.removeItem("reh_user");
+        sessionStorage.removeItem("reh_user");
+      } catch (e) {
+        /* storage unavailable — ignore */
+      }
+    }
+  });
+});
