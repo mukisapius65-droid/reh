@@ -1268,13 +1268,16 @@
         };
     </script>
     <script>
+  // ─── Team accounts: excluded from analytics + view counts ───
+  window._REH_TEAM_EMAILS = [
+    'rehcrown@gmail.com',
+    // add more team emails here, one per line
+  ];
+    </script>
+    <script>
       // ─── Analytics loader with team-account exclusion ───
       (function () {
-        var ANALYTICS_SKIP_EMAILS = [
-          "rehcrown@gmail.com", // Boss
-          // 'gem@example.com',
-          // 'dev@example.com',
-        ];
+        var ANALYTICS_SKIP_EMAILS = window._REH_TEAM_EMAILS || [];
 
         function loadAnalytics() {
           var s = document.createElement("script");
@@ -1481,28 +1484,31 @@
                     window._activeTvVideoId = slide.dataset.videoId;
 
                     // View counting
-                    if (videoId && !viewedSet.has(videoId)) {
-                      const docRef = db
-                        .collection("tar_tv_videos")
-                        .doc(videoId);
-                      docRef
-                        .update({
-                          views: FieldValue.increment(1),
-                        })
-                        .then(() => {
-                          const currentCount = parseInt(
-                            viewsElement?.textContent || "0",
-                            10,
-                          );
-                          if (viewsElement)
-                            viewsElement.textContent = currentCount + 1;
-                        })
-                        .catch((err) =>
-                          console.error("Failed to increment views:", err),
-                        );
-                      viewedSet.add(videoId);
-                      saveViewedSet(viewedSet);
-                    }
+                    // View counting — skipped for team accounts
+const _teamEmails = window._REH_TEAM_EMAILS || [];
+const _viewerEmail = (getCurrentUser().email || '').toLowerCase().trim();
+const _isTeamViewer = _teamEmails
+  .map(e => String(e).toLowerCase().trim())
+  .includes(_viewerEmail);
+
+if (videoId && !viewedSet.has(videoId)) {
+  if (_isTeamViewer) {
+    // Debug log: set localStorage.reh_debug_team = 'true' to enable
+    if (localStorage.getItem('reh_debug_team') === 'true') {
+      console.log('[tar-tv] View skipped (team account):', _viewerEmail);
+    }
+  } else {
+    const docRef = db.collection("tar_tv_videos").doc(videoId);
+    docRef.update({
+      views: FieldValue.increment(1)
+    }).then(() => {
+      const currentCount = parseInt(viewsElement?.textContent || "0", 10);
+      if (viewsElement) viewsElement.textContent = currentCount + 1;
+    }).catch(err => console.error('Failed to increment views:', err));
+    viewedSet.add(videoId);
+    saveViewedSet(viewedSet);
+  }
+}
                   } else {
                     if (video) video.pause();
                   }
