@@ -1,4 +1,35 @@
 // assets/general.js – Minimal Loader
+// ── Auth state guard ─────────────────────────────
+// Every page that loads general.js gets this. Clears our cached session if
+// Firebase Auth has no user — prevents ghost sessions across the app.
+// Runs a check on authStateReady so it doesn't fire during Firebase init.
+if (typeof window !== 'undefined') {
+  // Wait for firebase.js to define window.auth
+  const _authGuardTimer = setInterval(() => {
+    if (window.auth && window.onAuthStateChanged && window.auth.authStateReady) {
+      clearInterval(_authGuardTimer);
+      window.auth.authStateReady().then(() => {
+        window.onAuthStateChanged(window.auth, (user) => {
+          if (user) return;
+          let cached = null;
+          try {
+            cached = JSON.parse(
+              localStorage.getItem('reh_user') || sessionStorage.getItem('reh_user') || 'null'
+            );
+          } catch (e) { /* malformed */ }
+          // Only clear post-PR sessions (have uid). Pre-PR sessions left alone.
+          if (cached && cached.uid) {
+            try {
+              localStorage.removeItem('reh_user');
+              sessionStorage.removeItem('reh_user');
+            } catch (e) { /* ignore */ }
+          }
+        });
+      });
+    }
+  }, 100);
+}
+
 // This file is kept for backward compatibility.
 // It defines global avatar functions and dynamically imports all modules.
 
