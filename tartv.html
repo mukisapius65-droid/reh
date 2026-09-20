@@ -1052,7 +1052,7 @@
       </button>
       <div class="tv-topnav-segment" id="tvSegment" role="tablist">
         <button class="active" data-seg="tars" role="tab">Tars</button>
-        <button data-seg="videos" role="tab">Videos</button>
+        <button data-seg="ireh" role="tab">iReh</button>
         <button data-seg="reels" role="tab">Reels</button>
       </div>
       <button
@@ -1268,11 +1268,11 @@
         };
     </script>
     <script>
-  // ─── Team accounts: excluded from analytics + view counts ───
-  window._REH_TEAM_EMAILS = [
-    'rehcrown@gmail.com',
-    // add more team emails here, one per line
-  ];
+      // ─── Team accounts: excluded from analytics + view counts ───
+      window._REH_TEAM_EMAILS = [
+        "rehcrown@gmail.com",
+        // add more team emails here, one per line
+      ];
     </script>
     <script>
       // ─── Analytics loader with team-account exclusion ───
@@ -1485,30 +1485,46 @@
 
                     // View counting
                     // View counting — skipped for team accounts
-const _teamEmails = window._REH_TEAM_EMAILS || [];
-const _viewerEmail = (getCurrentUser().email || '').toLowerCase().trim();
-const _isTeamViewer = _teamEmails
-  .map(e => String(e).toLowerCase().trim())
-  .includes(_viewerEmail);
+                    const _teamEmails = window._REH_TEAM_EMAILS || [];
+                    const _viewerEmail = (getCurrentUser().email || "")
+                      .toLowerCase()
+                      .trim();
+                    const _isTeamViewer = _teamEmails
+                      .map((e) => String(e).toLowerCase().trim())
+                      .includes(_viewerEmail);
 
-if (videoId && !viewedSet.has(videoId)) {
-  if (_isTeamViewer) {
-    // Debug log: set localStorage.reh_debug_team = 'true' to enable
-    if (localStorage.getItem('reh_debug_team') === 'true') {
-      console.log('[tar-tv] View skipped (team account):', _viewerEmail);
-    }
-  } else {
-    const docRef = db.collection("tar_tv_videos").doc(videoId);
-    docRef.update({
-      views: FieldValue.increment(1)
-    }).then(() => {
-      const currentCount = parseInt(viewsElement?.textContent || "0", 10);
-      if (viewsElement) viewsElement.textContent = currentCount + 1;
-    }).catch(err => console.error('Failed to increment views:', err));
-    viewedSet.add(videoId);
-    saveViewedSet(viewedSet);
-  }
-}
+                    if (videoId && !viewedSet.has(videoId)) {
+                      if (_isTeamViewer) {
+                        // Debug log: set localStorage.reh_debug_team = 'true' to enable
+                        if (localStorage.getItem("reh_debug_team") === "true") {
+                          console.log(
+                            "[tar-tv] View skipped (team account):",
+                            _viewerEmail,
+                          );
+                        }
+                      } else {
+                        const docRef = db
+                          .collection("tar_tv_videos")
+                          .doc(videoId);
+                        docRef
+                          .update({
+                            views: FieldValue.increment(1),
+                          })
+                          .then(() => {
+                            const currentCount = parseInt(
+                              viewsElement?.textContent || "0",
+                              10,
+                            );
+                            if (viewsElement)
+                              viewsElement.textContent = currentCount + 1;
+                          })
+                          .catch((err) =>
+                            console.error("Failed to increment views:", err),
+                          );
+                        viewedSet.add(videoId);
+                        saveViewedSet(viewedSet);
+                      }
+                    }
                   } else {
                     if (video) video.pause();
                   }
@@ -2484,19 +2500,26 @@ if (videoId && !viewedSet.has(videoId)) {
 
           // ─── Segment (visual only) ──────────────
           document.querySelectorAll("#tvSegment button").forEach((btn) => {
-            btn.addEventListener("click", function () {
-              document
-                .querySelectorAll("#tvSegment button")
-                .forEach((b) => b.classList.remove("active"));
-              this.classList.add("active");
-              showTvToast(`Switched to ${this.textContent}`);
-            });
-          });
+  btn.addEventListener("click", function () {
+    const seg = this.dataset.seg;
+    if (seg === 'ireh') {
+      window.location.href = '/ireh';
+      return;
+    }
+    document
+      .querySelectorAll("#tvSegment button")
+      .forEach((b) => b.classList.remove("active"));
+    this.classList.add("active");
+    showTvToast(`Switched to ${this.textContent}`);
+  });
+});
 
           // ─── Watch full videos placeholder ──────
-         document.getElementById('tvFullVideosBtn').addEventListener('click', () => {
-  window.location.href = '/videos';
-});
+          document
+            .getElementById("tvFullVideosBtn")
+            .addEventListener("click", () => {
+              window.location.href = "/videos";
+            });
 
           // ─── Kebab menu ─────────────────────────
           document
@@ -2601,14 +2624,15 @@ if (videoId && !viewedSet.has(videoId)) {
     </script>
 
     <script>
-  (function () {
-    const FLAG = 'reh_full_videos_announced';
-    if (localStorage.getItem(FLAG) === 'true') return;
-    // Don't block the video feed for more than a moment — delay insertion
-    setTimeout(() => {
-      const modal = document.createElement('div');
-      modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(8px);z-index:99999;display:flex;align-items:center;justify-content:center;padding:1.5rem;opacity:0;transition:opacity 0.3s;';
-      modal.innerHTML = `
+      (function () {
+        const FLAG = "reh_full_videos_announced";
+        if (localStorage.getItem(FLAG) === "true") return;
+        // Don't block the video feed for more than a moment — delay insertion
+        setTimeout(() => {
+          const modal = document.createElement("div");
+          modal.style.cssText =
+            "position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(8px);z-index:99999;display:flex;align-items:center;justify-content:center;padding:1.5rem;opacity:0;transition:opacity 0.3s;";
+          modal.innerHTML = `
         <div style="background:linear-gradient(145deg,rgba(15,20,50,0.98),rgba(15,20,50,0.92));border:1px solid #c9a84c;border-radius:24px;padding:2rem 1.5rem;max-width:420px;width:100%;text-align:center;box-shadow:0 25px 60px rgba(0,0,0,0.6);">
           <div style="font-size:2.5rem;margin-bottom:0.5rem;">🎬</div>
           <h2 style="font-family:'Playfair Display',serif;color:#dfc278;font-size:1.4rem;margin-bottom:0.75rem;">Introducing Full Videos</h2>
@@ -2619,20 +2643,19 @@ if (videoId && !viewedSet.has(videoId)) {
           </div>
         </div>
       `;
-      document.body.appendChild(modal);
-      requestAnimationFrame(() => modal.style.opacity = '1');
-      function dismiss() {
-        localStorage.setItem(FLAG, 'true');
-        modal.style.opacity = '0';
-        setTimeout(() => modal.remove(), 300);
-      }
-      modal.querySelector('#fvLaterBtn').addEventListener('click', dismiss);
-      modal.querySelector('a').addEventListener('click', () => {
-        localStorage.setItem(FLAG, 'true');
-      });
-    }, 1200);
-  })();
+          document.body.appendChild(modal);
+          requestAnimationFrame(() => (modal.style.opacity = "1"));
+          function dismiss() {
+            localStorage.setItem(FLAG, "true");
+            modal.style.opacity = "0";
+            setTimeout(() => modal.remove(), 300);
+          }
+          modal.querySelector("#fvLaterBtn").addEventListener("click", dismiss);
+          modal.querySelector("a").addEventListener("click", () => {
+            localStorage.setItem(FLAG, "true");
+          });
+        }, 1200);
+      })();
     </script>
-    
   </body>
 </html>

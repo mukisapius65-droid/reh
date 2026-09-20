@@ -724,9 +724,18 @@
           <a href="#" data-page="messages"
             ><i class="fa-solid fa-envelope"></i> Messages</a
           >
-          <a href="#" data-page="tartv"><i class="fa-solid fa-tv"></i> Tar TV</a>
-          <a href="#" data-page="tartv-analytics"><i class="fa-solid fa-chart-simple"></i> Tar TV Analytics</a>
-          <a href="#" data-page="full-videos"><i class="fa-solid fa-film"></i> Full Videos</a>
+          <a href="#" data-page="tartv"
+            ><i class="fa-solid fa-tv"></i> Tar TV</a
+          >
+          <a href="#" data-page="tartv-analytics"
+            ><i class="fa-solid fa-chart-simple"></i> Tar TV Analytics</a
+          >
+          <a href="#" data-page="full-videos"
+            ><i class="fa-solid fa-film"></i> Full Videos</a
+          >
+          <a href="#" data-page="ireh"
+            ><i class="fa-solid fa-images"></i> iReh Gallery</a
+          >
           <a href="#" data-page="concierge">
             <i class="fa-solid fa-clipboard-list"></i> Concierge
             <span
@@ -742,7 +751,9 @@
           <a href="#" data-page="newsletter"
             ><i class="fa-solid fa-newspaper"></i> Newsletter</a
           >
-          <a href="#" data-page="reports"><i class="fa-solid fa-flag"></i> Reports</a>
+          <a href="#" data-page="reports"
+            ><i class="fa-solid fa-flag"></i> Reports</a
+          >
           <a href="#" data-page="settings"
             ><i class="fa-solid fa-gear"></i> Admin Settings</a
           >
@@ -759,6 +770,138 @@
 
       <!-- Main Content -->
       <main class="main" id="mainContent">
+        <div id="page-ireh" class="page">
+          <div class="page-header">
+            <h2 class="page-title">
+              <i class="fa-solid fa-images"></i> iReh Gallery
+            </h2>
+          </div>
+
+          <div
+            id="irehAuthBanner"
+            style="
+              display: none;
+              background: rgba(200, 160, 60, 0.1);
+              border: 1px solid var(--gold);
+              border-radius: 12px;
+              padding: 0.8rem 1rem;
+              margin-bottom: 1rem;
+              font-size: 0.85rem;
+              color: var(--gold-light);
+            "
+          >
+            <i class="fa-solid fa-circle-info"></i>
+            Sign in on the
+            <a href="/login" style="color: var(--champagne); font-weight: 600"
+              >main site</a
+            >
+            first to enable publishing.
+          </div>
+
+          <div class="table-container" style="margin-bottom: 2rem">
+            <h3
+              style="
+                color: var(--gold-light);
+                margin-bottom: 1rem;
+                font-family: &quot;Playfair Display&quot;, serif;
+              "
+            >
+              Publish New Batch
+            </h3>
+
+            <div class="form-group">
+              <label>Batch Title</label>
+              <input id="irehTitle" placeholder="e.g., Venice Gala 2026" />
+            </div>
+
+            <div class="form-group">
+              <label>Paste Catbox results page</label>
+              <textarea
+                id="irehPaste"
+                rows="10"
+                placeholder="Paste everything from the Catbox results page here…"
+              ></textarea>
+              <small style="color: var(--text-muted); font-size: 0.7rem">
+                Upload images to
+                <a
+                  href="https://catbox.moe"
+                  target="_blank"
+                  style="color: var(--gold-light)"
+                  >catbox.moe</a
+                >
+                first, then paste the whole page. Only files.catbox.moe image
+                URLs will be kept.
+              </small>
+            </div>
+
+            <div
+              id="irehPreview"
+              style="
+                display: none;
+                margin-top: 1rem;
+                padding: 1rem;
+                background: rgba(255, 255, 255, 0.02);
+                border: 1px solid var(--glass-border);
+                border-radius: 12px;
+                font-size: 0.85rem;
+                color: var(--text-secondary);
+              "
+            >
+              <div
+                id="irehCount"
+                style="
+                  font-weight: 600;
+                  color: var(--gold-light);
+                  margin-bottom: 0.5rem;
+                "
+              >
+                Found 0 image URLs
+              </div>
+              <div
+                id="irehThumbStrip"
+                style="display: flex; gap: 0.4rem; flex-wrap: wrap"
+              ></div>
+            </div>
+
+            <div
+              id="irehStatus"
+              style="font-size: 0.85rem; margin-top: 1rem; min-height: 1.2rem"
+            ></div>
+
+            <button
+              class="btn btn-primary"
+              id="irehSubmit"
+              style="margin-top: 1rem"
+            >
+              <i class="fa-solid fa-upload"></i> Publish Batch
+            </button>
+          </div>
+
+          <div class="table-container">
+            <h3
+              style="
+                color: var(--gold-light);
+                margin-bottom: 1rem;
+                font-family: &quot;Playfair Display&quot;, serif;
+              "
+            >
+              Published Batches
+            </h3>
+            <table id="irehBatchesTable">
+              <thead>
+                <tr>
+                  <th>Cover</th>
+                  <th>Title</th>
+                  <th>Images</th>
+                  <th>Published</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
         <!-- Dashboard -->
         <div id="page-dashboard" class="page active">
           <div class="page-header">
@@ -878,92 +1021,159 @@
             <div id="messagesList"></div>
           </div>
         </div>
-        
+
         <div id="page-tartv" class="page">
-  <div class="page-header">
-    <h2 class="page-title"><i class="fa-solid fa-tv"></i> Tar TV Videos</h2>
-    <button class="btn btn-primary" id="addVideoBtn"><i class="fa-solid fa-plus"></i> Add Video</button>
-  </div>
-  <div class="table-container">
-    <table id="tartvTable">
-      <thead>
-        <tr><th>Thumbnail</th><th>Title</th><th>Author</th><th>Actions</th></tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
-</div>
+          <div class="page-header">
+            <h2 class="page-title">
+              <i class="fa-solid fa-tv"></i> Tar TV Videos
+            </h2>
+            <button class="btn btn-primary" id="addVideoBtn">
+              <i class="fa-solid fa-plus"></i> Add Video
+            </button>
+          </div>
+          <div class="table-container">
+            <table id="tartvTable">
+              <thead>
+                <tr>
+                  <th>Thumbnail</th>
+                  <th>Title</th>
+                  <th>Author</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
         <div id="page-tartv-analytics" class="page">
-  <div class="page-header">
-    <h2 class="page-title"><i class="fa-solid fa-chart-simple"></i> Tar TV Analytics</h2>
-  </div>
-  <div class="table-container">
-    <table id="tartvAnalyticsTable">
-      <thead>
-        <tr>
-          <th>Thumbnail</th>
-          <th>Title</th>
-          <th>Author</th>
-          <th>Views</th>
-          <th>Likes</th>
-          <th>Engagement</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
-</div>
+          <div class="page-header">
+            <h2 class="page-title">
+              <i class="fa-solid fa-chart-simple"></i> Tar TV Analytics
+            </h2>
+          </div>
+          <div class="table-container">
+            <table id="tartvAnalyticsTable">
+              <thead>
+                <tr>
+                  <th>Thumbnail</th>
+                  <th>Title</th>
+                  <th>Author</th>
+                  <th>Views</th>
+                  <th>Likes</th>
+                  <th>Engagement</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
 
         <div id="page-full-videos" class="page">
-  <div class="page-header">
-    <h2 class="page-title"><i class="fa-solid fa-film"></i> Full Videos</h2>
-  </div>
-  <div class="table-container" style="margin-bottom:2rem;">
-  <h3 style="color:var(--gold-light); margin-bottom:1rem; font-family:'Playfair Display',serif;">Publish New Video</h3>
-  <form id="fullVideoForm" onsubmit="return false;">
-    <div class="form-group">
-      <label>Title</label>
-      <input id="fvTitle" placeholder="e.g., Behind the Scenes — Venice Gala" />
-    </div>
-    <div class="form-group">
-      <label>Description (optional)</label>
-      <textarea id="fvDescription" rows="3" placeholder="Short summary…"></textarea>
-    </div>
-    <div class="form-group">
-      <label>Category</label>
-      <select id="fvCategory">
-        <option value="events">Events</option>
-        <option value="interviews">Interviews</option>
-        <option value="behind-the-scenes">Behind the Scenes</option>
-        <option value="documentaries">Documentaries</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label>Video URL (Catbox MP4)</label>
-      <input id="fvVideoUrl" placeholder="https://files.catbox.moe/xxxxx.mp4" />
-      <small style="color:var(--text-muted); font-size:0.7rem;">Upload to <a href="https://catbox.moe" target="_blank" style="color:var(--gold-light);">catbox.moe</a>, paste the URL here.</small>
-    </div>
-    <div class="form-group">
-      <label>Thumbnail URL (Catbox JPG/PNG)</label>
-      <input id="fvThumbUrl" placeholder="https://files.catbox.moe/yyyyy.jpg" />
-      <small style="color:var(--text-muted); font-size:0.7rem;">Same as Tar TV — upload thumbnail to catbox.moe separately, paste URL here.</small>
-    </div>
-    <div id="fvStatus" style="font-size:0.85rem; margin-top:1rem; min-height:1.2rem;"></div>
-    <button class="btn btn-primary" id="fvSubmit" style="margin-top:1rem;">
-      <i class="fa-solid fa-upload"></i> Publish Video
-    </button>
-  </form>
-  </div>
-  <div class="table-container">
-    <h3 style="color:var(--gold-light); margin-bottom:1rem; font-family:'Playfair Display',serif;">Published Videos</h3>
-    <table id="fullVideosTable">
-      <thead>
-        <tr><th>Thumbnail</th><th>Title</th><th>Category</th><th>Views</th><th>Uploaded</th><th>Actions</th></tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
-</div>
+          <div class="page-header">
+            <h2 class="page-title">
+              <i class="fa-solid fa-film"></i> Full Videos
+            </h2>
+          </div>
+          <div class="table-container" style="margin-bottom: 2rem">
+            <h3
+              style="
+                color: var(--gold-light);
+                margin-bottom: 1rem;
+                font-family: &quot;Playfair Display&quot;, serif;
+              "
+            >
+              Publish New Video
+            </h3>
+            <form id="fullVideoForm" onsubmit="return false;">
+              <div class="form-group">
+                <label>Title</label>
+                <input
+                  id="fvTitle"
+                  placeholder="e.g., Behind the Scenes — Venice Gala"
+                />
+              </div>
+              <div class="form-group">
+                <label>Description (optional)</label>
+                <textarea
+                  id="fvDescription"
+                  rows="3"
+                  placeholder="Short summary…"
+                ></textarea>
+              </div>
+              <div class="form-group">
+                <label>Category</label>
+                <select id="fvCategory">
+                  <option value="events">Events</option>
+                  <option value="interviews">Interviews</option>
+                  <option value="behind-the-scenes">Behind the Scenes</option>
+                  <option value="documentaries">Documentaries</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Video URL (Catbox MP4)</label>
+                <input
+                  id="fvVideoUrl"
+                  placeholder="https://files.catbox.moe/xxxxx.mp4"
+                />
+                <small style="color: var(--text-muted); font-size: 0.7rem"
+                  >Upload to
+                  <a
+                    href="https://catbox.moe"
+                    target="_blank"
+                    style="color: var(--gold-light)"
+                    >catbox.moe</a
+                  >, paste the URL here.</small
+                >
+              </div>
+              <div class="form-group">
+                <label>Thumbnail URL (Catbox JPG/PNG)</label>
+                <input
+                  id="fvThumbUrl"
+                  placeholder="https://files.catbox.moe/yyyyy.jpg"
+                />
+                <small style="color: var(--text-muted); font-size: 0.7rem"
+                  >Same as Tar TV — upload thumbnail to catbox.moe separately,
+                  paste URL here.</small
+                >
+              </div>
+              <div
+                id="fvStatus"
+                style="font-size: 0.85rem; margin-top: 1rem; min-height: 1.2rem"
+              ></div>
+              <button
+                class="btn btn-primary"
+                id="fvSubmit"
+                style="margin-top: 1rem"
+              >
+                <i class="fa-solid fa-upload"></i> Publish Video
+              </button>
+            </form>
+          </div>
+          <div class="table-container">
+            <h3
+              style="
+                color: var(--gold-light);
+                margin-bottom: 1rem;
+                font-family: &quot;Playfair Display&quot;, serif;
+              "
+            >
+              Published Videos
+            </h3>
+            <table id="fullVideosTable">
+              <thead>
+                <tr>
+                  <th>Thumbnail</th>
+                  <th>Title</th>
+                  <th>Category</th>
+                  <th>Views</th>
+                  <th>Uploaded</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
 
         <div id="page-concierge" class="page">
           <div class="page-header">
@@ -1051,27 +1261,27 @@
         </div>
 
         <!-- Reports -->
-<div id="page-reports" class="page">
-  <div class="page-header">
-    <h2 class="page-title">
-      <i class="fa-solid fa-flag"></i> Reported Profiles
-    </h2>
-  </div>
-  <div class="table-container">
-    <table id="reportsTable">
-      <thead>
-        <tr>
-          <th>Reported Email</th>
-          <th>Reason</th>
-          <th>Reporter</th>
-          <th>Date</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
-</div>
+        <div id="page-reports" class="page">
+          <div class="page-header">
+            <h2 class="page-title">
+              <i class="fa-solid fa-flag"></i> Reported Profiles
+            </h2>
+          </div>
+          <div class="table-container">
+            <table id="reportsTable">
+              <thead>
+                <tr>
+                  <th>Reported Email</th>
+                  <th>Reason</th>
+                  <th>Reporter</th>
+                  <th>Date</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
 
         <!-- Admin Settings -->
         <div id="page-settings" class="page">
@@ -1184,11 +1394,11 @@
             >
           </div>
           <div class="form-group">
-  <label>
-    <input type="checkbox" id="officialVerified" />
-    Official Verification (Crown Badge)
-  </label>
-</div>
+            <label>
+              <input type="checkbox" id="officialVerified" />
+              Official Verification (Crown Badge)
+            </label>
+          </div>
           <div class="modal-actions">
             <button class="btn btn-secondary" id="closeUserModal">
               Cancel
@@ -1256,39 +1466,45 @@
       </div>
     </div>
 
-<!-- Tar TV Video Modal -->
-<div class="modal-overlay" id="videoModal">
-  <div class="modal">
-    <h3 id="videoModalTitle">Add Video</h3>
-    <input type="hidden" id="videoId" />
-    <div class="form-group">
-      <label>Title</label>
-      <input id="videoTitle" placeholder="e.g., Sunset in Santorini" />
+    <!-- Tar TV Video Modal -->
+    <div class="modal-overlay" id="videoModal">
+      <div class="modal">
+        <h3 id="videoModalTitle">Add Video</h3>
+        <input type="hidden" id="videoId" />
+        <div class="form-group">
+          <label>Title</label>
+          <input id="videoTitle" placeholder="e.g., Sunset in Santorini" />
+        </div>
+        <div class="form-group">
+          <label>Video URL (MP4)</label>
+          <input
+            id="videoUrl"
+            placeholder="https://cdn.example.com/video.mp4"
+          />
+        </div>
+        <div class="form-group">
+          <label>Thumbnail URL</label>
+          <input
+            id="videoThumb"
+            placeholder="https://cdn.example.com/thumb.jpg"
+          />
+        </div>
+        <div class="form-group">
+          <label>Author</label>
+          <input id="videoAuthor" placeholder="Reh Concierge" />
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" id="closeVideoModal">Cancel</button>
+          <button class="btn btn-primary" id="saveVideoBtn">Save Video</button>
+        </div>
+      </div>
     </div>
-    <div class="form-group">
-      <label>Video URL (MP4)</label>
-      <input id="videoUrl" placeholder="https://cdn.example.com/video.mp4" />
-    </div>
-    <div class="form-group">
-      <label>Thumbnail URL</label>
-      <input id="videoThumb" placeholder="https://cdn.example.com/thumb.jpg" />
-    </div>
-    <div class="form-group">
-      <label>Author</label>
-      <input id="videoAuthor" placeholder="Reh Concierge" />
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-secondary" id="closeVideoModal">Cancel</button>
-      <button class="btn btn-primary" id="saveVideoBtn">Save Video</button>
-    </div>
-  </div>
-</div>
 
     <script type="module">
-  import { initFullVideoUpload } from './assets/modules/video-upload.js';
-  document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(initFullVideoUpload, 500);
-  });
+      import { initFullVideoUpload } from "./assets/modules/video-upload.js";
+      document.addEventListener("DOMContentLoaded", () => {
+        setTimeout(initFullVideoUpload, 500);
+      });
     </script>
 
     <script>
@@ -1722,7 +1938,8 @@
               document.getElementById("editAvatar").value = u.avatar || "";
               document.getElementById("editPlan").value = u.plan || "trial";
               document.getElementById("editBanned").checked = !!u.banned;
-              document.getElementById('officialVerified').checked = !!u.officialVerified;
+              document.getElementById("officialVerified").checked =
+                !!u.officialVerified;
               document.getElementById("userModalTitle").textContent =
                 "Edit User";
             } else {
@@ -1745,7 +1962,7 @@
               });
               document.getElementById("editPlan").value = "trial";
               document.getElementById("editBanned").checked = false;
-              document.getElementById('officialVerified').checked = false;
+              document.getElementById("officialVerified").checked = false;
               document.getElementById("userModalTitle").textContent =
                 "Add User";
             }
@@ -1793,7 +2010,8 @@
                 avatar: document.getElementById("editAvatar").value.trim(),
                 plan: document.getElementById("editPlan").value,
                 banned: document.getElementById("editBanned").checked,
-                officialVerified: document.getElementById('officialVerified').checked,
+                officialVerified:
+                  document.getElementById("officialVerified").checked,
               };
               var pw = document.getElementById("editPassword").value.trim();
               if (pw) data.password = pw;
@@ -1813,7 +2031,7 @@
                       lastActive: window.serverTimestamp(),
                       uid: docId,
                       banned: false,
-                      
+
                       incognito: false,
                       visibility: true,
                     }),
@@ -2127,230 +2345,517 @@
             }
           }
 
-// ── Tar TV Videos ───────────────────────────
-async function loadTarTV() {
-  const tbody = document.querySelector('#tartvTable tbody');
-  tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:2rem;"><i class="fa-solid fa-spinner fa-spin"></i></td></tr>';
+          // ── Tar TV Videos ───────────────────────────
+          async function loadTarTV() {
+            const tbody = document.querySelector("#tartvTable tbody");
+            tbody.innerHTML =
+              '<tr><td colspan="4" style="text-align:center;padding:2rem;"><i class="fa-solid fa-spinner fa-spin"></i></td></tr>';
 
-  try {
-    const snapshot = await window.getDocs(
-      window.collection(window.db, "tar_tv_videos")
-    );
-    tbody.innerHTML = '';
+            try {
+              const snapshot = await window.getDocs(
+                window.collection(window.db, "tar_tv_videos"),
+              );
+              tbody.innerHTML = "";
 
-    if (snapshot.empty) {
-      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);">No videos yet.</td></tr>';
-      return;
-    }
+              if (snapshot.empty) {
+                tbody.innerHTML =
+                  '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);">No videos yet.</td></tr>';
+                return;
+              }
 
-    snapshot.forEach(doc => {
-      const v = doc.data();
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td><img src="${v.thumbnail || ''}" style="width:60px;height:60px;border-radius:8px;object-fit:cover;"></td>
+              snapshot.forEach((doc) => {
+                const v = doc.data();
+                const row = document.createElement("tr");
+                row.innerHTML = `
+        <td><img src="${v.thumbnail || ""}" style="width:60px;height:60px;border-radius:8px;object-fit:cover;"></td>
         <td>${v.title}</td>
-        <td>${v.author || 'Reh'}</td>
+        <td>${v.author || "Reh"}</td>
         <td>
           <button class="btn-sm btn-edit edit-video" data-id="${doc.id}">Edit</button>
           <button class="btn-sm btn-delete delete-video" data-id="${doc.id}">Del</button>
         </td>
       `;
-      tbody.appendChild(row);
-    });
+                tbody.appendChild(row);
+              });
 
-    // Attach handlers
-    document.querySelectorAll('.edit-video').forEach(btn => {
-      btn.addEventListener('click', () => openVideoModal(btn.dataset.id));
-    });
-    document.querySelectorAll('.delete-video').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        if (confirm('Delete this video?')) {
-          try {
-            await window.deleteDoc(window.doc(window.db, "tar_tv_videos", btn.dataset.id));
-            loadTarTV();
-            showToast('🗑️ Video deleted.');
-          } catch (e) {
-            console.error(e);
-            showToast('Failed to delete video.');
+              // Attach handlers
+              document.querySelectorAll(".edit-video").forEach((btn) => {
+                btn.addEventListener("click", () =>
+                  openVideoModal(btn.dataset.id),
+                );
+              });
+              document.querySelectorAll(".delete-video").forEach((btn) => {
+                btn.addEventListener("click", async () => {
+                  if (confirm("Delete this video?")) {
+                    try {
+                      await window.deleteDoc(
+                        window.doc(window.db, "tar_tv_videos", btn.dataset.id),
+                      );
+                      loadTarTV();
+                      showToast("🗑️ Video deleted.");
+                    } catch (e) {
+                      console.error(e);
+                      showToast("Failed to delete video.");
+                    }
+                  }
+                });
+              });
+            } catch (error) {
+              console.error("Error loading Tar TV:", error);
+              tbody.innerHTML =
+                '<tr><td colspan="4" style="color:var(--danger);">Failed to load videos.</td></tr>';
+            }
           }
-        }
-      });
-    });
-  } catch (error) {
-    console.error('Error loading Tar TV:', error);
-    tbody.innerHTML = '<tr><td colspan="4" style="color:var(--danger);">Failed to load videos.</td></tr>';
-  }
-}
 
-async function openVideoModal(id = null) {
-  const modal = document.getElementById('videoModal');
-  if (!modal) return;
+          async function openVideoModal(id = null) {
+            const modal = document.getElementById("videoModal");
+            if (!modal) return;
 
-  if (id) {
-    try {
-      const snap = await window.getDoc(window.doc(window.db, "tar_tv_videos", id));
-      if (!snap.exists()) {
-        showToast('Video not found.');
-        return;
-      }
-      const v = snap.data();
-      document.getElementById('videoId').value = id;
-      document.getElementById('videoTitle').value = v.title || '';
-      document.getElementById('videoUrl').value = v.videoUrl || '';
-      document.getElementById('videoThumb').value = v.thumbnail || '';
-      document.getElementById('videoAuthor').value = v.author || '';
-      document.getElementById('videoModalTitle').textContent = 'Edit Video';
-    } catch (e) {
-      console.error(e);
-      showToast('Failed to load video.');
-      return;
-    }
-  } else {
-    document.getElementById('videoId').value = '';
-    document.getElementById('videoTitle').value = '';
-    document.getElementById('videoUrl').value = '';
-    document.getElementById('videoThumb').value = '';
-    document.getElementById('videoAuthor').value = '';
-    document.getElementById('videoModalTitle').textContent = 'Add Video';
-  }
-  modal.classList.add('active');
-}
+            if (id) {
+              try {
+                const snap = await window.getDoc(
+                  window.doc(window.db, "tar_tv_videos", id),
+                );
+                if (!snap.exists()) {
+                  showToast("Video not found.");
+                  return;
+                }
+                const v = snap.data();
+                document.getElementById("videoId").value = id;
+                document.getElementById("videoTitle").value = v.title || "";
+                document.getElementById("videoUrl").value = v.videoUrl || "";
+                document.getElementById("videoThumb").value = v.thumbnail || "";
+                document.getElementById("videoAuthor").value = v.author || "";
+                document.getElementById("videoModalTitle").textContent =
+                  "Edit Video";
+              } catch (e) {
+                console.error(e);
+                showToast("Failed to load video.");
+                return;
+              }
+            } else {
+              document.getElementById("videoId").value = "";
+              document.getElementById("videoTitle").value = "";
+              document.getElementById("videoUrl").value = "";
+              document.getElementById("videoThumb").value = "";
+              document.getElementById("videoAuthor").value = "";
+              document.getElementById("videoModalTitle").textContent =
+                "Add Video";
+            }
+            modal.classList.add("active");
+          }
 
-document.getElementById('closeVideoModal').addEventListener('click', () => {
-  document.getElementById('videoModal').classList.remove('active');
-});
-document.getElementById('addVideoBtn').addEventListener('click', () => {
-  openVideoModal(null);
-});
-document.getElementById('saveVideoBtn').addEventListener('click', async function() {
-  const id = document.getElementById('videoId').value.trim();
-  const data = {
-    title: document.getElementById('videoTitle').value.trim(),
-    videoUrl: document.getElementById('videoUrl').value.trim(),
-    thumbnail: document.getElementById('videoThumb').value.trim(),
-    author: document.getElementById('videoAuthor').value.trim(),
-    createdAt: window.serverTimestamp ? window.serverTimestamp() : new Date()
-  };
+          document
+            .getElementById("closeVideoModal")
+            .addEventListener("click", () => {
+              document.getElementById("videoModal").classList.remove("active");
+            });
+          document
+            .getElementById("addVideoBtn")
+            .addEventListener("click", () => {
+              openVideoModal(null);
+            });
+          document
+            .getElementById("saveVideoBtn")
+            .addEventListener("click", async function () {
+              const id = document.getElementById("videoId").value.trim();
+              const data = {
+                title: document.getElementById("videoTitle").value.trim(),
+                videoUrl: document.getElementById("videoUrl").value.trim(),
+                thumbnail: document.getElementById("videoThumb").value.trim(),
+                author: document.getElementById("videoAuthor").value.trim(),
+                createdAt: window.serverTimestamp
+                  ? window.serverTimestamp()
+                  : new Date(),
+              };
 
-  if (!data.title || !data.videoUrl) {
-    showToast('Please fill at least title and video URL.');
-    return;
-  }
+              if (!data.title || !data.videoUrl) {
+                showToast("Please fill at least title and video URL.");
+                return;
+              }
 
-  const btn = this;
-  const orig = btn.innerHTML;
-  btn.disabled = true;
-  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving…';
+              const btn = this;
+              const orig = btn.innerHTML;
+              btn.disabled = true;
+              btn.innerHTML =
+                '<i class="fa-solid fa-spinner fa-spin"></i> Saving…';
 
-  try {
-    if (id) {
-      await window.updateDoc(window.doc(window.db, "tar_tv_videos", id), data);
-    } else {
-      await window.addDoc(window.collection(window.db, "tar_tv_videos"), data);
-    }
-    document.getElementById('videoModal').classList.remove('active');
-    loadTarTV();
-    showToast('✅ Video saved.');
-  } catch (e) {
-    console.error(e);
-    showToast('Failed to save video.');
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = orig;
-  }
-});
+              try {
+                if (id) {
+                  await window.updateDoc(
+                    window.doc(window.db, "tar_tv_videos", id),
+                    data,
+                  );
+                } else {
+                  await window.addDoc(
+                    window.collection(window.db, "tar_tv_videos"),
+                    data,
+                  );
+                }
+                document
+                  .getElementById("videoModal")
+                  .classList.remove("active");
+                loadTarTV();
+                showToast("✅ Video saved.");
+              } catch (e) {
+                console.error(e);
+                showToast("Failed to save video.");
+              } finally {
+                btn.disabled = false;
+                btn.innerHTML = orig;
+              }
+            });
+          /* ===== iReh Gallery ===== */
+
+          // Extract Catbox image URLs from arbitrary pasted text.
+          // Regex accepts _, -, . in filenames (real Catbox URLs include all three).
+          // Rejects Litterbox (temporary, 72h expiry) and SVG (unsafe).
+          function extractCatboxImageUrls(text) {
+            if (!text) return [];
+            const pattern =
+              /https?:\/\/files\.catbox\.moe\/[a-zA-Z0-9._-]+\.(?:jpg|jpeg|png|gif|webp|avif|bmp)/gi;
+            const matches = text.match(pattern) || [];
+            return [...new Set(matches)];
+          }
+
+          // Live preview on paste
+          (function initIRehPasteListener() {
+            const ta = document.getElementById("irehPaste");
+            const preview = document.getElementById("irehPreview");
+            const countEl = document.getElementById("irehCount");
+            const stripEl = document.getElementById("irehThumbStrip");
+            if (!ta) return;
+            ta.addEventListener("input", () => {
+              const urls = extractCatboxImageUrls(ta.value);
+              if (urls.length === 0) {
+                preview.style.display = "none";
+                return;
+              }
+              preview.style.display = "block";
+              countEl.textContent = `Found ${urls.length} image URL${urls.length === 1 ? "" : "s"}`;
+              const preview8 = urls.slice(0, 8);
+              stripEl.innerHTML =
+                preview8
+                  .map(
+                    (u) =>
+                      `<img src="${u}" style="width:52px;height:52px;border-radius:8px;object-fit:cover;border:1px solid rgba(255,255,255,0.1);background:#111;" onerror="this.style.opacity=0.3">`,
+                  )
+                  .join("") +
+                (urls.length > 8
+                  ? `<div style="width:52px;height:52px;border-radius:8px;background:rgba(200,160,60,0.15);border:1px dashed rgba(200,160,60,0.4);display:flex;align-items:center;justify-content:center;font-size:0.7rem;color:var(--gold-light);font-weight:600;">+${urls.length - 8}</div>`
+                  : "");
+            });
+          })();
+
+          // Auth banner
+          (async () => {
+            const banner = document.getElementById("irehAuthBanner");
+            if (!banner) return;
+            if (window.auth && window.auth.authStateReady) {
+              await window.auth.authStateReady();
+            }
+            banner.style.display =
+              !window.auth || !window.auth.currentUser ? "block" : "none";
+          })();
+
+          // Publish handler
+          (function initIRehSubmit() {
+            const btn = document.getElementById("irehSubmit");
+            if (!btn) return;
+
+            function setIRehStatus(msg, kind) {
+              const el = document.getElementById("irehStatus");
+              if (!el) return;
+              el.textContent = msg;
+              el.style.color =
+                kind === "error"
+                  ? "#e74c3c"
+                  : kind === "success"
+                    ? "#2ecc71"
+                    : "#c5bfb3";
+            }
+
+            let publishing = false;
+
+            btn.addEventListener("click", async () => {
+              if (publishing) return;
+
+              // Wait for Auth to be ready, then check session
+              if (window.auth && window.auth.authStateReady) {
+                await window.auth.authStateReady();
+              }
+              if (!window.auth || !window.auth.currentUser) {
+                setIRehStatus(
+                  "Please log in on the main site (rehcrown@gmail.com) first, then return here.",
+                  "error",
+                );
+                return;
+              }
+              if (window.auth.currentUser.email !== "rehcrown@gmail.com") {
+                setIRehStatus("Only the admin account can publish.", "error");
+                return;
+              }
+
+              const title =
+                (document.getElementById("irehTitle") || {}).value?.trim() ||
+                "";
+              const paste =
+                (document.getElementById("irehPaste") || {}).value || "";
+
+              if (!title) {
+                setIRehStatus("Please enter a batch title.", "error");
+                return;
+              }
+
+              const urls = extractCatboxImageUrls(paste);
+              if (urls.length === 0) {
+                setIRehStatus(
+                  "No valid Catbox image URLs found. Only files.catbox.moe JPG/PNG/GIF/WebP/AVIF/BMP are accepted.",
+                  "error",
+                );
+                return;
+              }
+              if (urls.length > 1000) {
+                setIRehStatus(
+                  `Too many images (${urls.length}). Maximum is 1000 per batch. Split into smaller batches.`,
+                  "error",
+                );
+                return;
+              }
+
+              publishing = true;
+              const orig = btn.innerHTML;
+              btn.disabled = true;
+              btn.innerHTML =
+                '<i class="fa-solid fa-spinner fa-spin"></i> Publishing…';
+
+              try {
+                await window.addDoc(
+                  window.collection(window.db, "ireh_batches"),
+                  {
+                    title,
+                    images: urls,
+                    coverImage: urls[0],
+                    count: urls.length,
+                    uploadedBy: window.auth.currentUser.email,
+                    createdAt: window.serverTimestamp
+                      ? window.serverTimestamp()
+                      : new Date(),
+                    status: "published",
+                    // Reserved for future monetization — no effect today
+                    downloadable: true,
+                    downloadCount: 0,
+                    tier: "free",
+                  },
+                );
+
+                sessionStorage.removeItem("ireh_cache");
+
+                setIRehStatus(
+                  `✓ Published ${urls.length} images to "${title}".`,
+                  "success",
+                );
+                if (window.showToast)
+                  window.showToast(
+                    `iReh batch published (${urls.length} images).`,
+                  );
+
+                document.getElementById("irehTitle").value = "";
+                document.getElementById("irehPaste").value = "";
+                document.getElementById("irehPreview").style.display = "none";
+
+                if (typeof loadIRehBatches === "function") loadIRehBatches();
+              } catch (err) {
+                console.error("[ireh] publish failed:", err);
+                setIRehStatus("Publish failed: " + err.message, "error");
+              } finally {
+                publishing = false;
+                btn.disabled = false;
+                btn.innerHTML = orig;
+              }
+            });
+          })();
+
+          // Load existing batches
+          async function loadIRehBatches() {
+            const tbody = document.querySelector("#irehBatchesTable tbody");
+            if (!tbody) return;
+            tbody.innerHTML =
+              '<tr><td colspan="5" style="text-align:center;padding:2rem;"><i class="fa-solid fa-spinner fa-spin"></i></td></tr>';
+            try {
+              const snap = await window.getDocs(
+                window.collection(window.db, "ireh_batches"),
+              );
+              const batches = [];
+              snap.forEach((doc) =>
+                batches.push({ id: doc.id, ...doc.data() }),
+              );
+              batches.sort((a, b) => {
+                const am = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+                const bm = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+                return bm - am;
+              });
+
+              if (!batches.length) {
+                tbody.innerHTML =
+                  '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);">No batches yet.</td></tr>';
+                return;
+              }
+
+              tbody.innerHTML = batches
+                .map(
+                  (b) => `
+      <tr>
+        <td><img src="${b.coverImage || ""}" style="width:60px;height:60px;border-radius:8px;object-fit:cover;background:#111;" onerror="this.style.opacity=0.3"></td>
+        <td>${b.title || ""}</td>
+        <td>${b.count || 0}</td>
+        <td>${b.createdAt?.seconds ? new Date(b.createdAt.seconds * 1000).toLocaleDateString() : "—"}</td>
+        <td>
+          <a class="btn-sm btn-edit" href="/ireh?batch=${b.id}" target="_blank">View</a>
+          <button class="btn-sm btn-delete delete-ireh" data-id="${b.id}">Del</button>
+        </td>
+      </tr>
+    `,
+                )
+                .join("");
+
+              document.querySelectorAll(".delete-ireh").forEach((btn) => {
+                btn.addEventListener("click", async () => {
+                  if (
+                    !confirm(
+                      "Delete this batch? The images remain on Catbox but will be removed from the gallery.",
+                    )
+                  )
+                    return;
+                  try {
+                    await window.deleteDoc(
+                      window.doc(window.db, "ireh_batches", btn.dataset.id),
+                    );
+                    sessionStorage.removeItem("ireh_cache");
+                    loadIRehBatches();
+                    if (window.showToast) window.showToast("Batch deleted.");
+                  } catch (e) {
+                    console.error(e);
+                    alert("Delete failed");
+                  }
+                });
+              });
+            } catch (err) {
+              console.error("[ireh] load failed:", err);
+              tbody.innerHTML =
+                '<tr><td colspan="5" style="color:var(--danger);text-align:center;">Failed to load batches.</td></tr>';
+            }
+          }
+          window.loadIRehBatches = loadIRehBatches;
 
           async function loadFullVideosList() {
-  const tbody = document.querySelector('#fullVideosTable tbody');
-  if (!tbody) return;
-  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;"><i class="fa-solid fa-spinner fa-spin"></i></td></tr>';
-  try {
-    const snap = await window.getDocs(window.collection(window.db, 'full_videos'));
-    const videos = [];
-    snap.forEach(doc => videos.push({ id: doc.id, ...doc.data() }));
-    videos.sort((a, b) => {
-      const am = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
-      const bm = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
-      return bm - am;
-    });
-    if (!videos.length) {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);">No videos yet.</td></tr>';
-      return;
-    }
-    tbody.innerHTML = videos.map(v => `
+            const tbody = document.querySelector("#fullVideosTable tbody");
+            if (!tbody) return;
+            tbody.innerHTML =
+              '<tr><td colspan="6" style="text-align:center;padding:2rem;"><i class="fa-solid fa-spinner fa-spin"></i></td></tr>';
+            try {
+              const snap = await window.getDocs(
+                window.collection(window.db, "full_videos"),
+              );
+              const videos = [];
+              snap.forEach((doc) => videos.push({ id: doc.id, ...doc.data() }));
+              videos.sort((a, b) => {
+                const am = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+                const bm = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+                return bm - am;
+              });
+              if (!videos.length) {
+                tbody.innerHTML =
+                  '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);">No videos yet.</td></tr>';
+                return;
+              }
+              tbody.innerHTML = videos
+                .map(
+                  (v) => `
       <tr>
-        <td><img src="${v.thumbnail || ''}" style="width:80px;height:45px;border-radius:6px;object-fit:cover;background:#111;"></td>
-        <td>${v.title || ''}</td>
-        <td><span class="badge badge-info">${v.category || ''}</span></td>
+        <td><img src="${v.thumbnail || ""}" style="width:80px;height:45px;border-radius:6px;object-fit:cover;background:#111;"></td>
+        <td>${v.title || ""}</td>
+        <td><span class="badge badge-info">${v.category || ""}</span></td>
         <td>${v.views || 0}</td>
-        <td>${v.createdAt?.seconds ? new Date(v.createdAt.seconds * 1000).toLocaleDateString() : '—'}</td>
+        <td>${v.createdAt?.seconds ? new Date(v.createdAt.seconds * 1000).toLocaleDateString() : "—"}</td>
         <td><button class="btn-sm btn-delete delete-fv" data-id="${v.id}">Del</button></td>
       </tr>
-    `).join('');
-    document.querySelectorAll('.delete-fv').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        if (!confirm('Delete this video?')) return;
-        try {
-          await window.deleteDoc(window.doc(window.db, 'full_videos', btn.dataset.id));
-          loadFullVideosList();
-        } catch (e) { console.error(e); alert('Delete failed'); }
-      });
-    });
-  } catch (err) {
-    console.error('[admin] full videos load failed:', err);
-    tbody.innerHTML = '<tr><td colspan="6" style="color:var(--danger);text-align:center;">Failed to load.</td></tr>';
-  }
-}
+    `,
+                )
+                .join("");
+              document.querySelectorAll(".delete-fv").forEach((btn) => {
+                btn.addEventListener("click", async () => {
+                  if (!confirm("Delete this video?")) return;
+                  try {
+                    await window.deleteDoc(
+                      window.doc(window.db, "full_videos", btn.dataset.id),
+                    );
+                    loadFullVideosList();
+                  } catch (e) {
+                    console.error(e);
+                    alert("Delete failed");
+                  }
+                });
+              });
+            } catch (err) {
+              console.error("[admin] full videos load failed:", err);
+              tbody.innerHTML =
+                '<tr><td colspan="6" style="color:var(--danger);text-align:center;">Failed to load.</td></tr>';
+            }
+          }
 
           window.loadFullVideosList = loadFullVideosList;
-          
+
           async function loadTarTvAnalytics() {
-  const tbody = document.querySelector('#tartvAnalyticsTable tbody');
-  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;"><i class="fa-solid fa-spinner fa-spin"></i> Loading analytics…</td></tr>';
+            const tbody = document.querySelector("#tartvAnalyticsTable tbody");
+            tbody.innerHTML =
+              '<tr><td colspan="6" style="text-align:center;padding:2rem;"><i class="fa-solid fa-spinner fa-spin"></i> Loading analytics…</td></tr>';
 
-  try {
-    const snapshot = await window.getDocs(
-      window.collection(window.db, "tar_tv_videos")
-    );
-    tbody.innerHTML = '';
+            try {
+              const snapshot = await window.getDocs(
+                window.collection(window.db, "tar_tv_videos"),
+              );
+              tbody.innerHTML = "";
 
-    if (snapshot.empty) {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);">No videos yet.</td></tr>';
-      return;
-    }
+              if (snapshot.empty) {
+                tbody.innerHTML =
+                  '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);">No videos yet.</td></tr>';
+                return;
+              }
 
-    const videos = [];
-    snapshot.forEach(doc => {
-      const v = doc.data();
-      v.id = doc.id;
-      videos.push(v);
-    });
+              const videos = [];
+              snapshot.forEach((doc) => {
+                const v = doc.data();
+                v.id = doc.id;
+                videos.push(v);
+              });
 
-    videos.sort((a, b) => (b.views || 0) - (a.views || 0));
+              videos.sort((a, b) => (b.views || 0) - (a.views || 0));
 
-    videos.forEach(v => {
-      const views = v.views || 0;
-      const likes = v.likes || 0;
-      const engagement = views > 0 ? ((likes / views) * 100) : 0;
-      const engagementDisplay = engagement.toFixed(1) + '%';
+              videos.forEach((v) => {
+                const views = v.views || 0;
+                const likes = v.likes || 0;
+                const engagement = views > 0 ? (likes / views) * 100 : 0;
+                const engagementDisplay = engagement.toFixed(1) + "%";
 
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td><img src="${v.thumbnail || ''}" style="width:50px;height:50px;border-radius:6px;object-fit:cover;"></td>
+                const row = document.createElement("tr");
+                row.innerHTML = `
+        <td><img src="${v.thumbnail || ""}" style="width:50px;height:50px;border-radius:6px;object-fit:cover;"></td>
         <td>${v.title}</td>
-        <td>${v.author || 'Reh'}</td>
+        <td>${v.author || "Reh"}</td>
         <td>${views}</td>
         <td>${likes}</td>
-        <td><span class="badge badge-${engagement > 10 ? 'success' : engagement > 5 ? 'info' : 'warning'}">${engagementDisplay}</span></td>
+        <td><span class="badge badge-${engagement > 10 ? "success" : engagement > 5 ? "info" : "warning"}">${engagementDisplay}</span></td>
       `;
-      tbody.appendChild(row);
-    });
-  } catch (error) {
-    console.error('Error loading Tar TV analytics:', error);
-    tbody.innerHTML = '<tr><td colspan="6" style="color:var(--danger); text-align:center;">Failed to load analytics.</td></tr>';
-  }
-}
-          
+                tbody.appendChild(row);
+              });
+            } catch (error) {
+              console.error("Error loading Tar TV analytics:", error);
+              tbody.innerHTML =
+                '<tr><td colspan="6" style="color:var(--danger); text-align:center;">Failed to load analytics.</td></tr>';
+            }
+          }
+
           /* ===== CONCIERGE ===== */
           async function updateConciergeBadge() {
             try {
@@ -2710,40 +3215,43 @@ document.getElementById('saveVideoBtn').addEventListener('click', async function
           }
 
           async function loadReports() {
-  const tbody = document.querySelector("#reportsTable tbody");
-  tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:2rem;"><i class="fa-solid fa-spinner fa-spin"></i> Loading reports…</td></tr>';
+            const tbody = document.querySelector("#reportsTable tbody");
+            tbody.innerHTML =
+              '<tr><td colspan="5" style="text-align:center; padding:2rem;"><i class="fa-solid fa-spinner fa-spin"></i> Loading reports…</td></tr>';
 
-  try {
-    const snapshot = await window.getDocs(
-      window.query(
-        window.collection(window.db, "reports"),
-        window.orderBy("timestamp", "desc")
-      )
-    );
-    tbody.innerHTML = "";
+            try {
+              const snapshot = await window.getDocs(
+                window.query(
+                  window.collection(window.db, "reports"),
+                  window.orderBy("timestamp", "desc"),
+                ),
+              );
+              tbody.innerHTML = "";
 
-    if (snapshot.empty) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--text-muted);">No reports yet.</td></tr>';
-      return;
-    }
+              if (snapshot.empty) {
+                tbody.innerHTML =
+                  '<tr><td colspan="5" style="text-align:center; color:var(--text-muted);">No reports yet.</td></tr>';
+                return;
+              }
 
-    snapshot.forEach(doc => {
-      const r = doc.data();
-      const row = document.createElement("tr");
-      row.innerHTML = `
+              snapshot.forEach((doc) => {
+                const r = doc.data();
+                const row = document.createElement("tr");
+                row.innerHTML = `
         <td>${r.reported}</td>
         <td>${r.reason}</td>
         <td>${r.reporterName || r.reporter}</td>
         <td>${new Date(r.timestamp?.seconds ? r.timestamp.seconds * 1000 : r.timestamp).toLocaleString()}</td>
-        <td><span class="badge badge-${r.status === 'new' ? 'warning' : r.status === 'reviewed' ? 'info' : 'success'}">${r.status}</span></td>
+        <td><span class="badge badge-${r.status === "new" ? "warning" : r.status === "reviewed" ? "info" : "success"}">${r.status}</span></td>
       `;
-      tbody.appendChild(row);
-    });
-  } catch (error) {
-    console.error('Error loading reports:', error);
-    tbody.innerHTML = '<tr><td colspan="5" style="color:var(--danger); text-align:center;">Failed to load reports.</td></tr>';
-  }
-}
+                tbody.appendChild(row);
+              });
+            } catch (error) {
+              console.error("Error loading reports:", error);
+              tbody.innerHTML =
+                '<tr><td colspan="5" style="color:var(--danger); text-align:center;">Failed to load reports.</td></tr>';
+            }
+          }
 
           /* ===== SETTINGS ===== */
           document
@@ -2860,10 +3368,11 @@ document.getElementById('saveVideoBtn').addEventListener('click', async function
                 if (page === "tartv") loadTarTv();
                 if (page === "tartv-analytics") loadTarTvAnalytics();
                 if (page === "full-videos") loadFullVideosList();
+                if (page === "ireh") loadIRehBatches();
                 if (page === "concierge") loadConciergeRequests();
                 if (page === "notifications") loadNotifications();
                 if (page === "newsletter") loadNewsletterSubscribers();
-                if (page === 'reports') loadReports();
+                if (page === "reports") loadReports();
                 if (page === "event-invitations") loadEventInvitations();
               });
             });
