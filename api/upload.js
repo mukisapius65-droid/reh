@@ -1,6 +1,6 @@
-// api/upload.js – Vercel serverless function
+cat > ~/reh/api/upload.js << 'UPLOADEOF'
+// api/upload.js — Vercel serverless function
 import multer from 'multer';
-import FormData from 'form-data';
 
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -19,25 +19,31 @@ export default async function handler(req, res) {
   }
 
   try {
-    // ✅ Use the same field name as the client sends
     await runMiddleware(req, res, upload.single('fileToUpload'));
 
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    // Build multipart form for Catbox
+    // Vercel Hobby body limit is 4.5 MB. Enforce with a clear message.
+    if (req.file.size > 4.4 * 1024 * 1024) {
+      return res.status(413).json({
+        error: 'File too large for proxy (4.5 MB cap). Upload to catbox.moe manually and use the URL field.'
+      });
+    }
+
+    // Native FormData — works with Vercel's Node 20 fetch.
     const form = new FormData();
     form.append('reqtype', 'fileupload');
-    form.append('fileToUpload', req.file.buffer, {
-      filename: req.file.originalname,
-      contentType: req.file.mimetype || 'video/mp4',
-    });
+    form.append(
+      'fileToUpload',
+      new Blob([req.file.buffer], { type: req.file.mimetype || 'video/mp4' }),
+      req.file.originalname || 'upload.mp4'
+    );
 
     const catboxRes = await fetch('https://catbox.moe/user/api.php', {
       method: 'POST',
       body: form,
-      headers: form.getHeaders(),
     });
 
     const text = await catboxRes.text();
@@ -53,3 +59,4 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Internal server error: ' + error.message });
   }
 }
+UPLOADEOF
