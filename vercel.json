@@ -17,9 +17,14 @@
     { "source": "/404", "destination": "/404.html" },
     { "source": "/admin", "destination": "/admin-reh.html" },
     { "source": "/bookmarks", "destination": "/bookmarks.html" },
-    { "source": "/the-iron-convenant", "destination": "/the-iron-convenant.html" },
+    {
+      "source": "/the-iron-convenant",
+      "destination": "/the-iron-convenant.html"
+    },
     { "source": "/tarTv", "destination": "/tartv.html" },
     { "source": "/messages", "destination": "/messages.html" },
-    { "source": "/plans", "destination": "/plans.html" }
+    { "source": "/plans", "destination": "/plans.html" },
+    { "source": "/videos", "destination": "/videos.html" },
+    { "source": "/watch", "destination": "/watch.html" }
   ]
 }

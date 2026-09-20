@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Full Videos | Reh</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="assets/main.css" />
+  <script type="module" src="assets/firebase.js"></script>
+  <style>
+    :root {
+      --deep-navy: #080c24; --gold: #c9a84c; --gold-light: #dfc278; --champagne: #f0e4c8;
+      --glass-border: rgba(255,255,255,0.08); --glass-card: rgba(15,20,50,0.55);
+      --text-primary: #f0ece6; --text-secondary: #c5bfb3; --text-muted: #8a857a;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Inter',system-ui,sans-serif; background:var(--deep-navy); color:var(--text-primary); min-height:100vh; overflow-x:hidden; line-height:1.6; }
+    .main-wrapper { position:relative; z-index:2; }
+    .videos-container { max-width:1400px; margin:2rem auto 4rem; padding:0 1.5rem; }
+    .page-title { font-family:'Playfair Display',serif; font-size:clamp(1.8rem,4vw,2.6rem); background:linear-gradient(180deg,#fff 0%,#f0d9b0 40%,var(--gold) 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin-bottom:0.3rem; }
+    .page-subtitle { color:var(--text-secondary); font-style:italic; font-size:0.9rem; margin-bottom:1.5rem; }
+    .search-input { width:100%; max-width:500px; padding:12px 18px; background:rgba(255,255,255,0.04); border:1px solid var(--glass-border); border-radius:50px; color:white; font-family:inherit; font-size:0.9rem; outline:none; transition:0.3s; margin-bottom:1rem; }
+    .search-input:focus { border-color:var(--gold); box-shadow:0 0 15px rgba(200,160,60,0.2); }
+    .chips-row { display:flex; gap:0.5rem; overflow-x:auto; padding-bottom:1rem; margin-bottom:1.5rem; scrollbar-width:none; -ms-overflow-style:none; }
+    .chips-row::-webkit-scrollbar { display:none; }
+    .chip { flex-shrink:0; padding:8px 18px; border-radius:50px; border:1px solid var(--glass-border); background:rgba(255,255,255,0.02); color:var(--text-secondary); font-size:0.8rem; font-weight:600; cursor:pointer; transition:0.25s; white-space:nowrap; font-family:inherit; }
+    .chip:hover { border-color:var(--gold-light); color:var(--champagne); }
+    .chip.active { background:linear-gradient(135deg,rgba(200,160,60,0.3),rgba(200,160,60,0.15)); border-color:var(--gold); color:var(--champagne); }
+    .video-grid { display:grid; grid-template-columns:1fr; gap:1.25rem; }
+    @media (min-width:640px) { .video-grid { grid-template-columns:repeat(2,1fr); } }
+    @media (min-width:1024px) { .video-grid { grid-template-columns:repeat(3,1fr); } }
+    @media (min-width:1440px) { .video-grid { grid-template-columns:repeat(4,1fr); } }
+    .video-card { display:flex; flex-direction:column; text-decoration:none; color:inherit; transition:transform 0.25s; }
+    .video-card:hover { transform:translateY(-4px); }
+    .video-thumb { position:relative; width:100%; padding-top:56.25%; border-radius:16px; overflow:hidden; background:#111; border:1px solid var(--glass-border); }
+    .video-thumb img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+    .video-duration { position:absolute; bottom:8px; right:8px; background:rgba(0,0,0,0.8); color:white; font-size:0.7rem; padding:3px 8px; border-radius:4px; font-weight:600; letter-spacing:0.02em; }
+    .video-info { padding:0.75rem 0.25rem 0; }
+    .video-title { font-family:'Playfair Display',serif; font-size:1rem; color:white; font-weight:600; line-height:1.3; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; margin-bottom:0.4rem; }
+    .video-meta { font-size:0.75rem; color:var(--text-muted); display:flex; gap:0.4rem; align-items:center; flex-wrap:wrap; }
+    .video-meta .dot { opacity:0.5; }
+    .card-skeleton { display:flex; flex-direction:column; gap:0.75rem; }
+    .sk-thumb { width:100%; padding-top:56.25%; border-radius:16px; background:linear-gradient(90deg,rgba(255,255,255,0.03) 0%,rgba(200,160,60,0.10) 50%,rgba(255,255,255,0.03) 100%); background-size:800px 100%; animation:shimmer 1.6s infinite linear; }
+    .sk-line { height:12px; border-radius:6px; background:linear-gradient(90deg,rgba(255,255,255,0.03) 0%,rgba(200,160,60,0.10) 50%,rgba(255,255,255,0.03) 100%); background-size:800px 100%; animation:shimmer 1.6s infinite linear; }
+    .sk-line.short { width:50%; }
+    @keyframes shimmer { 0% { background-position:-400px 0; } 100% { background-position:400px 0; } }
+    .empty-state { text-align:center; padding:4rem 1rem; color:var(--text-muted); grid-column:1/-1; }
+    .empty-state i { font-size:2.5rem; color:var(--gold-light); opacity:0.5; display:block; margin-bottom:0.75rem; }
+    .load-more-btn { display:block; margin:2rem auto 0; padding:12px 32px; background:transparent; border:1px solid var(--gold); color:var(--gold-light); border-radius:50px; font-weight:600; font-size:0.85rem; cursor:pointer; transition:0.3s; font-family:inherit; }
+    .load-more-btn:hover { background:rgba(200,160,60,0.15); color:var(--champagne); }
+    .load-more-btn[hidden] { display:none; }
+  </style>
+</head>
+<body>
+  <div class="main-wrapper">
+    <nav class="nav"></nav>
+    <aside class="sidebar invisible" id="sidebar"></aside>
+    <div class="videos-container">
+      <h1 class="page-title">Full Videos</h1>
+      <p class="page-subtitle">Long-form content from Reh — interviews, events, and exclusive features.</p>
+      <input type="text" id="searchInput" class="search-input" placeholder="Search videos…" autocomplete="off" />
+      <div class="chips-row" id="chipsRow">
+        <button class="chip active" data-cat="all">All</button>
+        <button class="chip" data-cat="recent">Most Recent</button>
+        <button class="chip" data-cat="viewed">Most Viewed</button>
+        <button class="chip" data-cat="events">Events</button>
+        <button class="chip" data-cat="interviews">Interviews</button>
+        <button class="chip" data-cat="behind-the-scenes">Behind the Scenes</button>
+        <button class="chip" data-cat="documentaries">Documentaries</button>
+      </div>
+      <div class="video-grid" id="videoGrid"></div>
+      <button class="load-more-btn" id="loadMoreBtn" hidden>Load more</button>
+    </div>
+    <footer class="footer"></footer>
+  </div>
+  <script src="assets/general.js"></script>
+  <script>
+    (function () {
+      const PAGE_SIZE = 20;
+      let allVideos = [];
+      let filtered = [];
+      let rendered = 0;
+      let activeCat = 'all';
+      let searchTerm = '';
+
+      function escapeHtml(s) {
+        const d = document.createElement('div');
+        d.textContent = String(s == null ? '' : s);
+        return d.innerHTML;
+      }
+      function fmtDuration(sec) {
+        if (!sec || isNaN(sec)) return '';
+        const m = Math.floor(sec / 60);
+        const s = Math.floor(sec % 60);
+        return `${m}:${String(s).padStart(2,'0')}`;
+      }
+      function timeAgo(ts) {
+        if (!ts) return '';
+        const ms = ts.toMillis ? ts.toMillis() : (ts.seconds ? ts.seconds * 1000 : ts);
+        const d = Math.floor((Date.now() - ms) / 86400000);
+        if (d === 0) return 'Today';
+        if (d === 1) return 'Yesterday';
+        if (d < 7) return `${d} days ago`;
+        if (d < 30) return `${Math.floor(d/7)} weeks ago`;
+        if (d < 365) return `${Math.floor(d/30)} months ago`;
+        return `${Math.floor(d/365)} years ago`;
+      }
+      function cardSkeleton() {
+        return '<div class="card-skeleton"><div class="sk-thumb"></div><div class="sk-line"></div><div class="sk-line short"></div></div>';
+      }
+      function renderSkeleton(n = 8) {
+        const grid = document.getElementById('videoGrid');
+        let html = '';
+        for (let i = 0; i < n; i++) html += `<div class="video-card">${cardSkeleton()}</div>`;
+        grid.innerHTML = html;
+      }
+      function videoCard(v) {
+        return `
+          <a class="video-card" href="/watch?id=${encodeURIComponent(v.id)}">
+            <div class="video-thumb">
+              <img src="${escapeHtml(v.thumbnail || 'https://res.cloudinary.com/hqhzolpo/image/upload/v1/reh/full_videos/thumbs/placeholder.jpg')}" alt="${escapeHtml(v.title)}" loading="lazy" onerror="this.style.opacity=0.3">
+              ${v.duration ? `<span class="video-duration">${fmtDuration(v.duration)}</span>` : ''}
+            </div>
+            <div class="video-info">
+              <div class="video-title">${escapeHtml(v.title || 'Untitled')}</div>
+              <div class="video-meta">
+                <span>${escapeHtml(v.author || 'Reh')}</span>
+                <span class="dot">·</span>
+                <span>${v.views || 0} views</span>
+                <span class="dot">·</span>
+                <span>${timeAgo(v.createdAt)}</span>
+              </div>
+            </div>
+          </a>`;
+      }
+      function applyFilters() {
+        let list = [...allVideos];
+        if (activeCat === 'recent') {
+          list.sort((a, b) => {
+            const am = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+            const bm = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+            return bm - am;
+          });
+        } else if (activeCat === 'viewed') {
+          list.sort((a, b) => (b.views || 0) - (a.views || 0));
+        } else if (activeCat !== 'all') {
+          list = list.filter(v => v.category === activeCat);
+        }
+        if (searchTerm) {
+          const q = searchTerm.toLowerCase();
+          list = list.filter(v =>
+            (v.title || '').toLowerCase().includes(q) ||
+            (v.description || '').toLowerCase().includes(q)
+          );
+        }
+        filtered = list;
+        rendered = 0;
+        renderNextPage(true);
+      }
+      function renderNextPage(reset) {
+        const grid = document.getElementById('videoGrid');
+        const btn = document.getElementById('loadMoreBtn');
+        if (reset) grid.innerHTML = '';
+        if (filtered.length === 0) {
+          grid.innerHTML = '<div class="empty-state"><i class="fa-solid fa-video"></i>No videos yet. Check back soon.</div>';
+          btn.hidden = true;
+          return;
+        }
+        const next = filtered.slice(rendered, rendered + PAGE_SIZE);
+        grid.insertAdjacentHTML('beforeend', next.map(videoCard).join(''));
+        rendered += next.length;
+        btn.hidden = rendered >= filtered.length;
+      }
+
+      document.getElementById('chipsRow').addEventListener('click', (e) => {
+        const chip = e.target.closest('.chip');
+        if (!chip) return;
+        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        activeCat = chip.dataset.cat;
+        applyFilters();
+      });
+      document.getElementById('searchInput').addEventListener('input', (e) => {
+        searchTerm = e.target.value.trim();
+        applyFilters();
+      });
+      document.getElementById('loadMoreBtn').addEventListener('click', () => renderNextPage(false));
+
+      // Infinite scroll sentinel
+      const sentinel = document.createElement('div');
+      sentinel.style.height = '1px';
+      document.querySelector('.videos-container').appendChild(sentinel);
+      if ('IntersectionObserver' in window) {
+        new IntersectionObserver((entries) => {
+          if (entries[0].isIntersecting && rendered < filtered.length) {
+            renderNextPage(false);
+          }
+        }, { rootMargin: '400px' }).observe(sentinel);
+      }
+
+      function waitForFirebase(cb) {
+        if (window.db && window.collection && window.getDocs && window.query) cb();
+        else {
+          let n = 0;
+          const t = setInterval(() => {
+            if (window.db && window.collection && window.getDocs && window.query) { clearInterval(t); cb(); }
+            if (++n > 100) { clearInterval(t); console.error('[videos] Firebase not ready'); }
+          }, 100);
+        }
+      }
+      waitForFirebase(async () => {
+        renderSkeleton(8);
+        try {
+          const snap = await window.getDocs(window.collection(window.db, 'full_videos'));
+          allVideos = [];
+          snap.forEach(doc => {
+            const v = doc.data();
+            if (v.status === 'removed') return;
+            allVideos.push({ id: doc.id, ...v });
+          });
+          // default sort: most recent first
+          allVideos.sort((a, b) => {
+            const am = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+            const bm = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+            return bm - am;
+          });
+          applyFilters();
+        } catch (err) {
+          console.error('[videos] load error:', err);
+          document.getElementById('videoGrid').innerHTML =
+            '<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i>Couldn\'t load videos. Please refresh.</div>';
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

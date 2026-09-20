@@ -726,6 +726,7 @@
           >
           <a href="#" data-page="tartv"><i class="fa-solid fa-tv"></i> Tar TV</a>
           <a href="#" data-page="tartv-analytics"><i class="fa-solid fa-chart-simple"></i> Tar TV Analytics</a>
+          <a href="#" data-page="full-videos"><i class="fa-solid fa-film"></i> Full Videos</a>
           <a href="#" data-page="concierge">
             <i class="fa-solid fa-clipboard-list"></i> Concierge
             <span
@@ -907,6 +908,56 @@
           <th>Likes</th>
           <th>Engagement</th>
         </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+        <div id="page-full-videos" class="page">
+  <div class="page-header">
+    <h2 class="page-title"><i class="fa-solid fa-film"></i> Full Videos</h2>
+  </div>
+  <div class="table-container" style="margin-bottom:2rem;">
+    <h3 style="color:var(--gold-light); margin-bottom:1rem; font-family:'Playfair Display',serif;">Publish New Video</h3>
+    <form id="fullVideoForm" onsubmit="return false;">
+      <div class="form-group">
+        <label>Title</label>
+        <input id="fvTitle" placeholder="e.g., Behind the Scenes — Venice Gala" />
+      </div>
+      <div class="form-group">
+        <label>Description (optional)</label>
+        <textarea id="fvDescription" rows="3" placeholder="Short summary…"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Category</label>
+        <select id="fvCategory">
+          <option value="events">Events</option>
+          <option value="interviews">Interviews</option>
+          <option value="behind-the-scenes">Behind the Scenes</option>
+          <option value="documentaries">Documentaries</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Video File (MP4, up to 200 MB)</label>
+        <input type="file" id="fvVideoFile" accept="video/*" style="color:white; padding:0.5rem 0;" />
+        <small style="color:var(--text-muted); font-size:0.7rem;">Uploads via /api/upload proxy → Catbox. Thumbnail auto-generates to Cloudinary.</small>
+      </div>
+      <div id="fvPreviewWrap" style="display:none; margin-top:1rem;">
+        <img id="fvPreviewImg" style="max-width:260px; border-radius:12px; border:1px solid var(--glass-border);" />
+        <div id="fvPreviewDuration" style="color:var(--text-muted); font-size:0.75rem; margin-top:0.5rem;"></div>
+      </div>
+      <div id="fvStatus" style="font-size:0.85rem; margin-top:1rem; min-height:1.2rem;"></div>
+      <button class="btn btn-primary" id="fvSubmit" style="margin-top:1rem;">
+        <i class="fa-solid fa-upload"></i> Publish Video
+      </button>
+    </form>
+  </div>
+  <div class="table-container">
+    <h3 style="color:var(--gold-light); margin-bottom:1rem; font-family:'Playfair Display',serif;">Published Videos</h3>
+    <table id="fullVideosTable">
+      <thead>
+        <tr><th>Thumbnail</th><th>Title</th><th>Category</th><th>Views</th><th>Uploaded</th><th>Actions</th></tr>
       </thead>
       <tbody></tbody>
     </table>
@@ -1231,6 +1282,13 @@
     </div>
   </div>
 </div>
+
+    <script type="module">
+  import { initFullVideoUpload } from './assets/modules/video-upload.js';
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(initFullVideoUpload, 500);
+  });
+    </script>
 
     <script>
       (function () {
@@ -2200,6 +2258,51 @@ document.getElementById('saveVideoBtn').addEventListener('click', async function
     btn.innerHTML = orig;
   }
 });
+
+          async function loadFullVideosList() {
+  const tbody = document.querySelector('#fullVideosTable tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;"><i class="fa-solid fa-spinner fa-spin"></i></td></tr>';
+  try {
+    const snap = await window.getDocs(window.collection(window.db, 'full_videos'));
+    const videos = [];
+    snap.forEach(doc => videos.push({ id: doc.id, ...doc.data() }));
+    videos.sort((a, b) => {
+      const am = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+      const bm = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+      return bm - am;
+    });
+    if (!videos.length) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);">No videos yet.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = videos.map(v => `
+      <tr>
+        <td><img src="${v.thumbnail || ''}" style="width:80px;height:45px;border-radius:6px;object-fit:cover;background:#111;"></td>
+        <td>${v.title || ''}</td>
+        <td><span class="badge badge-info">${v.category || ''}</span></td>
+        <td>${v.views || 0}</td>
+        <td>${v.createdAt?.seconds ? new Date(v.createdAt.seconds * 1000).toLocaleDateString() : '—'}</td>
+        <td><button class="btn-sm btn-delete delete-fv" data-id="${v.id}">Del</button></td>
+      </tr>
+    `).join('');
+    document.querySelectorAll('.delete-fv').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Delete this video?')) return;
+        try {
+          await window.deleteDoc(window.doc(window.db, 'full_videos', btn.dataset.id));
+          loadFullVideosList();
+        } catch (e) { console.error(e); alert('Delete failed'); }
+      });
+    });
+  } catch (err) {
+    console.error('[admin] full videos load failed:', err);
+    tbody.innerHTML = '<tr><td colspan="6" style="color:var(--danger);text-align:center;">Failed to load.</td></tr>';
+  }
+}
+
+          window.loadFullVideosList = loadFullVideosList;
+          
           async function loadTarTvAnalytics() {
   const tbody = document.querySelector('#tartvAnalyticsTable tbody');
   tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;"><i class="fa-solid fa-spinner fa-spin"></i> Loading analytics…</td></tr>';
@@ -2755,6 +2858,7 @@ document.getElementById('saveVideoBtn').addEventListener('click', async function
                 if (page === "messages") loadMessages();
                 if (page === "tartv") loadTarTv();
                 if (page === "tartv-analytics") loadTarTvAnalytics();
+                if (page === "full-videos") loadFullVideosList();
                 if (page === "concierge") loadConciergeRequests();
                 if (page === "notifications") loadNotifications();
                 if (page === "newsletter") loadNewsletterSubscribers();
