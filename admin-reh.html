@@ -919,44 +919,40 @@
     <h2 class="page-title"><i class="fa-solid fa-film"></i> Full Videos</h2>
   </div>
   <div class="table-container" style="margin-bottom:2rem;">
-    <h3 style="color:var(--gold-light); margin-bottom:1rem; font-family:'Playfair Display',serif;">Publish New Video</h3>
-    <form id="fullVideoForm" onsubmit="return false;">
-      <div class="form-group">
-        <label>Title</label>
-        <input id="fvTitle" placeholder="e.g., Behind the Scenes — Venice Gala" />
-      </div>
-      <div class="form-group">
-        <label>Description (optional)</label>
-        <textarea id="fvDescription" rows="3" placeholder="Short summary…"></textarea>
-      </div>
-      <div class="form-group">
-        <label>Category</label>
-        <select id="fvCategory">
-          <option value="events">Events</option>
-          <option value="interviews">Interviews</option>
-          <option value="behind-the-scenes">Behind the Scenes</option>
-          <option value="documentaries">Documentaries</option>
-        </select>
-      </div>
-      <div class="form-group">
-  <label>Option 1 — Catbox URL (recommended for full-length videos)</label>
-  <input id="fvVideoUrl" placeholder="https://files.catbox.moe/xxxxx.mp4" style="width:100%; padding:10px 14px; background:rgba(255,255,255,0.05); border:1px solid var(--glass-border); border-radius:10px; color:white;" />
-  <small style="color:var(--text-muted); font-size:0.7rem;">Upload to <a href="https://catbox.moe" target="_blank" style="color:var(--gold-light);">catbox.moe</a>, then paste the URL here.</small>
-</div>
-<div class="form-group">
-  <label>Option 2 — File upload (short clips only, under 4.5 MB)</label>
-  <input type="file" id="fvVideoFile" accept="video/*" style="color:white; padding:0.5rem 0;" />
-  <small style="color:var(--text-muted); font-size:0.7rem;">Small clips only — Vercel Hobby caps serverless uploads at 4.5 MB.</small>
-</div>
-      <div id="fvPreviewWrap" style="display:none; margin-top:1rem;">
-        <img id="fvPreviewImg" style="max-width:260px; border-radius:12px; border:1px solid var(--glass-border);" />
-        <div id="fvPreviewDuration" style="color:var(--text-muted); font-size:0.75rem; margin-top:0.5rem;"></div>
-      </div>
-      <div id="fvStatus" style="font-size:0.85rem; margin-top:1rem; min-height:1.2rem;"></div>
-      <button class="btn btn-primary" id="fvSubmit" style="margin-top:1rem;">
-        <i class="fa-solid fa-upload"></i> Publish Video
-      </button>
-    </form>
+  <h3 style="color:var(--gold-light); margin-bottom:1rem; font-family:'Playfair Display',serif;">Publish New Video</h3>
+  <form id="fullVideoForm" onsubmit="return false;">
+    <div class="form-group">
+      <label>Title</label>
+      <input id="fvTitle" placeholder="e.g., Behind the Scenes — Venice Gala" />
+    </div>
+    <div class="form-group">
+      <label>Description (optional)</label>
+      <textarea id="fvDescription" rows="3" placeholder="Short summary…"></textarea>
+    </div>
+    <div class="form-group">
+      <label>Category</label>
+      <select id="fvCategory">
+        <option value="events">Events</option>
+        <option value="interviews">Interviews</option>
+        <option value="behind-the-scenes">Behind the Scenes</option>
+        <option value="documentaries">Documentaries</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Video URL (Catbox MP4)</label>
+      <input id="fvVideoUrl" placeholder="https://files.catbox.moe/xxxxx.mp4" />
+      <small style="color:var(--text-muted); font-size:0.7rem;">Upload to <a href="https://catbox.moe" target="_blank" style="color:var(--gold-light);">catbox.moe</a>, paste the URL here.</small>
+    </div>
+    <div class="form-group">
+      <label>Thumbnail URL (Catbox JPG/PNG)</label>
+      <input id="fvThumbUrl" placeholder="https://files.catbox.moe/yyyyy.jpg" />
+      <small style="color:var(--text-muted); font-size:0.7rem;">Same as Tar TV — upload thumbnail to catbox.moe separately, paste URL here.</small>
+    </div>
+    <div id="fvStatus" style="font-size:0.85rem; margin-top:1rem; min-height:1.2rem;"></div>
+    <button class="btn btn-primary" id="fvSubmit" style="margin-top:1rem;">
+      <i class="fa-solid fa-upload"></i> Publish Video
+    </button>
+  </form>
   </div>
   <div class="table-container">
     <h3 style="color:var(--gold-light); margin-bottom:1rem; font-family:'Playfair Display',serif;">Published Videos</h3>
