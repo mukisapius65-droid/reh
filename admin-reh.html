@@ -939,10 +939,15 @@
         </select>
       </div>
       <div class="form-group">
-        <label>Video File (MP4, up to 200 MB)</label>
-        <input type="file" id="fvVideoFile" accept="video/*" style="color:white; padding:0.5rem 0;" />
-        <small style="color:var(--text-muted); font-size:0.7rem;">Uploads via /api/upload proxy → Catbox. Thumbnail auto-generates to Cloudinary.</small>
-      </div>
+  <label>Option 1 — Catbox URL (recommended for full-length videos)</label>
+  <input id="fvVideoUrl" placeholder="https://files.catbox.moe/xxxxx.mp4" style="width:100%; padding:10px 14px; background:rgba(255,255,255,0.05); border:1px solid var(--glass-border); border-radius:10px; color:white;" />
+  <small style="color:var(--text-muted); font-size:0.7rem;">Upload to <a href="https://catbox.moe" target="_blank" style="color:var(--gold-light);">catbox.moe</a>, then paste the URL here.</small>
+</div>
+<div class="form-group">
+  <label>Option 2 — File upload (short clips only, under 4.5 MB)</label>
+  <input type="file" id="fvVideoFile" accept="video/*" style="color:white; padding:0.5rem 0;" />
+  <small style="color:var(--text-muted); font-size:0.7rem;">Small clips only — Vercel Hobby caps serverless uploads at 4.5 MB.</small>
+</div>
       <div id="fvPreviewWrap" style="display:none; margin-top:1rem;">
         <img id="fvPreviewImg" style="max-width:260px; border-radius:12px; border:1px solid var(--glass-border);" />
         <div id="fvPreviewDuration" style="color:var(--text-muted); font-size:0.75rem; margin-top:0.5rem;"></div>

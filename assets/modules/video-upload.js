@@ -43,227 +43,58 @@ function closeUploadModal() {
   uploadInProgress = false;
 }
 
-export function initVideoUpload() {
-  // Inject modal if not exists
-  if (!document.getElementById('video-upload-modal')) {
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
-  }
-
-  // ─── Open modal function ──────────────────────────
-  window.openVideoUploadModal = function() {
-    const user = getCurrentUser();
-    if (!user || !user.email) {
-      showToast('Please log in to upload videos.');
-      return;
-    }
-    const modal = document.getElementById('video-upload-modal');
-    if (modal) modal.style.display = 'flex';
-  };
-
-  // ─── Close modal ─────────────────────────────────
-  document.getElementById('videoUploadClose').addEventListener('click', closeUploadModal);
-  document.getElementById('video-upload-modal').addEventListener('click', function(e) {
-    if (e.target === this) closeUploadModal();
-  });
-
-  // ─── Submit upload ───────────────────────────────
-  document.getElementById('videoUploadSubmit').addEventListener('click', async function() {
-    if (uploadInProgress) return;
-    const user = getCurrentUser();
-    if (!user || !user.email) {
-      showToast('Please log in first.');
-      return;
-    }
-
-    const title = document.getElementById('videoUploadTitle').value.trim();
-    const fileInput = document.getElementById('videoUploadFile');
-    const thumbnail = document.getElementById('videoUploadThumb').value.trim();
-
-    if (!title) {
-      showToast('Please enter a title.');
-      return;
-    }
-    if (!fileInput.files || fileInput.files.length === 0) {
-      showToast('Please select a video file.');
-      return;
-    }
-    const file = fileInput.files[0];
-    if (file.size > 200 * 1024 * 1024) {
-      showToast('File too large. Maximum 200MB.');
-      return;
-    }
-
-    uploadInProgress = true;
-    const progressBar = document.getElementById('progressBar');
-    const progressContainer = document.getElementById('uploadProgress');
-    progressContainer.style.display = 'block';
-    progressBar.style.width = '0%';
-
-    const submitBtn = this;
-    const origText = submitBtn.textContent;
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Uploading…';
-
-    try {
-      // ── Upload to Catbox via proxy
-const formData = new FormData();
-formData.append('fileToUpload', file);     // Correct field name
-formData.append('reqtype', 'fileupload');  // Required field
-      
-      const xhr = new XMLHttpRequest();
-      xhr.open('POST', '/api/upload');
-
-      // Track progress
-      xhr.upload.addEventListener('progress', (e) => {
-        if (e.lengthComputable) {
-          const percent = Math.round((e.loaded / e.total) * 100);
-          progressBar.style.width = percent + '%';
-        }
-      });
-
-      const response = await new Promise((resolve, reject) => {
-        xhr.onload = () => {
-          try {
-            const parsed = JSON.parse(xhr.responseText);
-            if (xhr.status >= 200 && xhr.status < 300) {
-              resolve(parsed);
-            } else {
-              const errorMsg = parsed.error || parsed.message || xhr.statusText || 'Unknown error';
-              reject(new Error(`${xhr.status}: ${errorMsg}`));
-            }
-          } catch (parseError) {
-            // If response is not JSON
-            reject(new Error(`${xhr.status}: ${xhr.responseText || xhr.statusText}`));
-          }
-        };
-        xhr.onerror = () => reject(new Error('Network error – /api/upload unreachable'));
-        xhr.send(formData);
-      });
-
-      const videoUrl = response.url;
-      
-      if (!videoUrl) throw new Error('No URL returned from proxy');
-
-      // ── Generate first-frame thumbnail ──
-let thumbnailUrl = '';
-try {
-  const thumbBlob = await generateVideoThumbnail(file);
-  if (thumbBlob) {
-    const thumbPath = `tar_tv_videos/${user.email}/thumbs/${Date.now()}_thumb.jpg`;
-    const thumbRef = window.storageRef(window.storage, thumbPath);
-    const thumbSnap = await window.uploadBytes(thumbRef, thumbBlob, {
-      contentType: 'image/jpeg',
-      customMetadata: { uploadedBy: user.email, kind: 'tar_tv_thumbnail' }
-    });
-    thumbnailUrl = await window.getDownloadURL(thumbSnap.ref);
-  }
-} catch (e) {
-  console.warn('[thumb] generation/upload failed, falling back to none:', e);
-}
-
-      // ── Create Firestore document ──
-      const videoData = {
-        title: title,
-        author: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email,
-        authorEmail: user.email,
-        videoUrl: videoUrl,
-        thumbnail: thumbnailUrl || thumbnail || '',
-        likes: 0,
-        views: 0,
-        createdAt: window.serverTimestamp ? window.serverTimestamp() : new Date(),
-        status: 'published'
-      };
-      await window.addDoc(window.collection(window.db, 'tar_tv_videos'), videoData);
-
-      showToast('✅ Video posted successfully!');
-      closeUploadModal();
-      if (typeof window.loadTarTVVideos === 'function') {
-        window.loadTarTVVideos();
-      }
-    } catch (error) {
-      console.error('Upload error:', error);
-      showToast('❌ Upload failed: ' + error.message);
-    } finally {
-      uploadInProgress = false;
-      submitBtn.disabled = false;
-      submitBtn.textContent = origText;
-      progressContainer.style.display = 'none';
-      progressBar.style.width = '0%';
-    }
-  });
-}
-
-// ─── Admin Full Videos upload ─────────────────────────────
-// Separate flow from the user-facing Tar TV modal above.
-// Bound to the inline form on admin-reh.html (#fvSubmit).
-
-const CLOUDINARY_CLOUD = 'hqhzolpo';
-const CLOUDINARY_THUMB_PRESET = 'reh_full_video_thumbs';
-const FULL_VIDEO_FALLBACK_THUMB = 'https://res.cloudinary.com/hqhzolpo/image/upload/v1/reh/full_videos/thumbs/placeholder.jpg';
-
 export function initFullVideoUpload() {
   const submitBtn = document.getElementById('fvSubmit');
-  if (!submitBtn) return; // not on the admin page
+  if (!submitBtn) return;
+
+  const CLOUDINARY_CLOUD = 'hqhzolpo';
+  const CLOUDINARY_THUMB_PRESET = 'reh_full_video_thumbs';
 
   let uploading = false;
 
-  // ── Duration from a local File ──────────────────
-  function extractDuration(file) {
+  function extractDurationFromBlobOrUrl(source) {
     return new Promise((resolve) => {
-      const url = URL.createObjectURL(file);
+      const url = typeof source === 'string' ? source : URL.createObjectURL(source);
       const video = document.createElement('video');
       video.preload = 'metadata';
       video.muted = true;
+      video.crossOrigin = 'anonymous';
       video.src = url;
-      const timeout = setTimeout(() => {
-        URL.revokeObjectURL(url);
-        resolve(0);
-      }, 15000);
+      const cleanup = () => { if (typeof source !== 'string') URL.revokeObjectURL(url); };
+      const timeout = setTimeout(() => { cleanup(); resolve(0); }, 15000);
       video.addEventListener('loadedmetadata', () => {
         clearTimeout(timeout);
         const d = Math.round(video.duration || 0);
-        URL.revokeObjectURL(url);
+        cleanup();
         resolve(d);
       });
       video.addEventListener('error', () => {
         clearTimeout(timeout);
-        URL.revokeObjectURL(url);
+        cleanup();
         resolve(0);
       });
     });
   }
 
-  // ── Catbox upload via existing proxy ────────────
-  function uploadToCatbox(file, onProgress) {
+  function uploadToCatbox(file) {
     return new Promise((resolve, reject) => {
       const fd = new FormData();
       fd.append('fileToUpload', file);
       fd.append('reqtype', 'fileupload');
       const xhr = new XMLHttpRequest();
       xhr.open('POST', '/api/upload');
-      xhr.upload.addEventListener('progress', (e) => {
-        if (e.lengthComputable && onProgress) {
-          onProgress(Math.round((e.loaded / e.total) * 100));
-        }
-      });
       xhr.onload = () => {
         try {
           const parsed = JSON.parse(xhr.responseText);
-          if (xhr.status >= 200 && xhr.status < 300 && parsed.url) {
-            resolve(parsed.url);
-          } else {
-            reject(new Error(parsed.error || parsed.message || xhr.statusText));
-          }
-        } catch (e) {
-          reject(new Error(xhr.responseText || xhr.statusText));
-        }
+          if (xhr.status >= 200 && xhr.status < 300 && parsed.url) resolve(parsed.url);
+          else reject(new Error(parsed.error || parsed.message || xhr.statusText));
+        } catch (e) { reject(new Error(xhr.responseText || xhr.statusText)); }
       };
       xhr.onerror = () => reject(new Error('Network error — /api/upload unreachable'));
       xhr.send(fd);
     });
   }
 
-  // ── Thumbnail blob → Cloudinary ─────────────────
   async function uploadThumbToCloudinary(blob) {
     const fd = new FormData();
     fd.append('file', blob, 'thumb.jpg');
@@ -277,7 +108,7 @@ export function initFullVideoUpload() {
       throw new Error('Cloudinary thumb upload failed: ' + body);
     }
     const data = await res.json();
-    if (!data.secure_url) throw new Error('No secure_url from Cloudinary');
+    if (!data.secure_url) throw new Error('No secure_url');
     return data.secure_url;
   }
 
@@ -300,105 +131,148 @@ export function initFullVideoUpload() {
     }
   }
 
-  // ── Preview on file select ──────────────────────
+  // ── Preview when URL is pasted ──────────────────
+  const urlInput = document.getElementById('fvVideoUrl');
+  if (urlInput) {
+    urlInput.addEventListener('blur', async () => {
+      const url = urlInput.value.trim();
+      if (!url || !url.startsWith('http')) return;
+      setStatus('Analyzing URL…', 'info');
+      const durationSec = await extractDurationFromBlobOrUrl(url);
+      // For URL path, thumbnail is best-effort — may fail due to CORS on Catbox
+      let thumbUrl = '';
+      try {
+        const video = document.createElement('video');
+        video.crossOrigin = 'anonymous';
+        video.muted = true;
+        video.preload = 'metadata';
+        video.src = url;
+        await new Promise((res, rej) => {
+          video.addEventListener('loadedmetadata', res, { once: true });
+          video.addEventListener('error', rej, { once: true });
+          setTimeout(rej, 10000);
+        });
+        video.currentTime = Math.min(1, (video.duration || 2) * 0.1);
+        await new Promise((res, rej) => {
+          video.addEventListener('seeked', res, { once: true });
+          setTimeout(rej, 5000);
+        });
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth || 640;
+        canvas.height = video.videoHeight || 360;
+        canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+        const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.85));
+        if (blob) thumbUrl = await uploadThumbToCloudinary(blob);
+      } catch (e) {
+        console.warn('[fv] URL thumbnail failed:', e);
+        setStatus('⚠ URL thumbnail failed (Catbox CORS). Publish will use placeholder.', 'error');
+      }
+      showPreview(thumbUrl || 'https://via.placeholder.com/640x360/080c24/c9a84c?text=No+Thumbnail', durationSec);
+      window._fvPendingThumbUrl = thumbUrl;
+      window._fvPendingDuration = durationSec;
+      if (thumbUrl) setStatus('✓ Preview ready.', 'success');
+    });
+  }
+
+  // ── Preview when file is picked (existing behavior) ──
   const fileInput = document.getElementById('fvVideoFile');
   if (fileInput) {
     fileInput.addEventListener('change', async function () {
       if (!this.files || !this.files[0]) return;
       const file = this.files[0];
       setStatus('Generating preview…', 'info');
+      const durationSec = await extractDurationFromBlobOrUrl(file);
+      let thumbUrl = '';
       try {
-        const durationSec = await extractDuration(file);
-        let thumbUrl = FULL_VIDEO_FALLBACK_THUMB;
-        try {
-          const thumbBlob = await generateVideoThumbnail(file);
-          if (thumbBlob) thumbUrl = await uploadThumbToCloudinary(thumbBlob);
-        } catch (thumbErr) {
-          console.warn('[fv] thumb generation failed, using placeholder:', thumbErr);
-          setStatus('⚠ Thumbnail generation failed — using placeholder.', 'error');
-        }
-        showPreview(thumbUrl, durationSec);
-        window._fvPendingThumbUrl = thumbUrl;
-        window._fvPendingDuration = durationSec;
-        setStatus('✓ Preview ready. Tap Publish to upload.', 'success');
-      } catch (err) {
-        console.error('[fv] preview failed:', err);
-        setStatus('Preview failed: ' + err.message, 'error');
+        const video = document.createElement('video');
+        video.muted = true;
+        video.preload = 'metadata';
+        video.src = URL.createObjectURL(file);
+        await new Promise((res, rej) => {
+          video.addEventListener('loadedmetadata', res, { once: true });
+          video.addEventListener('error', rej, { once: true });
+          setTimeout(rej, 10000);
+        });
+        video.currentTime = Math.min(1, (video.duration || 2) * 0.1);
+        await new Promise((res, rej) => {
+          video.addEventListener('seeked', res, { once: true });
+          setTimeout(rej, 5000);
+        });
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth || 640;
+        canvas.height = video.videoHeight || 360;
+        canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+        const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.85));
+        if (blob) thumbUrl = await uploadThumbToCloudinary(blob);
+      } catch (e) {
+        console.warn('[fv] file thumbnail failed:', e);
       }
+      showPreview(thumbUrl || 'https://via.placeholder.com/640x360/080c24/c9a84c?text=No+Thumbnail', durationSec);
+      window._fvPendingThumbUrl = thumbUrl;
+      window._fvPendingDuration = durationSec;
     });
   }
 
-  // ── Submit ──────────────────────────────────────
+  // ── Submit ────────────────────────────────────────
   submitBtn.addEventListener('click', async function () {
     if (uploading) return;
-    const user = getCurrentUser();
-    if (!user || !user.email) { showToast('Please log in.'); return; }
+    const user = window.getCurrentUser ? window.getCurrentUser() : null;
+    if (!user || !user.email) { setStatus('Please log in.', 'error'); return; }
 
-    const titleEl = document.getElementById('fvTitle');
-    const descEl = document.getElementById('fvDescription');
-    const catEl = document.getElementById('fvCategory');
+    const title = (document.getElementById('fvTitle') || {}).value?.trim() || '';
+    const description = (document.getElementById('fvDescription') || {}).value?.trim() || '';
+    const category = (document.getElementById('fvCategory') || {}).value || 'events';
+    const pastedUrl = (document.getElementById('fvVideoUrl') || {}).value?.trim() || '';
     const fileEl = document.getElementById('fvVideoFile');
-
-    const title = titleEl ? titleEl.value.trim() : '';
-    const description = descEl ? descEl.value.trim() : '';
-    const category = catEl ? catEl.value : 'events';
+    const file = fileEl && fileEl.files && fileEl.files[0];
 
     if (!title) { setStatus('Title is required.', 'error'); return; }
-    if (!fileEl || !fileEl.files || !fileEl.files[0]) {
-      setStatus('Please select a video file.', 'error'); return;
-    }
-
-    const file = fileEl.files[0];
-    if (file.size > 200 * 1024 * 1024) {
-      setStatus('File too large. Max 200 MB.', 'error'); return;
-    }
+    if (!pastedUrl && !file) { setStatus('Provide a Catbox URL or pick a file.', 'error'); return; }
 
     uploading = true;
     const origText = submitBtn.innerHTML;
     submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Uploading video…';
 
     try {
-      setStatus('Uploading video…', 'info');
-      const videoUrl = await uploadToCatbox(file, (pct) => {
-        setStatus(`Uploading video… ${pct}%`, 'info');
-      });
+      let videoUrl = pastedUrl;
 
-      let thumbUrl = window._fvPendingThumbUrl || FULL_VIDEO_FALLBACK_THUMB;
-      let durationSec = window._fvPendingDuration || 0;
-
-      if (!window._fvPendingThumbUrl) {
-        try {
-          const thumbBlob = await generateVideoThumbnail(file);
-          if (thumbBlob) thumbUrl = await uploadThumbToCloudinary(thumbBlob);
-          durationSec = await extractDuration(file);
-        } catch (e) { console.warn('[fv] fallback thumb failed:', e); }
+      if (!videoUrl && file) {
+        if (file.size > 4.4 * 1024 * 1024) {
+          setStatus('File too large for proxy. Paste a Catbox URL instead.', 'error');
+          return;
+        }
+        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Uploading…';
+        videoUrl = await uploadToCatbox(file);
       }
+
+      submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Publishing…';
 
       await window.addDoc(window.collection(window.db, 'full_videos'), {
         title,
         description,
         category,
         videoUrl,
-        thumbnail: thumbUrl,
-        duration: durationSec,
+        thumbnail: window._fvPendingThumbUrl || '',
+        duration: window._fvPendingDuration || 0,
         views: 0,
         likes: 0,
         author: 'Reh',
         uploadedBy: user.email,
         createdAt: window.serverTimestamp ? window.serverTimestamp() : new Date(),
-        status: 'published'
+        status: 'published',
       });
 
       setStatus('✓ Published.', 'success');
-      showToast('Video published.');
+      if (window.showToast) window.showToast('Video published.');
 
-      if (titleEl) titleEl.value = '';
-      if (descEl) descEl.value = '';
+      // Reset form
+      if (document.getElementById('fvTitle')) document.getElementById('fvTitle').value = '';
+      if (document.getElementById('fvDescription')) document.getElementById('fvDescription').value = '';
+      if (document.getElementById('fvVideoUrl')) document.getElementById('fvVideoUrl').value = '';
       if (fileEl) fileEl.value = '';
       const wrap = document.getElementById('fvPreviewWrap');
       if (wrap) wrap.style.display = 'none';
-      window._fvPendingThumbUrl = null;
+      window._fvPendingThumbUrl = '';
       window._fvPendingDuration = 0;
 
       if (typeof window.loadFullVideosList === 'function') window.loadFullVideosList();
