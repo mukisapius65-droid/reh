@@ -1053,7 +1053,7 @@
       <div class="tv-topnav-segment" id="tvSegment" role="tablist">
         <button class="active" data-seg="tars" role="tab">Tars</button>
         <button data-seg="ireh" role="tab">iReh</button>
-        <button data-seg="reels" role="tab">Reels</button>
+        <button data-seg="aireh" role="tab">AI Reh</button>
       </div>
       <button
         class="tv-topnav-pill"
@@ -2500,19 +2500,23 @@
 
           // ─── Segment (visual only) ──────────────
           document.querySelectorAll("#tvSegment button").forEach((btn) => {
-  btn.addEventListener("click", function () {
-    const seg = this.dataset.seg;
-    if (seg === 'ireh') {
-      window.location.href = '/ireh';
-      return;
-    }
-    document
-      .querySelectorAll("#tvSegment button")
-      .forEach((b) => b.classList.remove("active"));
-    this.classList.add("active");
-    showTvToast(`Switched to ${this.textContent}`);
-  });
-});
+            btn.addEventListener("click", function () {
+              const seg = this.dataset.seg;
+              if (seg === "ireh") {
+                window.location.href = "/ireh";
+                return;
+              }
+              if (seg === "aireh") {
+                window.location.href = "/aireh";
+                return;
+              }
+              document
+                .querySelectorAll("#tvSegment button")
+                .forEach((b) => b.classList.remove("active"));
+              this.classList.add("active");
+              showTvToast(`Switched to ${this.textContent}`);
+            });
+          });
 
           // ─── Watch full videos placeholder ──────
           document

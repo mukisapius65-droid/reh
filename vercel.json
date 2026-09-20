@@ -26,6 +26,7 @@
     { "source": "/plans", "destination": "/plans.html" },
     { "source": "/videos", "destination": "/videos.html" },
     { "source": "/watch", "destination": "/watch.html" },
-    { "source": "/ireh", "destination": "/ireh.html" }
+    { "source": "/ireh", "destination": "/ireh.html" },
+    { "source": "/aireh", "destination": "/aireh.html" }
   ]
 }

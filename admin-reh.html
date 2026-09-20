@@ -736,6 +736,7 @@
           <a href="#" data-page="ireh"
             ><i class="fa-solid fa-images"></i> iReh Gallery</a
           >
+          <a href="#" data-page="aireh"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Reh Gallery</a>
           <a href="#" data-page="concierge">
             <i class="fa-solid fa-clipboard-list"></i> Concierge
             <span
@@ -770,6 +771,55 @@
 
       <!-- Main Content -->
       <main class="main" id="mainContent">
+        <div id="page-aireh" class="page">
+  <div class="page-header">
+    <h2 class="page-title"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Reh Gallery</h2>
+  </div>
+
+  <div id="airehAuthBanner" style="display:none; background:rgba(200,160,60,0.1); border:1px solid var(--gold); border-radius:12px; padding:0.8rem 1rem; margin-bottom:1rem; font-size:0.85rem; color:var(--gold-light);">
+    <i class="fa-solid fa-circle-info"></i>
+    Sign in on the <a href="/login" style="color:var(--champagne); font-weight:600;">main site</a> first to enable publishing.
+  </div>
+
+  <div class="table-container" style="margin-bottom:2rem;">
+    <h3 style="color:var(--gold-light); margin-bottom:1rem; font-family:'Playfair Display',serif;">Publish New AI Batch</h3>
+
+    <div class="form-group">
+      <label>Batch Title</label>
+      <input id="airehTitle" placeholder="e.g., Emerald Dreams — Vol 1" />
+    </div>
+
+    <div class="form-group">
+      <label>Paste Catbox results page</label>
+      <textarea id="airehPaste" rows="10" placeholder="Paste everything from the Catbox results page here…"></textarea>
+      <small style="color:var(--text-muted); font-size:0.7rem;">
+        Upload images to <a href="https://catbox.moe" target="_blank" style="color:var(--gold-light);">catbox.moe</a> first, then paste the whole page. Only files.catbox.moe image URLs will be kept.
+      </small>
+    </div>
+
+    <div id="airehPreview" style="display:none; margin-top:1rem; padding:1rem; background:rgba(255,255,255,0.02); border:1px solid var(--glass-border); border-radius:12px; font-size:0.85rem; color:var(--text-secondary);">
+      <div id="airehCount" style="font-weight:600; color:var(--gold-light); margin-bottom:0.5rem;">Found 0 image URLs</div>
+      <div id="airehThumbStrip" style="display:flex; gap:0.4rem; flex-wrap:wrap;"></div>
+    </div>
+
+    <div id="airehStatus" style="font-size:0.85rem; margin-top:1rem; min-height:1.2rem;"></div>
+
+    <button class="btn btn-primary" id="airehSubmit" style="margin-top:1rem;">
+      <i class="fa-solid fa-upload"></i> Publish AI Batch
+    </button>
+  </div>
+
+  <div class="table-container">
+    <h3 style="color:var(--gold-light); margin-bottom:1rem; font-family:'Playfair Display',serif;">Published AI Batches</h3>
+    <table id="airehBatchesTable">
+      <thead>
+        <tr><th>Cover</th><th>Title</th><th>Images</th><th>Views</th><th>Published</th><th>Actions</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+        </div>
+        
         <div id="page-ireh" class="page">
           <div class="page-header">
             <h2 class="page-title">
@@ -2770,6 +2820,157 @@
           }
           window.loadIRehBatches = loadIRehBatches;
 
+          /* ===== AI Reh Gallery ===== */
+
+// Live preview on paste (AI Reh)
+(function initAIRehPasteListener() {
+  const ta = document.getElementById('airehPaste');
+  const preview = document.getElementById('airehPreview');
+  const countEl = document.getElementById('airehCount');
+  const stripEl = document.getElementById('airehThumbStrip');
+  if (!ta) return;
+  ta.addEventListener('input', () => {
+    const urls = extractCatboxImageUrls(ta.value);
+    if (urls.length === 0) { preview.style.display = 'none'; return; }
+    preview.style.display = 'block';
+    countEl.textContent = `Found ${urls.length} image URL${urls.length === 1 ? '' : 's'}`;
+    const preview8 = urls.slice(0, 8);
+    stripEl.innerHTML = preview8.map(u =>
+      `<img src="${u}" style="width:52px;height:52px;border-radius:8px;object-fit:cover;border:1px solid rgba(255,255,255,0.1);background:#111;" onerror="this.style.opacity=0.3">`
+    ).join('') + (urls.length > 8
+      ? `<div style="width:52px;height:52px;border-radius:8px;background:rgba(200,160,60,0.15);border:1px dashed rgba(200,160,60,0.4);display:flex;align-items:center;justify-content:center;font-size:0.7rem;color:var(--gold-light);font-weight:600;">+${urls.length - 8}</div>`
+      : '');
+  });
+})();
+
+// Auth banner (AI Reh)
+(async () => {
+  const banner = document.getElementById('airehAuthBanner');
+  if (!banner) return;
+  if (window.auth && window.auth.authStateReady) await window.auth.authStateReady();
+  banner.style.display = (!window.auth || !window.auth.currentUser) ? 'block' : 'none';
+})();
+
+// Submit handler (AI Reh)
+(function initAIRehSubmit() {
+  const btn = document.getElementById('airehSubmit');
+  if (!btn) return;
+
+  function setStatus(msg, kind) {
+    const el = document.getElementById('airehStatus');
+    if (!el) return;
+    el.textContent = msg;
+    el.style.color = kind === 'error' ? '#e74c3c' : kind === 'success' ? '#2ecc71' : '#c5bfb3';
+  }
+
+  let publishing = false;
+
+  btn.addEventListener('click', async () => {
+    if (publishing) return;
+    if (window.auth && window.auth.authStateReady) await window.auth.authStateReady();
+    if (!window.auth || !window.auth.currentUser) {
+      setStatus('Please log in on the main site (rehcrown@gmail.com) first, then return here.', 'error');
+      return;
+    }
+    if (window.auth.currentUser.email !== 'rehcrown@gmail.com') {
+      setStatus('Only the admin account can publish.', 'error');
+      return;
+    }
+
+    const title = (document.getElementById('airehTitle') || {}).value?.trim() || '';
+    const paste = (document.getElementById('airehPaste') || {}).value || '';
+    if (!title) { setStatus('Please enter a batch title.', 'error'); return; }
+
+    const urls = extractCatboxImageUrls(paste);
+    if (urls.length === 0) { setStatus('No valid Catbox image URLs found. Only files.catbox.moe JPG/PNG/GIF/WebP/AVIF/BMP are accepted.', 'error'); return; }
+    if (urls.length > 1000) { setStatus(`Too many images (${urls.length}). Maximum is 1000 per batch.`, 'error'); return; }
+
+    publishing = true;
+    const orig = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Publishing…';
+
+    try {
+      await window.addDoc(window.collection(window.db, 'aireh_batches'), {
+        title,
+        images: urls,
+        coverImage: urls[0],
+        count: urls.length,
+        uploadedBy: window.auth.currentUser.email,
+        createdAt: window.serverTimestamp ? window.serverTimestamp() : new Date(),
+        status: 'published',
+        downloadable: true,
+        downloadCount: 0,
+        tier: 'free',
+      });
+      sessionStorage.removeItem('aireh_cache');
+      setStatus(`✓ Published ${urls.length} images to "${title}".`, 'success');
+      if (window.showToast) window.showToast(`AI Reh batch published (${urls.length} images).`);
+      document.getElementById('airehTitle').value = '';
+      document.getElementById('airehPaste').value = '';
+      document.getElementById('airehPreview').style.display = 'none';
+      if (typeof loadAIRehBatches === 'function') loadAIRehBatches();
+    } catch (err) {
+      console.error('[aireh] publish failed:', err);
+      setStatus('Publish failed: ' + err.message, 'error');
+    } finally {
+      publishing = false;
+      btn.disabled = false;
+      btn.innerHTML = orig;
+    }
+  });
+})();
+
+// Load batches (AI Reh)
+async function loadAIRehBatches() {
+  const tbody = document.querySelector('#airehBatchesTable tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;"><i class="fa-solid fa-spinner fa-spin"></i></td></tr>';
+  try {
+    const snap = await window.getDocs(window.collection(window.db, 'aireh_batches'));
+    const batches = [];
+    snap.forEach(doc => batches.push({ id: doc.id, ...doc.data() }));
+    batches.sort((a, b) => {
+      const am = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+      const bm = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+      return bm - am;
+    });
+    if (!batches.length) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);">No AI batches yet.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = batches.map(b => `
+      <tr>
+        <td><img src="${b.coverImage || ''}" style="width:60px;height:60px;border-radius:8px;object-fit:cover;background:#111;" onerror="this.style.opacity=0.3"></td>
+        <td>${b.title || ''}</td>
+        <td>${b.count || 0}</td>
+        <td><span style="color:var(--gold-light); font-weight:600;">${b.views || 0}</span></td>
+        <td>${b.createdAt?.seconds ? new Date(b.createdAt.seconds * 1000).toLocaleDateString() : '—'}</td>
+        <td>
+          <a class="btn-sm btn-edit" href="/aireh?batch=${b.id}" target="_blank">View</a>
+          <button class="btn-sm btn-delete delete-aireh" data-id="${b.id}">Del</button>
+        </td>
+      </tr>
+    `).join('');
+
+    document.querySelectorAll('.delete-aireh').forEach(dbtn => {
+      dbtn.addEventListener('click', async () => {
+        if (!confirm('Delete this batch? The images remain on Catbox but will be removed from the gallery.')) return;
+        try {
+          await window.deleteDoc(window.doc(window.db, 'aireh_batches', dbtn.dataset.id));
+          sessionStorage.removeItem('aireh_cache');
+          loadAIRehBatches();
+          if (window.showToast) window.showToast('Batch deleted.');
+        } catch (e) { console.error(e); alert('Delete failed'); }
+      });
+    });
+  } catch (err) {
+    console.error('[aireh] load failed:', err);
+    tbody.innerHTML = '<tr><td colspan="6" style="color:var(--danger);text-align:center;">Failed to load AI batches.</td></tr>';
+  }
+}
+window.loadAIRehBatches = loadAIRehBatches;
+
           async function openIRehStats(batchId, title, imageCount) {
   // Build a simple modal
   let modal = document.getElementById('irehStatsModal');
@@ -3474,6 +3675,7 @@
                 if (page === "tartv-analytics") loadTarTvAnalytics();
                 if (page === "full-videos") loadFullVideosList();
                 if (page === "ireh") loadIRehBatches();
+                if (page === "aireh") loadAIRehBatches();
                 if (page === "concierge") loadConciergeRequests();
                 if (page === "notifications") loadNotifications();
                 if (page === "newsletter") loadNewsletterSubscribers();
