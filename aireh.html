@@ -138,31 +138,34 @@
 
     waitForFirebase(async () => {
       // ── Video previews ──
-      try {
-        const vSnap = await window.getDocs(
-          window.query(
-            window.collection(window.db, 'tar_tv_videos'),
-            window.limit(50)
-          )
-        );
-        const aiVideos = [];
-        vSnap.forEach(doc => {
-          const v = doc.data();
-          if (v.isAI === true && v.thumbnail) {
-            aiVideos.push({ id: doc.id, thumbnail: v.thumbnail, title: v.title || '' });
-          }
-        });
+      // ── Video previews ──
+try {
+  const vSnap = await window.getDocs(
+    window.query(
+      window.collection(window.db, 'tar_tv_videos'),
+      window.where('isAI', '==', true),
+      window.limit(12)
+    )
+  );
+  const aiVideos = [];
+  vSnap.forEach(doc => {
+    const v = doc.data();
+    aiVideos.push({ id: doc.id, thumbnail: v.thumbnail || '', title: v.title || '' });
+  });
         const vBox = document.getElementById('videoPreview');
         if (aiVideos.length === 0) {
-          vBox.innerHTML = '<div class="empty-strip"><i class="fa-solid fa-video"></i> No AI videos yet</div>';
-        } else {
-          vBox.innerHTML = aiVideos.slice(0, 6).map(v =>
-            `<a class="preview-tile" href="/tartv?mode=ai" style="flex:0 0 140px;height:180px;border-radius:12px;overflow:hidden;background:#111;position:relative;text-decoration:none;">
-              <img src="${v.thumbnail}" loading="lazy" alt="" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.opacity=0.3">
-              <span style="position:absolute;top:6px;left:6px;background:rgba(0,0,0,0.7);color:#dfc278;font-size:0.6rem;font-weight:700;padding:2px 8px;border-radius:50px;border:1px solid rgba(200,160,60,0.4);">AI</span>
-            </a>`
-          ).join('');
-        }
+  vBox.innerHTML = '<div class="empty-strip"><i class="fa-solid fa-video"></i> No AI videos yet</div>';
+} else {
+  vBox.innerHTML = aiVideos.slice(0, 6).map(v => {
+    const thumb = v.thumbnail
+      ? `<img src="${v.thumbnail}" loading="lazy" alt="" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.opacity=0.3">`
+      : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1a1a2e,#16213e);"><i class="fa-solid fa-wand-magic-sparkles" style="font-size:2rem;color:#dfc278;opacity:0.5;"></i></div>`;
+    return `<a class="preview-tile" href="/tartv?mode=ai" style="flex:0 0 140px;height:180px;border-radius:12px;overflow:hidden;background:#111;position:relative;text-decoration:none;">
+      ${thumb}
+      <span style="position:absolute;top:6px;left:6px;background:rgba(0,0,0,0.7);color:#dfc278;font-size:0.6rem;font-weight:700;padding:2px 8px;border-radius:50px;border:1px solid rgba(200,160,60,0.4);">AI</span>
+    </a>`;
+  }).join('');
+}
       } catch (e) { console.warn('[aireh] video preview failed:', e); }
 
       // ── Image previews ──
