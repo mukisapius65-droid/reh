@@ -25,10 +25,7 @@
 			name="twitter:description"
 			content="Watch exclusive short videos from Reh's most extraordinary members."
 		/>
-		<meta
-			name="twitter:image"
-			content="https://reh-crown.vercel.app/assets/og/tar-tv-default.jpg"
-		/>
+		<meta name="twitter:image" content="https://reh-crown.vercel.app/assets/og/tar-tv-default.png">
 
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link
@@ -1268,8 +1265,10 @@
 		</script>
 
 		<!-- Firebase Compat -->
-		<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-		<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+		<!-- Firebase Compat -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+		
 
 		<
 
@@ -2686,18 +2685,33 @@ const videos = allVideos.filter(v => {
 
                 <div id="tvPostStep1">
                   <p style="color:#c5bfb3; font-size:0.88rem; line-height:1.6; margin-bottom:1.2rem;">
-                    Tap below to upload on Catbox. Then copy the URL it gives you and come back — we'll detect it automatically.
-                  </p>
-                  <button id="tvPostOpenCatbox" style="width:100%; padding:16px; background:linear-gradient(135deg,#c9a84c,#dfc278); color:#080c24; border:none; border-radius:14px; font-weight:700; font-size:1rem; letter-spacing:0.04em; cursor:pointer; font-family:inherit; display:flex; align-items:center; justify-content:center; gap:0.6rem;">
-                    <i class="fa-solid fa-cloud-arrow-up"></i> Upload to Catbox
-                  </button>
-                  <button id="tvPostCheckClipboard" style="width:100%; margin-top:0.6rem; padding:12px; background:transparent; border:1px solid rgba(255,255,255,0.15); color:#c5bfb3; border-radius:12px; font-weight:600; font-size:0.85rem; cursor:pointer; font-family:inherit;">
-                    <i class="fa-solid fa-clipboard"></i> Check clipboard now
-                  </button>
-                  <p style="color:#8a857a; font-size:0.72rem; line-height:1.5; margin-top:1rem; text-align:center;">
-                    No account needed on Catbox. Free. Videos up to 200 MB.
-                  </p>
-                </div>
+  Tap below to upload on Catbox. Then copy the URL it gives you and come back — we'll detect it automatically.
+</p>
+<button id="tvPostOpenCatbox" style="width:100%; padding:16px; background:linear-gradient(135deg,#c9a84c,#dfc278); color:#080c24; border:none; border-radius:14px; font-weight:700; font-size:1rem; letter-spacing:0.04em; cursor:pointer; font-family:inherit; display:flex; align-items:center; justify-content:center; gap:0.6rem;">
+  <i class="fa-solid fa-cloud-arrow-up"></i> Upload to Catbox
+</button>
+<button id="tvPostCheckClipboard" style="width:100%; margin-top:0.6rem; padding:12px; background:transparent; border:1px solid rgba(255,255,255,0.15); color:#c5bfb3; border-radius:12px; font-weight:600; font-size:0.85rem; cursor:pointer; font-family:inherit;">
+  <i class="fa-solid fa-clipboard"></i> Check clipboard now
+</button>
+
+  <button id="tvPostManualToggle" style="width:100%; margin-top:0.6rem; padding:8px; background:transparent; border:none; color:#8a857a; font-size:0.75rem; cursor:pointer; font-family:inherit; text-decoration:underline;">
+    Paste manually
+  </button>
+
+  <div id="tvPostManualBlock" style="display:none; margin-top:0.8rem;">
+    <p style="color:#c5bfb3; font-size:0.78rem; line-height:1.5; margin-bottom:0.5rem;">
+      Long-press in the field below and paste the Catbox URL:
+    </p>
+    <input id="tvPostManualInput" type="text" placeholder="Paste here…" style="width:100%; padding:12px 14px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.15); border-radius:10px; color:white; outline:none; font-family:inherit; font-size:0.85rem;">
+    <button id="tvPostManualSubmit" style="width:100%; margin-top:0.5rem; padding:12px; background:linear-gradient(135deg,#c9a84c,#dfc278); color:#080c24; border:none; border-radius:10px; font-weight:700; font-size:0.85rem; cursor:pointer; font-family:inherit;">
+      Use this URL
+    </button>
+  </div>
+
+  <p style="color:#8a857a; font-size:0.72rem; line-height:1.5; margin-top:1rem; text-align:center;">
+    No account needed on Catbox. Free. Videos up to 200 MB.
+  </p>
+</div>
 
                 <div id="tvPostStep2" style="display:none;">
                   <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:0.9rem; margin-bottom:1rem;">
@@ -2755,6 +2769,27 @@ const videos = allVideos.filter(v => {
           const statusEl = document.getElementById('tvPostStatus');
           let pendingUrl = '';
 
+					// ── Feature detection ────────────────────────
+const clipboardSupported = !!(navigator.clipboard && navigator.clipboard.readText);
+if (!clipboardSupported) {
+  // Phoenix, UC, older Samsung Internet, Firefox Android
+  const checkBtn = document.getElementById('tvPostCheckClipboard');
+  if (checkBtn) checkBtn.style.display = 'none';
+  // Show the manual toggle prominently
+  const manualToggle = document.getElementById('tvPostManualToggle');
+  if (manualToggle) {
+    manualToggle.textContent = 'Paste Catbox URL manually';
+    manualToggle.style.textDecoration = 'none';
+    manualToggle.style.background = 'linear-gradient(135deg,#c9a84c,#dfc278)';
+    manualToggle.style.color = '#080c24';
+    manualToggle.style.padding = '12px';
+    manualToggle.style.borderRadius = '10px';
+    manualToggle.style.fontWeight = '700';
+    manualToggle.style.fontSize = '0.85rem';
+    manualToggle.style.marginTop = '0.6rem';
+  }
+}
+
           function setStatus(msg, kind) {
             if (!statusEl) return;
             statusEl.textContent = msg;
@@ -2774,6 +2809,10 @@ const videos = allVideos.filter(v => {
             isAICb.checked = false;
             videoPreview.src = '';
             urlText.textContent = '';
+						const manualBlock = document.getElementById('tvPostManualBlock');
+if (manualBlock) manualBlock.style.display = 'none';
+const manualInput = document.getElementById('tvPostManualInput');
+if (manualInput) manualInput.value = '';
             setStatus('');
           }
 
@@ -2866,9 +2905,9 @@ const videos = allVideos.filter(v => {
             try {
               const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
               const snap = await db.collection('tar_tv_videos')
-                .where('uploadedBy', '==', user.email)
-                .where('createdAt', '>', since)
-                .get();
+  .where('authorEmail', '==', user.email)
+  .where('createdAt', '>', since)
+  .get();
               if (snap.size >= 10) {
                 toast('🕐 You have posted 10 videos today. Try again tomorrow.');
                 return;
@@ -2887,12 +2926,67 @@ const videos = allVideos.filter(v => {
           });
 
           checkBtn.addEventListener('click', async () => {
-            const orig = checkBtn.innerHTML;
-            checkBtn.disabled = true;
-            checkBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking…';
-            try { await tryClipboard(false); }
-            finally { checkBtn.disabled = false; checkBtn.innerHTML = orig; }
-          });
+  const orig = checkBtn.innerHTML;
+  checkBtn.disabled = true;
+  checkBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking…';
+  let ok = false;
+  try { ok = await tryClipboard(false); }
+  finally { checkBtn.disabled = false; checkBtn.innerHTML = orig; }
+  // If clipboard read failed (Phoenix, older browsers), reveal manual field
+  if (!ok) {
+    const manualBlock = document.getElementById('tvPostManualBlock');
+    if (manualBlock) {
+      manualBlock.style.display = 'block';
+      const input = document.getElementById('tvPostManualInput');
+      if (input) setTimeout(() => input.focus(), 100);
+    }
+  }
+});
+
+// ── Manual paste fallback ────────────────────
+const manualToggle = document.getElementById('tvPostManualToggle');
+if (manualToggle) {
+  manualToggle.addEventListener('click', () => {
+    const block = document.getElementById('tvPostManualBlock');
+    if (block) {
+      block.style.display = block.style.display === 'block' ? 'none' : 'block';
+      if (block.style.display === 'block') {
+        const input = document.getElementById('tvPostManualInput');
+        if (input) setTimeout(() => input.focus(), 100);
+      }
+    }
+  });
+}
+
+const manualSubmit = document.getElementById('tvPostManualSubmit');
+if (manualSubmit) {
+  manualSubmit.addEventListener('click', () => {
+    const input = document.getElementById('tvPostManualInput');
+    if (!input) return;
+    const text = input.value.trim();
+    if (!text) {
+      setStatus('Nothing to use. Paste a Catbox URL first.', 'error');
+      return;
+    }
+    const parsed = extractFromClipboard(text);
+    if (!parsed) {
+      setStatus('No Catbox URL found in the pasted text.', 'error');
+      return;
+    }
+    advanceToPreview(parsed.url, parsed.title);
+    toast('📋 Video URL accepted');
+  });
+  // Auto-submit on Enter
+  const input = document.getElementById('tvPostManualInput');
+  if (input) {
+    input.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        manualSubmit.click();
+      }
+    });
+  }
+}
 
           backBtn.addEventListener('click', () => resetPost());
 
@@ -2928,7 +3022,6 @@ const videos = allVideos.filter(v => {
                 thumbnail: '',
                 author: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email,
                 authorEmail: user.email,
-                uploadedBy: user.email,
                 isAI: isAICb.checked === true,
                 duration,
                 likes: 0,
