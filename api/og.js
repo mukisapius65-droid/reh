@@ -2,6 +2,7 @@
 // Fetches the video doc from Firestore REST, returns HTML with dynamic OG tags.
 
 const FIREBASE_PROJECT = 'rehp-c82b8';
+const FIREBASE_API_KEY = 'AIzaSyClJ9Mlln04N_7XFSvy1zGHaE6w5E2DQ8I';
 const FALLBACK_IMAGE = 'https://reh-crown.vercel.app/assets/og/tar-tv-default.png';
 
 export default async function handler(req, res) {
@@ -11,26 +12,39 @@ export default async function handler(req, res) {
   let title = 'Tar TV — Reh';
   let description = "Watch exclusive short videos from Reh's most extraordinary members.";
   let image = FALLBACK_IMAGE;
+  let isAIVideo = false;
 
   if (videoId) {
     try {
-      const docUrl = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT}/databases/(default)/documents/tar_tv_videos/${encodeURIComponent(videoId)}`;
-      const r = await fetch(docUrl);
+      const docUrl = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT}/databases/(default)/documents/tar_tv_videos/${encodeURIComponent(videoId)}?key=${FIREBASE_API_KEY}`;
+
+      // Hard 4s timeout — WhatsApp's scraper gives up at ~5s.
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 4000);
+      const r = await fetch(docUrl, { signal: controller.signal });
+      clearTimeout(timeoutId);
+
       if (r.ok) {
         const data = await r.json();
         const f = data.fields || {};
+
         const videoTitle = f.title?.stringValue || '';
         const author = f.author?.stringValue || 'Reh';
         const thumb = f.thumbnail?.stringValue || '';
+
+        isAIVideo = f.isAI?.booleanValue === true;
 
         if (videoTitle) {
           title = `${videoTitle} — Tar TV`;
           description = `@${author} on Reh's Tar TV. Tap to watch.`;
         }
         if (thumb) image = thumb;
+      } else {
+        console.error('[api/og] Firestore HTTP', r.status, 'for video', videoId);
       }
     } catch (e) {
-      // silent: fall back to defaults
+      console.error('[api/og] Firestore fetch failed for video=' + videoId + ':', e.message);
+      // fall back to defaults
     }
   }
 
@@ -41,7 +55,7 @@ export default async function handler(req, res) {
     .replace(/>/g, '&gt;');
 
   const targetUrl = videoId
-    ? `${baseUrl}/tartv.html?video=${encodeURIComponent(videoId)}`
+    ? `${baseUrl}/tartv.html?video=${encodeURIComponent(videoId)}${isAIVideo ? '&mode=ai' : ''}`
     : `${baseUrl}/tartv.html`;
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
