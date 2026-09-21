@@ -21,7 +21,7 @@
       "source": "/the-iron-convenant",
       "destination": "/the-iron-convenant.html"
     },
-    { "source": "/tarTv", "destination": "/tartv.html" },
+    { "source": "/tartv", "destination": "/tartv.html" },
     { "source": "/messages", "destination": "/messages.html" },
     { "source": "/plans", "destination": "/plans.html" },
     { "source": "/videos", "destination": "/videos.html" },
