@@ -1448,13 +1448,13 @@
 						}
 
 						const allVideos = [];
-snapshot.forEach(doc => {
-    allVideos.push({ id: doc.id, ...doc.data() });
-});
-const videos = allVideos.filter(v => {
-    const vidIsAI = v.isAI === true;
-    return _IS_AI_MODE ? vidIsAI : !vidIsAI;
-});
+						snapshot.forEach((doc) => {
+							allVideos.push({ id: doc.id, ...doc.data() });
+						});
+						const videos = allVideos.filter((v) => {
+							const vidIsAI = v.isAI === true;
+							return _IS_AI_MODE ? vidIsAI : !vidIsAI;
+						});
 
 						// ─── Clear skeleton slides ───
 						tvContainer.innerHTML = "";
@@ -1731,6 +1731,7 @@ const videos = allVideos.filter(v => {
 						});
 
 						// ─── Deep link: ?video=<id> ─────────────────────
+						// ─── Deep link: ?video=<id> (&mode=ai if AI) ─────
 						const params = new URLSearchParams(window.location.search);
 						const targetVideoId = params.get("video");
 						if (targetVideoId) {
@@ -1739,21 +1740,20 @@ const videos = allVideos.filter(v => {
 								let found = false;
 								slides.forEach((slide) => {
 									if (slide.dataset.videoId === targetVideoId) {
-										slide.scrollIntoView({
-											behavior: "smooth",
-											block: "start",
-										});
+										// Auto-scroll: no smooth animation on cold load — instant
+										slide.scrollIntoView({ behavior: "auto", block: "start" });
 										found = true;
 									}
 								});
 								if (!found) {
 									if (typeof showError === "function") {
-										showError("Video unavailable — showing latest.");
+										const modeLabel = _IS_AI_MODE ? "AI video" : "video";
+										showError(`${modeLabel} unavailable — showing latest.`);
 									}
 									const firstSlide = slides[0];
 									if (firstSlide) {
 										firstSlide.scrollIntoView({
-											behavior: "smooth",
+											behavior: "auto",
 											block: "start",
 										});
 									}
@@ -2630,16 +2630,20 @@ const videos = allVideos.filter(v => {
 						const mo = new MutationObserver(() => applyDataSaver());
 						mo.observe(tvC, { childList: true, subtree: true });
 					}
-					  setTimeout(applyDataSaver, 2500);
-  setTimeout(applyDataSaver, 6000);
+					setTimeout(applyDataSaver, 2500);
+					setTimeout(applyDataSaver, 6000);
 
-  // Highlight the correct segment tab based on mode
-  if (_IS_AI_MODE) {
-    document.querySelectorAll('#tvSegment button').forEach(b => b.classList.remove('active'));
-    const aiTab = document.querySelector('#tvSegment button[data-seg="aireh"]');
-    if (aiTab) aiTab.classList.add('active');
-  }
-})();
+					// Highlight the correct segment tab based on mode
+					if (_IS_AI_MODE) {
+						document
+							.querySelectorAll("#tvSegment button")
+							.forEach((b) => b.classList.remove("active"));
+						const aiTab = document.querySelector(
+							'#tvSegment button[data-seg="aireh"]',
+						);
+						if (aiTab) aiTab.classList.add("active");
+					}
+				})();
 			})();
 		</script>
 

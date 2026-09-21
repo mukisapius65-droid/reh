@@ -605,7 +605,7 @@ function hasAlreadyAdmired(targetEmail) {
 async function toggleBookmark(targetEmail, buttonElement) {
   const session = JSON.parse(localStorage.getItem('reh_user') || '{}');
   if (!session.email) {
-    window.location.href = 'index.html?redirect=login.html';
+    window.location.href = 'index?redirect=login';
     return;
   }
 
@@ -689,7 +689,7 @@ sessionStorage.setItem(CACHE_BOOKMARKS, JSON.stringify([...bookmarkedEmails]));
 async function admireUser(targetEmail, buttonElement) {
   const session = JSON.parse(localStorage.getItem('reh_user') || '{}');
   if (!session.email) {
-    window.location.href = 'index.html?redirect=login.html';
+    window.location.href = 'index?redirect=login';
     return;
   }
   if (admiredEmails.has(targetEmail)) return;  // already admired
@@ -942,7 +942,7 @@ function renderSingleCard(u, index) {
         ${u.distance !== false ? `<div class="card-distance" data-location="${u.location || ""}"><i class="fa-solid fa-route"></i> <span class="dist-text">— km</span></div>` : ""}
         <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap; margin-bottom: 5px;">
          <button class="interaction-btn chat-btn" data-target-email="${u.email}" 
-          onclick="event.stopPropagation(); location.href='view-profile.html?email=${u.email}&chat=open'"
+          onclick="event.stopPropagation(); location.href='view-profile?email=${u.email}&chat=open'"
           style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.15); border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--gold-light);">
           <i class="fa-solid fa-comment"></i>
          </button>
@@ -999,7 +999,7 @@ async function loadTvPreviews() {
 
     // Render preview cards
     row.innerHTML = videos.map(v => `
-      <div class="tv-preview-item" data-id="${v.id}" onclick="location.href='tartv.html?video=${v.id}'">
+      <div class="tv-preview-item" data-id="${v.id}" onclick="location.href='tartv?video=${v.id}'">
         <video
           class="tv-preview-video"
           src="${v.videoUrl}"
@@ -1015,7 +1015,7 @@ async function loadTvPreviews() {
         </div>
       </div>
     `).join('') + `
-      <a href="tartv.html" class="tv-preview-see-more">
+      <a href="tartv" class="tv-preview-see-more">
         <i class="fa-solid fa-tv"></i>
         <span>See more</span>
       </a>
@@ -1148,7 +1148,7 @@ if (filter === "all" && !searchTerm) {
           ${dailyMatches.map(p => {
             const online = (Date.now() - (p.lastActive?.seconds ? p.lastActive.seconds*1000 : p.lastActive || 0)) < 20000;
             return `
-              <div class="people-circle" onclick="location.href='view-profile.html?email=${p.email}'" style="flex:0 0 80px; text-align:center; scroll-snap-align:start; position:relative; cursor:pointer;">
+              <div class="people-circle" onclick="location.href='view-profile?email=${p.email}'" style="flex:0 0 80px; text-align:center; scroll-snap-align:start; position:relative; cursor:pointer;">
                 <div style="position:relative; display:inline-block;">
                   <img src="${p.avatar || 'https://res.cloudinary.com/dxd5hibh7/image/upload/v1787307404/99332214_009_33eb_e3tdwu_2_gxfosm.jpg'}" style="width:70px; height:70px; border-radius:50%; object-fit:cover; border:2px solid var(--gold-light);">
                   ${online ? '<span style="position:absolute; bottom:8px; right:2px; width:14px; height:14px; background:#4cfa7c; border-radius:50%; border:2px solid #080c24;"></span>' : ''}
@@ -1177,7 +1177,7 @@ for (let i = 0; i < filtered.length; i++) {
             ${randomPeople.map(p => {
               const online = (Date.now() - (p.lastActive?.seconds ? p.lastActive.seconds*1000 : p.lastActive || 0)) < 20000;
               return `
-                <div class="people-circle" onclick="location.href='view-profile.html?email=${p.email}'" style="flex:0 0 80px; text-align:center; scroll-snap-align:start; position:relative; cursor:pointer;">
+                <div class="people-circle" onclick="location.href='view-profile?email=${p.email}'" style="flex:0 0 80px; text-align:center; scroll-snap-align:start; position:relative; cursor:pointer;">
                   <div style="position:relative; display:inline-block;">
                     <img src="${p.avatar || 'https://res.cloudinary.com/dxd5hibh7/image/upload/v1787307404/99332214_009_33eb_e3tdwu_2_gxfosm.jpg'}" style="width:70px; height:70px; border-radius:50%; object-fit:cover; border:2px solid var(--gold-light);">
                     ${online ? '<span style="position:absolute; bottom:8px; right:2px; width:14px; height:14px; background:#4cfa7c; border-radius:50%; border:2px solid #080c24;"></span>' : ''}
@@ -1242,7 +1242,7 @@ grid.innerHTML = html;
     card.addEventListener('click', function(e) {
       if (e.target.closest('.interaction-btn') || e.target.closest('.card-phone')) return;
       const email = this.querySelector('.admire-btn')?.getAttribute('data-target-email');
-      if (email) window.location.href = `view-profile.html?email=${email}`;
+      if (email) window.location.href = `view-profile?email=${email}`;
     });
   });
 
