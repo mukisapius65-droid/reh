@@ -1,1395 +1,1400 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tar TV | Reh</title>
-    <!-- ─── Open Graph / WhatsApp preview ─── -->
-    <meta property="og:type" content="video.other" />
-    <meta property="og:title" content="Tar TV — Reh" />
-    <meta
-      property="og:description"
-      content="Watch exclusive short videos from Reh's most extraordinary members."
-    />
-    <meta
-      property="og:image"
-      content="https://reh-crown.vercel.app/assets/og/tar-tv-default.png"
-    />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta property="og:url" content="https://reh-crown.vercel.app/tartv.html" />
-    <meta property="og:site_name" content="Reh" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Tar TV — Reh" />
-    <meta
-      name="twitter:description"
-      content="Watch exclusive short videos from Reh's most extraordinary members."
-    />
-    <meta
-      name="twitter:image"
-      content="https://reh-crown.vercel.app/assets/og/tar-tv-default.jpg"
-    />
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Tar TV | Reh</title>
+		<!-- ─── Open Graph / WhatsApp preview ─── -->
+		<meta property="og:type" content="video.other" />
+		<meta property="og:title" content="Tar TV — Reh" />
+		<meta
+			property="og:description"
+			content="Watch exclusive short videos from Reh's most extraordinary members."
+		/>
+		<meta
+			property="og:image"
+			content="https://reh-crown.vercel.app/assets/og/tar-tv-default.png"
+		/>
+		<meta property="og:image:width" content="1200" />
+		<meta property="og:image:height" content="630" />
+		<meta property="og:url" content="https://reh-crown.vercel.app/tartv.html" />
+		<meta property="og:site_name" content="Reh" />
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content="Tar TV — Reh" />
+		<meta
+			name="twitter:description"
+			content="Watch exclusive short videos from Reh's most extraordinary members."
+		/>
+		<meta
+			name="twitter:image"
+			content="https://reh-crown.vercel.app/assets/og/tar-tv-default.jpg"
+		/>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-    />
-    <style>
-      :root {
-        --deep-navy: #080c24;
-        --gold: #c9a84c;
-        --gold-light: #dfc278;
-        --champagne: #f0e4c8;
-        --text: #f0ece6;
-        --text-secondary: #c5bfb3;
-        --text-muted: #8a857a;
-        --glass-bg: rgba(0, 0, 0, 0.4);
-        --glass-border: rgba(255, 255, 255, 0.1);
-      }
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-      body {
-        background: var(--deep-navy);
-        font-family: "Inter", sans-serif;
-        color: var(--text);
-        overflow: hidden;
-        height: 100vh;
-      }
-      .tv-container {
-        height: 100vh;
-        overflow-y: scroll;
-        scroll-snap-type: y mandatory;
-        scrollbar-width: none;
-        -ms-overflow-style: none;
-      }
-      .tv-container::-webkit-scrollbar {
-        display: none;
-      }
-      .video-slide {
-        position: relative;
-        height: 100vh;
-        scroll-snap-align: start;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: #000;
-      }
-      .video-slide video {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-        background: #000;
-      }
-      .video-slide {
-        animation: fadeInSlide 0.35s ease-out;
-      }
-      /* ─── Tar TV Top Nav ───────────────────────── */
-      .tv-topnav {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        z-index: 90; /* below modals (150+) and share modal (200) */
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        height: 56px;
-        padding: 0 16px;
-        padding-top: calc(env(safe-area-inset-top, 0px) + 8px);
-        height: calc(56px + env(safe-area-inset-top, 0px));
-        background: linear-gradient(
-          180deg,
-          rgba(0, 0, 0, 0.55) 0%,
-          rgba(0, 0, 0, 0.25) 60%,
-          transparent 100%
-        );
-        pointer-events: none;
-        font-family: "Inter", sans-serif;
-        color: #fff;
-      }
-      .tv-topnav > * {
-        pointer-events: auto;
-      }
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap"
+			rel="stylesheet"
+		/>
+		<link
+			rel="stylesheet"
+			href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+		/>
+		<style>
+			:root {
+				--deep-navy: #080c24;
+				--gold: #c9a84c;
+				--gold-light: #dfc278;
+				--champagne: #f0e4c8;
+				--text: #f0ece6;
+				--text-secondary: #c5bfb3;
+				--text-muted: #8a857a;
+				--glass-bg: rgba(0, 0, 0, 0.4);
+				--glass-border: rgba(255, 255, 255, 0.1);
+			}
+			* {
+				margin: 0;
+				padding: 0;
+				box-sizing: border-box;
+			}
+			body {
+				background: var(--deep-navy);
+				font-family: "Inter", sans-serif;
+				color: var(--text);
+				overflow: hidden;
+				height: 100vh;
+			}
+			.tv-container {
+				height: 100vh;
+				overflow-y: scroll;
+				scroll-snap-type: y mandatory;
+				scrollbar-width: none;
+				-ms-overflow-style: none;
+			}
+			.tv-container::-webkit-scrollbar {
+				display: none;
+			}
+			.video-slide {
+				position: relative;
+				height: 100vh;
+				scroll-snap-align: start;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				background: #000;
+			}
+			.video-slide video {
+				width: 100%;
+				height: 100%;
+				object-fit: contain;
+				background: #000;
+			}
+			.video-slide {
+				animation: fadeInSlide 0.35s ease-out;
+			}
+			/* ─── Tar TV Top Nav ───────────────────────── */
+			.tv-topnav {
+				position: fixed;
+				top: 0;
+				left: 0;
+				right: 0;
+				z-index: 90; /* below modals (150+) and share modal (200) */
+				display: flex;
+				align-items: center;
+				gap: 6px;
+				height: 56px;
+				padding: 0 16px;
+				padding-top: calc(env(safe-area-inset-top, 0px) + 8px);
+				height: calc(56px + env(safe-area-inset-top, 0px));
+				background: linear-gradient(
+					180deg,
+					rgba(0, 0, 0, 0.55) 0%,
+					rgba(0, 0, 0, 0.25) 60%,
+					transparent 100%
+				);
+				pointer-events: none;
+				font-family: "Inter", sans-serif;
+				color: #fff;
+			}
+			.tv-topnav > * {
+				pointer-events: auto;
+			}
 
-      .tv-topnav-btn {
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        background: rgba(0, 0, 0, 0.35);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        color: #fff;
-        font-size: 0.95rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        padding: 0;
-        flex-shrink: 0;
-        transition: 0.2s;
-      }
-      .tv-topnav-btn:hover {
-        background: rgba(200, 160, 60, 0.4);
-        border-color: #dfc278;
-      }
-      .tv-topnav-btn:active {
-        transform: scale(0.94);
-      }
+			.tv-topnav-btn {
+				width: 36px;
+				height: 36px;
+				border-radius: 50%;
+				background: rgba(0, 0, 0, 0.35);
+				backdrop-filter: blur(10px);
+				-webkit-backdrop-filter: blur(10px);
+				border: 1px solid rgba(255, 255, 255, 0.15);
+				color: #fff;
+				font-size: 0.95rem;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				cursor: pointer;
+				padding: 0;
+				flex-shrink: 0;
+				transition: 0.2s;
+			}
+			.tv-topnav-btn:hover {
+				background: rgba(200, 160, 60, 0.4);
+				border-color: #dfc278;
+			}
+			.tv-topnav-btn:active {
+				transform: scale(0.94);
+			}
 
-      .tv-topnav-segment {
-        flex: 1 1 auto;
-        min-width: 0;
-        max-width: 180px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 0.15rem;
-        background: rgba(0, 0, 0, 0.35);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        border-radius: 20px;
-        padding: 3px;
-      }
-      .tv-topnav-segment button {
-        flex: 1 1 0;
-        min-width: 0;
-        background: transparent;
-        border: none;
-        color: rgba(255, 255, 255, 0.65);
-        font-size: 0.7rem;
-        font-weight: 600;
-        padding: 5px 6px;
-        border-radius: 16px;
-        cursor: pointer;
-        transition: 0.2s;
-        letter-spacing: 0.02em;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        font-family: inherit;
-      }
-      .tv-topnav-segment button.active {
-        background: rgba(200, 160, 60, 0.85);
-        color: #080c24;
-      }
+			.tv-topnav-segment {
+				flex: 1 1 auto;
+				min-width: 0;
+				max-width: 180px;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				gap: 0.15rem;
+				background: rgba(0, 0, 0, 0.35);
+				backdrop-filter: blur(10px);
+				-webkit-backdrop-filter: blur(10px);
+				border: 1px solid rgba(255, 255, 255, 0.12);
+				border-radius: 20px;
+				padding: 3px;
+			}
+			.tv-topnav-segment button {
+				flex: 1 1 0;
+				min-width: 0;
+				background: transparent;
+				border: none;
+				color: rgba(255, 255, 255, 0.65);
+				font-size: 0.7rem;
+				font-weight: 600;
+				padding: 5px 6px;
+				border-radius: 16px;
+				cursor: pointer;
+				transition: 0.2s;
+				letter-spacing: 0.02em;
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				font-family: inherit;
+			}
+			.tv-topnav-segment button.active {
+				background: rgba(200, 160, 60, 0.85);
+				color: #080c24;
+			}
 
-      .tv-topnav-pill {
-        padding: 8px 12px;
-        border-radius: 20px;
-        background: linear-gradient(
-          135deg,
-          rgba(200, 160, 60, 0.9),
-          rgba(223, 194, 120, 0.95)
-        );
-        color: #080c24;
-        font-weight: 700;
-        font-size: 0.72rem;
-        letter-spacing: 0.02em;
-        border: none;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        white-space: nowrap;
-        flex-shrink: 0;
-        box-shadow: 0 4px 14px rgba(200, 160, 60, 0.4);
-        transition: 0.2s;
-        font-family: inherit;
-      }
-      .tv-topnav-pill:hover {
-        transform: translateY(-1px);
-      }
-      .tv-topnav-pill:active {
-        transform: scale(0.96);
-      }
-      .tv-topnav-pill i {
-        font-size: 0.7rem;
-      }
+			.tv-topnav-pill {
+				padding: 8px 12px;
+				border-radius: 20px;
+				background: linear-gradient(
+					135deg,
+					rgba(200, 160, 60, 0.9),
+					rgba(223, 194, 120, 0.95)
+				);
+				color: #080c24;
+				font-weight: 700;
+				font-size: 0.72rem;
+				letter-spacing: 0.02em;
+				border: none;
+				cursor: pointer;
+				display: flex;
+				align-items: center;
+				gap: 5px;
+				white-space: nowrap;
+				flex-shrink: 0;
+				box-shadow: 0 4px 14px rgba(200, 160, 60, 0.4);
+				transition: 0.2s;
+				font-family: inherit;
+			}
+			.tv-topnav-pill:hover {
+				transform: translateY(-1px);
+			}
+			.tv-topnav-pill:active {
+				transform: scale(0.96);
+			}
+			.tv-topnav-pill i {
+				font-size: 0.7rem;
+			}
 
-      @media (max-width: 420px) {
-        .tv-topnav-pill span {
-          display: none;
-        }
-        .tv-topnav-pill {
-          padding: 8px 10px;
-        }
-        .tv-topnav-segment button {
-          font-size: 0.65rem;
-        }
-      }
+			@media (max-width: 420px) {
+				.tv-topnav-pill span {
+					display: none;
+				}
+				.tv-topnav-pill {
+					padding: 8px 10px;
+				}
+				.tv-topnav-segment button {
+					font-size: 0.65rem;
+				}
+			}
 
-      /* ─── Tar TV Bottom Sheets ──────────────────── */
-      .tv-sheet-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.6);
-        backdrop-filter: blur(4px);
-        -webkit-backdrop-filter: blur(4px);
-        z-index: 150;
-        display: none;
-        align-items: flex-end;
-        justify-content: center;
-        opacity: 0;
-        transition: opacity 0.25s;
-      }
-      .tv-sheet-overlay.show {
-        display: flex;
-        opacity: 1;
-      }
-      .tv-sheet {
-        width: 100%;
-        max-width: 480px;
-        background: rgba(15, 20, 50, 0.96);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid #c9a84c;
-        border-radius: 24px 24px 0 0;
-        padding: 1.5rem 1.25rem calc(1.5rem + env(safe-area-inset-bottom, 0px));
-        transform: translateY(30px);
-        transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        color: #fff;
-        font-family: "Inter", sans-serif;
-        max-height: 80vh;
-        overflow-y: auto;
-      }
-      .tv-sheet-overlay.show .tv-sheet {
-        transform: translateY(0);
-      }
-      .tv-sheet h3 {
-        font-family: "Playfair Display", serif;
-        color: #dfc278;
-        font-size: 1.15rem;
-        margin-bottom: 1rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
-      .tv-sheet-item {
-        display: flex;
-        align-items: center;
-        gap: 0.9rem;
-        padding: 0.9rem 1rem;
-        border-radius: 14px;
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.06);
-        color: #f0ece6;
-        font-size: 0.9rem;
-        cursor: pointer;
-        transition: 0.2s;
-        margin-bottom: 0.5rem;
-        text-decoration: none;
-      }
-      .tv-sheet-item:hover {
-        background: rgba(200, 160, 60, 0.12);
-        border-color: rgba(200, 160, 60, 0.4);
-      }
-      .tv-sheet-item > i:first-child {
-        width: 20px;
-        text-align: center;
-        color: #dfc278;
-      }
-      .tv-sheet-item .chev {
-        margin-left: auto;
-        color: #8a857a;
-        font-size: 0.75rem;
-      }
+			/* ─── Tar TV Bottom Sheets ──────────────────── */
+			.tv-sheet-overlay {
+				position: fixed;
+				inset: 0;
+				background: rgba(0, 0, 0, 0.6);
+				backdrop-filter: blur(4px);
+				-webkit-backdrop-filter: blur(4px);
+				z-index: 150;
+				display: none;
+				align-items: flex-end;
+				justify-content: center;
+				opacity: 0;
+				transition: opacity 0.25s;
+			}
+			.tv-sheet-overlay.show {
+				display: flex;
+				opacity: 1;
+			}
+			.tv-sheet {
+				width: 100%;
+				max-width: 480px;
+				background: rgba(15, 20, 50, 0.96);
+				backdrop-filter: blur(20px);
+				-webkit-backdrop-filter: blur(20px);
+				border: 1px solid #c9a84c;
+				border-radius: 24px 24px 0 0;
+				padding: 1.5rem 1.25rem calc(1.5rem + env(safe-area-inset-bottom, 0px));
+				transform: translateY(30px);
+				transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+				color: #fff;
+				font-family: "Inter", sans-serif;
+				max-height: 80vh;
+				overflow-y: auto;
+			}
+			.tv-sheet-overlay.show .tv-sheet {
+				transform: translateY(0);
+			}
+			.tv-sheet h3 {
+				font-family: "Playfair Display", serif;
+				color: #dfc278;
+				font-size: 1.15rem;
+				margin-bottom: 1rem;
+				display: flex;
+				align-items: center;
+				gap: 0.5rem;
+			}
+			.tv-sheet-item {
+				display: flex;
+				align-items: center;
+				gap: 0.9rem;
+				padding: 0.9rem 1rem;
+				border-radius: 14px;
+				background: rgba(255, 255, 255, 0.03);
+				border: 1px solid rgba(255, 255, 255, 0.06);
+				color: #f0ece6;
+				font-size: 0.9rem;
+				cursor: pointer;
+				transition: 0.2s;
+				margin-bottom: 0.5rem;
+				text-decoration: none;
+			}
+			.tv-sheet-item:hover {
+				background: rgba(200, 160, 60, 0.12);
+				border-color: rgba(200, 160, 60, 0.4);
+			}
+			.tv-sheet-item > i:first-child {
+				width: 20px;
+				text-align: center;
+				color: #dfc278;
+			}
+			.tv-sheet-item .chev {
+				margin-left: auto;
+				color: #8a857a;
+				font-size: 0.75rem;
+			}
 
-      .tv-sheet-search-input {
-        width: 100%;
-        padding: 0.85rem 1rem;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 14px;
-        color: #fff;
-        font-family: inherit;
-        font-size: 0.9rem;
-        outline: none;
-        margin-bottom: 1rem;
-      }
-      .tv-sheet-search-input:focus {
-        border-color: #c9a84c;
-      }
+			.tv-sheet-search-input {
+				width: 100%;
+				padding: 0.85rem 1rem;
+				background: rgba(255, 255, 255, 0.05);
+				border: 1px solid rgba(255, 255, 255, 0.1);
+				border-radius: 14px;
+				color: #fff;
+				font-family: inherit;
+				font-size: 0.9rem;
+				outline: none;
+				margin-bottom: 1rem;
+			}
+			.tv-sheet-search-input:focus {
+				border-color: #c9a84c;
+			}
 
-      .tv-search-results {
-        max-height: 45vh;
-        overflow-y: auto;
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-      }
-      .tv-search-result {
-        display: flex;
-        gap: 0.8rem;
-        padding: 0.6rem;
-        border-radius: 12px;
-        background: rgba(255, 255, 255, 0.03);
-        cursor: pointer;
-        transition: 0.2s;
-        align-items: center;
-      }
-      .tv-search-result:hover {
-        background: rgba(200, 160, 60, 0.12);
-      }
-      .tv-search-result img {
-        width: 48px;
-        height: 48px;
-        border-radius: 8px;
-        object-fit: cover;
-        flex-shrink: 0;
-        background: #111;
-      }
-      .tv-search-result .info {
-        flex: 1;
-        min-width: 0;
-      }
-      .tv-search-result .t {
-        font-size: 0.85rem;
-        font-weight: 600;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      .tv-search-result .a {
-        font-size: 0.72rem;
-        color: #dfc278;
-      }
+			.tv-search-results {
+				max-height: 45vh;
+				overflow-y: auto;
+				display: flex;
+				flex-direction: column;
+				gap: 0.5rem;
+			}
+			.tv-search-result {
+				display: flex;
+				gap: 0.8rem;
+				padding: 0.6rem;
+				border-radius: 12px;
+				background: rgba(255, 255, 255, 0.03);
+				cursor: pointer;
+				transition: 0.2s;
+				align-items: center;
+			}
+			.tv-search-result:hover {
+				background: rgba(200, 160, 60, 0.12);
+			}
+			.tv-search-result img {
+				width: 48px;
+				height: 48px;
+				border-radius: 8px;
+				object-fit: cover;
+				flex-shrink: 0;
+				background: #111;
+			}
+			.tv-search-result .info {
+				flex: 1;
+				min-width: 0;
+			}
+			.tv-search-result .t {
+				font-size: 0.85rem;
+				font-weight: 600;
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+			}
+			.tv-search-result .a {
+				font-size: 0.72rem;
+				color: #dfc278;
+			}
 
-      .tv-setting-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0.9rem 0.2rem;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-      }
-      .tv-setting-row:last-of-type {
-        border-bottom: none;
-      }
-      .tv-setting-row .label {
-        display: flex;
-        align-items: center;
-        gap: 0.7rem;
-        font-size: 0.88rem;
-        color: #c5bfb3;
-      }
-      .tv-setting-row .label i {
-        color: #dfc278;
-        width: 20px;
-        text-align: center;
-      }
+			.tv-setting-row {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				padding: 0.9rem 0.2rem;
+				border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+			}
+			.tv-setting-row:last-of-type {
+				border-bottom: none;
+			}
+			.tv-setting-row .label {
+				display: flex;
+				align-items: center;
+				gap: 0.7rem;
+				font-size: 0.88rem;
+				color: #c5bfb3;
+			}
+			.tv-setting-row .label i {
+				color: #dfc278;
+				width: 20px;
+				text-align: center;
+			}
 
-      .tv-switch {
-        position: relative;
-        width: 42px;
-        height: 24px;
-        flex-shrink: 0;
-      }
-      .tv-switch input {
-        opacity: 0;
-        width: 0;
-        height: 0;
-      }
-      .tv-switch .slider {
-        position: absolute;
-        inset: 0;
-        background: rgba(255, 255, 255, 0.15);
-        border-radius: 24px;
-        transition: 0.3s;
-        cursor: pointer;
-      }
-      .tv-switch .slider::before {
-        content: "";
-        position: absolute;
-        height: 18px;
-        width: 18px;
-        left: 3px;
-        top: 3px;
-        background: #fff;
-        border-radius: 50%;
-        transition: 0.3s;
-      }
-      .tv-switch input:checked + .slider {
-        background: #c9a84c;
-      }
-      .tv-switch input:checked + .slider::before {
-        transform: translateX(18px);
-      }
+			.tv-switch {
+				position: relative;
+				width: 42px;
+				height: 24px;
+				flex-shrink: 0;
+			}
+			.tv-switch input {
+				opacity: 0;
+				width: 0;
+				height: 0;
+			}
+			.tv-switch .slider {
+				position: absolute;
+				inset: 0;
+				background: rgba(255, 255, 255, 0.15);
+				border-radius: 24px;
+				transition: 0.3s;
+				cursor: pointer;
+			}
+			.tv-switch .slider::before {
+				content: "";
+				position: absolute;
+				height: 18px;
+				width: 18px;
+				left: 3px;
+				top: 3px;
+				background: #fff;
+				border-radius: 50%;
+				transition: 0.3s;
+			}
+			.tv-switch input:checked + .slider {
+				background: #c9a84c;
+			}
+			.tv-switch input:checked + .slider::before {
+				transform: translateX(18px);
+			}
 
-      .tv-sheet-cancel {
-        width: 100%;
-        padding: 0.9rem;
-        background: transparent;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        color: #c5bfb3;
-        border-radius: 50px;
-        font-weight: 600;
-        font-size: 0.85rem;
-        cursor: pointer;
-        margin-top: 0.5rem;
-        font-family: inherit;
-      }
-      .tv-sheet-cancel:hover {
-        border-color: #c9a84c;
-        color: #f0e4c8;
-      }
+			.tv-sheet-cancel {
+				width: 100%;
+				padding: 0.9rem;
+				background: transparent;
+				border: 1px solid rgba(255, 255, 255, 0.1);
+				color: #c5bfb3;
+				border-radius: 50px;
+				font-weight: 600;
+				font-size: 0.85rem;
+				cursor: pointer;
+				margin-top: 0.5rem;
+				font-family: inherit;
+			}
+			.tv-sheet-cancel:hover {
+				border-color: #c9a84c;
+				color: #f0e4c8;
+			}
 
-      @keyframes fadeInSlide {
-        from {
-          opacity: 0;
-        }
-        to {
-          opacity: 1;
-        }
-      }
-      .video-placeholder {
-        position: absolute;
-        inset: 0;
-        background-size: cover;
-        background-position: center;
-        filter: blur(10px);
-        z-index: 0;
-        opacity: 1;
-        transition: opacity 0.4s ease;
-        pointer-events: none;
-      }
-      .video-placeholder.hidden {
-        opacity: 0;
-        visibility: hidden;
-      }
+			@keyframes fadeInSlide {
+				from {
+					opacity: 0;
+				}
+				to {
+					opacity: 1;
+				}
+			}
+			.video-placeholder {
+				position: absolute;
+				inset: 0;
+				background-size: cover;
+				background-position: center;
+				filter: blur(10px);
+				z-index: 0;
+				opacity: 1;
+				transition: opacity 0.4s ease;
+				pointer-events: none;
+			}
+			.video-placeholder.hidden {
+				opacity: 0;
+				visibility: hidden;
+			}
 
-      /* Tap Zones */
-      .tap-zone-left,
-      .tap-zone-right,
-      .tap-zone-center {
-        position: absolute;
-        top: 0;
-        height: 100%;
-        z-index: 2;
-        cursor: pointer;
-      }
-      .tap-zone-left {
-        left: 0;
-        width: 30%;
-      }
-      .tap-zone-right {
-        right: 0;
-        width: 30%;
-      }
-      .tap-zone-center {
-        left: 30%;
-        width: 40%;
-      }
+			/* Tap Zones */
+			.tap-zone-left,
+			.tap-zone-right,
+			.tap-zone-center {
+				position: absolute;
+				top: 0;
+				height: 100%;
+				z-index: 2;
+				cursor: pointer;
+			}
+			.tap-zone-left {
+				left: 0;
+				width: 30%;
+			}
+			.tap-zone-right {
+				right: 0;
+				width: 30%;
+			}
+			.tap-zone-center {
+				left: 30%;
+				width: 40%;
+			}
 
-      /* Mute Overlay Icon */
-      .mute-overlay {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        font-size: 4rem;
-        color: white;
-        pointer-events: none;
-        opacity: 0;
-        transition: opacity 0.3s;
-        z-index: 3;
-        text-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
-      }
-      .mute-overlay.show {
-        opacity: 1;
-      }
+			/* Mute Overlay Icon */
+			.mute-overlay {
+				position: absolute;
+				top: 50%;
+				left: 50%;
+				transform: translate(-50%, -50%);
+				font-size: 4rem;
+				color: white;
+				pointer-events: none;
+				opacity: 0;
+				transition: opacity 0.3s;
+				z-index: 3;
+				text-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+			}
+			.mute-overlay.show {
+				opacity: 1;
+			}
 
-      .slide-overlay {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        padding: 1.2rem 1.5rem 2rem;
-        background: linear-gradient(transparent, rgba(0, 0, 0, 0.85));
-        display: flex;
-        flex-direction: column;
-        gap: 0.3rem;
-        z-index: 4;
-        pointer-events: none;
-      }
-      .slide-overlay > * {
-        pointer-events: auto;
-      }
+			.slide-overlay {
+				position: absolute;
+				bottom: 0;
+				left: 0;
+				right: 0;
+				padding: 1.2rem 1.5rem 2rem;
+				background: linear-gradient(transparent, rgba(0, 0, 0, 0.85));
+				display: flex;
+				flex-direction: column;
+				gap: 0.3rem;
+				z-index: 4;
+				pointer-events: none;
+			}
+			.slide-overlay > * {
+				pointer-events: auto;
+			}
 
-      .video-views {
-        font-size: 0.75rem;
-        color: var(--text-secondary);
-        margin-top: 0.2rem;
-      }
+			.video-views {
+				font-size: 0.75rem;
+				color: var(--text-secondary);
+				margin-top: 0.2rem;
+			}
 
-      /* Seek Bar */
-      .seek-container {
-        display: flex;
-        align-items: center;
-        gap: 0.8rem;
-        margin-bottom: 0.6rem;
-        padding: 0 0.2rem;
-      }
-      .seek-time {
-        font-size: 0.7rem;
-        color: var(--text-secondary);
-        font-variant-numeric: tabular-nums;
-        min-width: 40px;
-        letter-spacing: 0.3px;
-      }
-      .seek-time.duration {
-        text-align: right;
-      }
-      .seek-slider {
-        flex: 1;
-        -webkit-appearance: none;
-        appearance: none;
-        height: 3px;
-        border-radius: 2px;
-        background: rgba(255, 255, 255, 0.25);
-        outline: none;
-        transition: height 0.2s;
-        cursor: pointer;
-        position: relative;
-      }
-      .seek-slider::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 14px;
-        height: 14px;
-        border-radius: 50%;
-        background: var(--gold-light);
-        border: 2px solid rgba(0, 0, 0, 0.6);
-        box-shadow: 0 0 8px rgba(200, 160, 60, 0.4);
-        transition: transform 0.2s;
-        cursor: pointer;
-      }
-      .seek-slider::-webkit-slider-thumb:hover {
-        transform: scale(1.15);
-      }
-      .seek-slider::-moz-range-thumb {
-        width: 14px;
-        height: 14px;
-        border-radius: 50%;
-        background: var(--gold-light);
-        border: 2px solid rgba(0, 0, 0, 0.6);
-        cursor: pointer;
-      }
-      .seek-slider:focus {
-        outline: none;
-      }
+			/* Seek Bar */
+			.seek-container {
+				display: flex;
+				align-items: center;
+				gap: 0.8rem;
+				margin-bottom: 0.6rem;
+				padding: 0 0.2rem;
+			}
+			.seek-time {
+				font-size: 0.7rem;
+				color: var(--text-secondary);
+				font-variant-numeric: tabular-nums;
+				min-width: 40px;
+				letter-spacing: 0.3px;
+			}
+			.seek-time.duration {
+				text-align: right;
+			}
+			.seek-slider {
+				flex: 1;
+				-webkit-appearance: none;
+				appearance: none;
+				height: 3px;
+				border-radius: 2px;
+				background: rgba(255, 255, 255, 0.25);
+				outline: none;
+				transition: height 0.2s;
+				cursor: pointer;
+				position: relative;
+			}
+			.seek-slider::-webkit-slider-thumb {
+				-webkit-appearance: none;
+				appearance: none;
+				width: 14px;
+				height: 14px;
+				border-radius: 50%;
+				background: var(--gold-light);
+				border: 2px solid rgba(0, 0, 0, 0.6);
+				box-shadow: 0 0 8px rgba(200, 160, 60, 0.4);
+				transition: transform 0.2s;
+				cursor: pointer;
+			}
+			.seek-slider::-webkit-slider-thumb:hover {
+				transform: scale(1.15);
+			}
+			.seek-slider::-moz-range-thumb {
+				width: 14px;
+				height: 14px;
+				border-radius: 50%;
+				background: var(--gold-light);
+				border: 2px solid rgba(0, 0, 0, 0.6);
+				cursor: pointer;
+			}
+			.seek-slider:focus {
+				outline: none;
+			}
 
-      .video-title {
-        font-size: 1.2rem;
-        font-weight: 600;
-        color: white;
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
-      }
-      .video-author {
-        color: var(--gold-light);
-        font-size: 0.9rem;
-      }
+			.video-title {
+				font-size: 1.2rem;
+				font-weight: 600;
+				color: white;
+				text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+			}
+			.video-author {
+				color: var(--gold-light);
+				font-size: 0.9rem;
+			}
 
-      .action-buttons {
-        position: absolute;
-        right: 1.5rem;
-        bottom: 8rem;
-        display: flex;
-        flex-direction: column;
-        gap: 1.2rem;
-        align-items: center;
-        z-index: 5;
-        pointer-events: none;
-      }
-      .action-buttons > * {
-        pointer-events: auto;
-      }
-      .action-btn {
-        background: rgba(0, 0, 0, 0.5);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 50%;
-        width: 50px;
-        height: 50px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        color: white;
-        font-size: 1.2rem;
-        transition: 0.3s;
-        gap: 0.2rem;
-        position: relative;
-      }
-      .action-btn:hover {
-        background: rgba(200, 160, 60, 0.4);
-        border-color: var(--gold-light);
-        transform: scale(1.1);
-      }
-      .action-btn .count-label {
-        font-size: 0.6rem;
-        font-weight: 400;
-        letter-spacing: 0.3px;
-        opacity: 0.9;
-      }
+			.action-buttons {
+				position: absolute;
+				right: 1.5rem;
+				bottom: 8rem;
+				display: flex;
+				flex-direction: column;
+				gap: 1.2rem;
+				align-items: center;
+				z-index: 5;
+				pointer-events: none;
+			}
+			.action-buttons > * {
+				pointer-events: auto;
+			}
+			.action-btn {
+				background: rgba(0, 0, 0, 0.5);
+				backdrop-filter: blur(10px);
+				border: 1px solid rgba(255, 255, 255, 0.2);
+				border-radius: 50%;
+				width: 50px;
+				height: 50px;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: center;
+				cursor: pointer;
+				color: white;
+				font-size: 1.2rem;
+				transition: 0.3s;
+				gap: 0.2rem;
+				position: relative;
+			}
+			.action-btn:hover {
+				background: rgba(200, 160, 60, 0.4);
+				border-color: var(--gold-light);
+				transform: scale(1.1);
+			}
+			.action-btn .count-label {
+				font-size: 0.6rem;
+				font-weight: 400;
+				letter-spacing: 0.3px;
+				opacity: 0.9;
+			}
 
-      .loading-spinner {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        color: var(--gold-light);
-        font-size: 2rem;
-        z-index: 999;
-      }
+			.loading-spinner {
+				position: fixed;
+				top: 50%;
+				left: 50%;
+				transform: translate(-50%, -50%);
+				color: var(--gold-light);
+				font-size: 2rem;
+				z-index: 999;
+			}
 
-      /* ── Comments Panel ──────────────────────────── */
-      .comments-panel {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: rgba(8, 12, 36, 0.92);
-        backdrop-filter: blur(20px);
-        border-top: 1px solid var(--gold);
-        border-radius: 20px 20px 0 0;
-        max-height: 60vh;
-        transform: translateY(100%);
-        transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        z-index: 100;
-        display: flex;
-        flex-direction: column;
-        pointer-events: none;
-      }
-      .comments-panel.open {
-        transform: translateY(0);
-        pointer-events: auto;
-      }
-      .comments-panel-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 1rem 1.5rem 0.5rem;
-        border-bottom: 1px solid var(--glass-border);
-        flex-shrink: 0;
-      }
-      .comments-panel-header h3 {
-        font-family: "Playfair Display", serif;
-        color: var(--gold-light);
-        font-size: 1.2rem;
-      }
-      .comments-panel-header button {
-        background: none;
-        border: none;
-        color: var(--text-muted);
-        font-size: 1.5rem;
-        cursor: pointer;
-      }
-      .comments-list {
-        flex: 1;
-        overflow-y: auto;
-        padding: 1rem 1.5rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0.8rem;
-      }
-      .comment-item {
-        display: flex;
-        gap: 0.8rem;
-        align-items: flex-start;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        padding-bottom: 0.8rem;
-      }
-      .comment-avatar {
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        background: var(--gold);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 600;
-        color: #000;
-        flex-shrink: 0;
-        font-size: 0.7rem;
-      }
-      .comment-body {
-        flex: 1;
-      }
-      .comment-user {
-        font-weight: 600;
-        color: var(--gold-light);
-        font-size: 0.8rem;
-      }
-      .comment-text {
-        color: var(--text-secondary);
-        font-size: 0.85rem;
-        margin: 0.2rem 0;
-        word-break: break-word;
-      }
-      .comment-time {
-        font-size: 0.6rem;
-        color: var(--text-muted);
-      }
-      .comments-input-area {
-        display: flex;
-        gap: 0.5rem;
-        padding: 0.8rem 1.5rem;
-        border-top: 1px solid var(--glass-border);
-        flex-shrink: 0;
-        background: rgba(0, 0, 0, 0.3);
-      }
-      .comments-input-area input {
-        flex: 1;
-        padding: 0.7rem 1rem;
-        border-radius: 20px;
-        border: 1px solid var(--glass-border);
-        background: rgba(255, 255, 255, 0.05);
-        color: white;
-        outline: none;
-        font-size: 0.85rem;
-      }
-      .comments-input-area input::placeholder {
-        color: var(--text-muted);
-      }
-      .comments-input-area button {
-        background: var(--gold);
-        border: none;
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        color: #000;
-        cursor: pointer;
-        transition: 0.3s;
-        font-size: 1rem;
-      }
-      .comments-input-area button:hover {
-        transform: scale(1.1);
-      }
+			/* ── Comments Panel ──────────────────────────── */
+			.comments-panel {
+				position: fixed;
+				bottom: 0;
+				left: 0;
+				right: 0;
+				background: rgba(8, 12, 36, 0.92);
+				backdrop-filter: blur(20px);
+				border-top: 1px solid var(--gold);
+				border-radius: 20px 20px 0 0;
+				max-height: 60vh;
+				transform: translateY(100%);
+				transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+				z-index: 100;
+				display: flex;
+				flex-direction: column;
+				pointer-events: none;
+			}
+			.comments-panel.open {
+				transform: translateY(0);
+				pointer-events: auto;
+			}
+			.comments-panel-header {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				padding: 1rem 1.5rem 0.5rem;
+				border-bottom: 1px solid var(--glass-border);
+				flex-shrink: 0;
+			}
+			.comments-panel-header h3 {
+				font-family: "Playfair Display", serif;
+				color: var(--gold-light);
+				font-size: 1.2rem;
+			}
+			.comments-panel-header button {
+				background: none;
+				border: none;
+				color: var(--text-muted);
+				font-size: 1.5rem;
+				cursor: pointer;
+			}
+			.comments-list {
+				flex: 1;
+				overflow-y: auto;
+				padding: 1rem 1.5rem;
+				display: flex;
+				flex-direction: column;
+				gap: 0.8rem;
+			}
+			.comment-item {
+				display: flex;
+				gap: 0.8rem;
+				align-items: flex-start;
+				border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+				padding-bottom: 0.8rem;
+			}
+			.comment-avatar {
+				width: 30px;
+				height: 30px;
+				border-radius: 50%;
+				background: var(--gold);
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				font-weight: 600;
+				color: #000;
+				flex-shrink: 0;
+				font-size: 0.7rem;
+			}
+			.comment-body {
+				flex: 1;
+			}
+			.comment-user {
+				font-weight: 600;
+				color: var(--gold-light);
+				font-size: 0.8rem;
+			}
+			.comment-text {
+				color: var(--text-secondary);
+				font-size: 0.85rem;
+				margin: 0.2rem 0;
+				word-break: break-word;
+			}
+			.comment-time {
+				font-size: 0.6rem;
+				color: var(--text-muted);
+			}
+			.comments-input-area {
+				display: flex;
+				gap: 0.5rem;
+				padding: 0.8rem 1.5rem;
+				border-top: 1px solid var(--glass-border);
+				flex-shrink: 0;
+				background: rgba(0, 0, 0, 0.3);
+			}
+			.comments-input-area input {
+				flex: 1;
+				padding: 0.7rem 1rem;
+				border-radius: 20px;
+				border: 1px solid var(--glass-border);
+				background: rgba(255, 255, 255, 0.05);
+				color: white;
+				outline: none;
+				font-size: 0.85rem;
+			}
+			.comments-input-area input::placeholder {
+				color: var(--text-muted);
+			}
+			.comments-input-area button {
+				background: var(--gold);
+				border: none;
+				border-radius: 50%;
+				width: 40px;
+				height: 40px;
+				color: #000;
+				cursor: pointer;
+				transition: 0.3s;
+				font-size: 1rem;
+			}
+			.comments-input-area button:hover {
+				transform: scale(1.1);
+			}
 
-      /* ─── Share Modal ──────────────────────────────── */
-      .share-modal-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.7);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        z-index: 200;
-        display: flex;
-        align-items: flex-end;
-        justify-content: center;
-        padding: 1rem;
-      }
-      .share-modal {
-        background: rgba(15, 20, 50, 0.95);
-        border: 1px solid var(--gold, #c9a84c);
-        border-radius: 24px 24px 16px 16px;
-        width: 100%;
-        max-width: 400px;
-        padding: 1.5rem;
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
-        transform: translateY(20px);
-        transition:
-          transform 0.3s ease,
-          opacity 0.3s ease;
-        opacity: 0;
-      }
-      .share-modal-overlay.active .share-modal {
-        transform: translateY(0);
-        opacity: 1;
-      }
-      .share-modal-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1.5rem;
-      }
-      .share-modal-header h3 {
-        font-family: "Playfair Display", serif;
-        color: var(--gold-light, #dfc278);
-        font-size: 1.2rem;
-      }
-      .share-modal-close {
-        background: none;
-        border: none;
-        color: var(--text-muted, #8a857a);
-        font-size: 1.5rem;
-        cursor: pointer;
-      }
-      .share-modal-body {
-        display: flex;
-        flex-direction: column;
-        gap: 0.8rem;
-        margin-bottom: 1.2rem;
-      }
-      .share-option {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        padding: 0.8rem 1.2rem;
-        background: rgba(255, 255, 255, 0.04);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 14px;
-        color: var(--text-primary, #f0ece6);
-        font-size: 1rem;
-        font-weight: 500;
-        cursor: pointer;
-        transition: 0.3s;
-      }
-      .share-option:hover {
-        background: rgba(200, 160, 60, 0.15);
-        border-color: var(--gold, #c9a84c);
-      }
-      .share-option i {
-        width: 28px;
-        text-align: center;
-        color: var(--gold-light, #dfc278);
-        font-size: 1.2rem;
-      }
-      .share-modal-footer {
-        display: flex;
-        justify-content: center;
-      }
-      .share-cancel {
-        background: transparent;
-        border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
-        color: var(--text-secondary, #c5bfb3);
-        padding: 0.6rem 2rem;
-        border-radius: 30px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: 0.3s;
-      }
-      .share-cancel:hover {
-        border-color: var(--gold, #c9a84c);
-        color: var(--champagne, #f0e4c8);
-      }
+			/* ─── Share Modal ──────────────────────────────── */
+			.share-modal-overlay {
+				position: fixed;
+				inset: 0;
+				background: rgba(0, 0, 0, 0.7);
+				backdrop-filter: blur(8px);
+				-webkit-backdrop-filter: blur(8px);
+				z-index: 200;
+				display: flex;
+				align-items: flex-end;
+				justify-content: center;
+				padding: 1rem;
+			}
+			.share-modal {
+				background: rgba(15, 20, 50, 0.95);
+				border: 1px solid var(--gold, #c9a84c);
+				border-radius: 24px 24px 16px 16px;
+				width: 100%;
+				max-width: 400px;
+				padding: 1.5rem;
+				backdrop-filter: blur(20px);
+				-webkit-backdrop-filter: blur(20px);
+				box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+				transform: translateY(20px);
+				transition:
+					transform 0.3s ease,
+					opacity 0.3s ease;
+				opacity: 0;
+			}
+			.share-modal-overlay.active .share-modal {
+				transform: translateY(0);
+				opacity: 1;
+			}
+			.share-modal-header {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				margin-bottom: 1.5rem;
+			}
+			.share-modal-header h3 {
+				font-family: "Playfair Display", serif;
+				color: var(--gold-light, #dfc278);
+				font-size: 1.2rem;
+			}
+			.share-modal-close {
+				background: none;
+				border: none;
+				color: var(--text-muted, #8a857a);
+				font-size: 1.5rem;
+				cursor: pointer;
+			}
+			.share-modal-body {
+				display: flex;
+				flex-direction: column;
+				gap: 0.8rem;
+				margin-bottom: 1.2rem;
+			}
+			.share-option {
+				display: flex;
+				align-items: center;
+				gap: 1rem;
+				padding: 0.8rem 1.2rem;
+				background: rgba(255, 255, 255, 0.04);
+				border: 1px solid rgba(255, 255, 255, 0.08);
+				border-radius: 14px;
+				color: var(--text-primary, #f0ece6);
+				font-size: 1rem;
+				font-weight: 500;
+				cursor: pointer;
+				transition: 0.3s;
+			}
+			.share-option:hover {
+				background: rgba(200, 160, 60, 0.15);
+				border-color: var(--gold, #c9a84c);
+			}
+			.share-option i {
+				width: 28px;
+				text-align: center;
+				color: var(--gold-light, #dfc278);
+				font-size: 1.2rem;
+			}
+			.share-modal-footer {
+				display: flex;
+				justify-content: center;
+			}
+			.share-cancel {
+				background: transparent;
+				border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
+				color: var(--text-secondary, #c5bfb3);
+				padding: 0.6rem 2rem;
+				border-radius: 30px;
+				font-weight: 600;
+				cursor: pointer;
+				transition: 0.3s;
+			}
+			.share-cancel:hover {
+				border-color: var(--gold, #c9a84c);
+				color: var(--champagne, #f0e4c8);
+			}
 
-      #tar-tv-error {
-        position: fixed;
-        bottom: 80px;
-        left: 10px;
-        right: 10px;
-        background: rgba(0, 0, 0, 0.85);
-        color: #ff6b6b;
-        padding: 1rem;
-        border-radius: 8px;
-        z-index: 9999;
-        font-size: 0.9rem;
-        border: 1px solid #ff6b6b;
-        display: none;
-      }
+			#tar-tv-error {
+				position: fixed;
+				bottom: 80px;
+				left: 10px;
+				right: 10px;
+				background: rgba(0, 0, 0, 0.85);
+				color: #ff6b6b;
+				padding: 1rem;
+				border-radius: 8px;
+				z-index: 9999;
+				font-size: 0.9rem;
+				border: 1px solid #ff6b6b;
+				display: none;
+			}
 
-      /* ─── Tar TV Skeleton Slides ────────────────── */
-      .tv-skeleton-slide {
-        position: relative;
-        height: 100vh;
-        scroll-snap-align: start;
-        background: #0a0f24;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-      }
+			/* ─── Tar TV Skeleton Slides ────────────────── */
+			.tv-skeleton-slide {
+				position: relative;
+				height: 100vh;
+				scroll-snap-align: start;
+				background: #0a0f24;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				overflow: hidden;
+			}
 
-      .tv-skeleton-media {
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(
-          90deg,
-          rgba(255, 255, 255, 0.02) 0%,
-          rgba(200, 160, 60, 0.08) 50%,
-          rgba(255, 255, 255, 0.02) 100%
-        );
-        background-size: 800px 100%;
-        animation: shimmer 1.6s infinite linear;
-      }
+			.tv-skeleton-media {
+				width: 100%;
+				height: 100%;
+				background: linear-gradient(
+					90deg,
+					rgba(255, 255, 255, 0.02) 0%,
+					rgba(200, 160, 60, 0.08) 50%,
+					rgba(255, 255, 255, 0.02) 100%
+				);
+				background-size: 800px 100%;
+				animation: shimmer 1.6s infinite linear;
+			}
 
-      /* Bottom overlay skeleton */
-      .tv-skeleton-overlay {
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        padding: 1.2rem 1.5rem 2rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0.6rem;
-        background: linear-gradient(transparent, rgba(0, 0, 0, 0.85));
-      }
+			/* Bottom overlay skeleton */
+			.tv-skeleton-overlay {
+				position: absolute;
+				left: 0;
+				right: 0;
+				bottom: 0;
+				padding: 1.2rem 1.5rem 2rem;
+				display: flex;
+				flex-direction: column;
+				gap: 0.6rem;
+				background: linear-gradient(transparent, rgba(0, 0, 0, 0.85));
+			}
 
-      .tv-skeleton-line {
-        border-radius: 6px;
-        background: linear-gradient(
-          90deg,
-          rgba(255, 255, 255, 0.03) 0%,
-          rgba(200, 160, 60, 0.12) 50%,
-          rgba(255, 255, 255, 0.03) 100%
-        );
-        background-size: 800px 100%;
-        animation: shimmer 1.6s infinite linear;
-        height: 12px;
-      }
-      .tv-skeleton-line.title {
-        width: 55%;
-        height: 16px;
-      }
-      .tv-skeleton-line.author {
-        width: 30%;
-        height: 12px;
-      }
-      .tv-skeleton-line.views {
-        width: 22%;
-        height: 10px;
-      }
+			.tv-skeleton-line {
+				border-radius: 6px;
+				background: linear-gradient(
+					90deg,
+					rgba(255, 255, 255, 0.03) 0%,
+					rgba(200, 160, 60, 0.12) 50%,
+					rgba(255, 255, 255, 0.03) 100%
+				);
+				background-size: 800px 100%;
+				animation: shimmer 1.6s infinite linear;
+				height: 12px;
+			}
+			.tv-skeleton-line.title {
+				width: 55%;
+				height: 16px;
+			}
+			.tv-skeleton-line.author {
+				width: 30%;
+				height: 12px;
+			}
+			.tv-skeleton-line.views {
+				width: 22%;
+				height: 10px;
+			}
 
-      /* Action buttons placeholder (right side) */
-      .tv-skeleton-actions {
-        position: absolute;
-        right: 1.5rem;
-        bottom: 8rem;
-        display: flex;
-        flex-direction: column;
-        gap: 1.2rem;
-        align-items: center;
-      }
-      .tv-skeleton-action-circle {
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        background: linear-gradient(
-          90deg,
-          rgba(255, 255, 255, 0.03) 0%,
-          rgba(200, 160, 60, 0.12) 50%,
-          rgba(255, 255, 255, 0.03) 100%
-        );
-        background-size: 800px 100%;
-        animation: shimmer 1.6s infinite linear;
-      }
+			/* Action buttons placeholder (right side) */
+			.tv-skeleton-actions {
+				position: absolute;
+				right: 1.5rem;
+				bottom: 8rem;
+				display: flex;
+				flex-direction: column;
+				gap: 1.2rem;
+				align-items: center;
+			}
+			.tv-skeleton-action-circle {
+				width: 50px;
+				height: 50px;
+				border-radius: 50%;
+				background: linear-gradient(
+					90deg,
+					rgba(255, 255, 255, 0.03) 0%,
+					rgba(200, 160, 60, 0.12) 50%,
+					rgba(255, 255, 255, 0.03) 100%
+				);
+				background-size: 800px 100%;
+				animation: shimmer 1.6s infinite linear;
+			}
 
-      /* Hide the old spinner once skeletons exist */
-      .loading-spinner.hidden {
-        display: none;
-      }
-    </style>
-  </head>
-  <body>
-    <div id="tar-tv-error"></div>
-    <div class="loading-spinner" id="loader">
-      <i class="fa-solid fa-spinner fa-spin"></i>
-    </div>
-    <div style="display: none">
-      <!-- ─── Floating Upload Button ─────────────────────── -->
-      <div
-        id="floatingUploadBtn"
-        style="
-          position: fixed;
-          bottom: 10px; /* above bottom nav (70px) + extra margin */
-          left: 50%;
-          transform: translateX(-50%);
-          z-index: 50;
-          cursor: pointer;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 4px;
-        "
-      >
-        <button
-          onclick="window.openVideoUploadModal()"
-          style="
-            display: none;
-            width: 64px;
-            height: 64px;
-            border-radius: 50%;
-            background: linear-gradient(
-              135deg,
-              var(--crimson, #8b1a2b),
-              var(--gold, #c9a84c)
-            );
-            border: none;
-            color: white;
-            font-size: 1.8rem;
-            box-shadow: 0 8px 30px rgba(200, 160, 60, 0.5);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          "
-        >
-          <i class="fa-solid fa-upload"></i>
-        </button>
-        <span
-          style="
-            font-size: 0.6rem;
-            color: var(--text-secondary, #c5bfb3);
-            letter-spacing: 0.04em;
-            font-weight: 500;
-          "
-          >Upload</span
-        >
-      </div>
-    </div>
-    <!-- ─── Tar TV Top Nav ─────────────────────────── -->
-    <nav class="tv-topnav" id="tvTopNav" aria-label="Tar TV navigation">
-      <button class="tv-topnav-btn" id="tvBackBtn" aria-label="Back">
-        <i class="fa-solid fa-chevron-left"></i>
-      </button>
-      <button class="tv-topnav-btn" id="tvSearchBtn" aria-label="Search">
-        <i class="fa-solid fa-magnifying-glass"></i>
-      </button>
-      <div class="tv-topnav-segment" id="tvSegment" role="tablist">
-        <button class="active" data-seg="tars" role="tab">Tars</button>
-        <button data-seg="ireh" role="tab">iReh</button>
-        <button data-seg="aireh" role="tab">AI Reh</button>
-      </div>
-      <button
-        class="tv-topnav-pill"
-        id="tvFullVideosBtn"
-        aria-label="Watch full videos"
-      >
-        <i class="fa-solid fa-play"></i><span>Full videos</span>
-      </button>
-      <button class="tv-topnav-btn" id="tvKebabBtn" aria-label="Menu">
-        <i class="fa-solid fa-ellipsis-vertical"></i>
-      </button>
-    </nav>
+			/* Hide the old spinner once skeletons exist */
+			.loading-spinner.hidden {
+				display: none;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="tar-tv-error"></div>
+		<div class="loading-spinner" id="loader">
+			<i class="fa-solid fa-spinner fa-spin"></i>
+		</div>
+		<div style="display: none">
+			<!-- ─── Floating Upload Button ─────────────────────── -->
+			<div
+				id="floatingUploadBtn"
+				style="
+					position: fixed;
+					bottom: 10px; /* above bottom nav (70px) + extra margin */
+					left: 50%;
+					transform: translateX(-50%);
+					z-index: 50;
+					cursor: pointer;
+					display: flex;
+					flex-direction: column;
+					align-items: center;
+					gap: 4px;
+				"
+			>
+				<button
+					onclick="window.openVideoUploadModal()"
+					style="
+						display: none;
+						width: 64px;
+						height: 64px;
+						border-radius: 50%;
+						background: linear-gradient(
+							135deg,
+							var(--crimson, #8b1a2b),
+							var(--gold, #c9a84c)
+						);
+						border: none;
+						color: white;
+						font-size: 1.8rem;
+						box-shadow: 0 8px 30px rgba(200, 160, 60, 0.5);
+						cursor: pointer;
+						transition: all 0.3s ease;
+						display: flex;
+						align-items: center;
+						justify-content: center;
+					"
+				>
+					<i class="fa-solid fa-upload"></i>
+				</button>
+				<span
+					style="
+						font-size: 0.6rem;
+						color: var(--text-secondary, #c5bfb3);
+						letter-spacing: 0.04em;
+						font-weight: 500;
+					"
+					>Upload</span
+				>
+			</div>
+		</div>
+		<!-- ─── Tar TV Top Nav ─────────────────────────── -->
+		<nav class="tv-topnav" id="tvTopNav" aria-label="Tar TV navigation">
+			<button class="tv-topnav-btn" id="tvBackBtn" aria-label="Back">
+				<i class="fa-solid fa-chevron-left"></i>
+			</button>
+			<button class="tv-topnav-btn" id="tvSearchBtn" aria-label="Search">
+				<i class="fa-solid fa-magnifying-glass"></i>
+			</button>
+			<div class="tv-topnav-segment" id="tvSegment" role="tablist">
+				<button class="active" data-seg="tars" role="tab">Tars</button>
+				<button data-seg="ireh" role="tab">iReh</button>
+				<button data-seg="aireh" role="tab">AI Reh</button>
+			</div>
+			<button
+				class="tv-topnav-pill"
+				id="tvFullVideosBtn"
+				aria-label="Watch full videos"
+			>
+				<i class="fa-solid fa-play"></i><span>Full videos</span>
+			</button>
+			<button class="tv-topnav-btn" id="tvKebabBtn" aria-label="Menu">
+				<i class="fa-solid fa-ellipsis-vertical"></i>
+			</button>
+		</nav>
 
-    <!-- ─── Search Sheet ──────────────────────────── -->
-    <div class="tv-sheet-overlay" id="tvSearchSheet">
-      <div class="tv-sheet">
-        <h3><i class="fa-solid fa-magnifying-glass"></i> Search Tar TV</h3>
-        <input
-          type="text"
-          class="tv-sheet-search-input"
-          id="tvSearchInput"
-          placeholder="Search by title or author…"
-          autocomplete="off"
-        />
-        <div class="tv-search-results" id="tvSearchResults"></div>
-        <button class="tv-sheet-cancel" data-close-sheet>Cancel</button>
-      </div>
-    </div>
+		<!-- ─── Search Sheet ──────────────────────────── -->
+		<div class="tv-sheet-overlay" id="tvSearchSheet">
+			<div class="tv-sheet">
+				<h3><i class="fa-solid fa-magnifying-glass"></i> Search Tar TV</h3>
+				<input
+					type="text"
+					class="tv-sheet-search-input"
+					id="tvSearchInput"
+					placeholder="Search by title or author…"
+					autocomplete="off"
+				/>
+				<div class="tv-search-results" id="tvSearchResults"></div>
+				<button class="tv-sheet-cancel" data-close-sheet>Cancel</button>
+			</div>
+		</div>
 
-    <!-- ─── Kebab Menu Sheet ──────────────────────── -->
-    <div class="tv-sheet-overlay" id="tvKebabSheet">
-      <div class="tv-sheet">
-        <h3><i class="fa-solid fa-bars"></i> Menu</h3>
-        <div class="tv-sheet-item" id="tvOfflineItem">
-          <i class="fa-solid fa-download"></i>
-          <span>Offline videos</span>
-          <i class="fa-solid fa-chevron-right chev"></i>
-        </div>
-        <div class="tv-sheet-item" id="tvSettingsItem">
-          <i class="fa-solid fa-gear"></i>
-          <span>Settings</span>
-          <i class="fa-solid fa-chevron-right chev"></i>
-        </div>
-        <div class="tv-sheet-item" id="tvSupportItem">
-          <i class="fa-solid fa-headset"></i>
-          <span>Support Tar TV</span>
-          <i class="fa-solid fa-chevron-right chev"></i>
-        </div>
-        <div class="tv-sheet-item" id="tvRemoveAdsItem">
-          <i class="fa-solid fa-crown"></i>
-          <span>Remove ads</span>
-          <i class="fa-solid fa-chevron-right chev"></i>
-        </div>
-        <button class="tv-sheet-cancel" data-close-sheet>Cancel</button>
-      </div>
-    </div>
+		<!-- ─── Kebab Menu Sheet ──────────────────────── -->
+		<div class="tv-sheet-overlay" id="tvKebabSheet">
+			<div class="tv-sheet">
+				<h3><i class="fa-solid fa-bars"></i> Menu</h3>
+				<div class="tv-sheet-item" id="tvOfflineItem">
+					<i class="fa-solid fa-download"></i>
+					<span>Offline videos</span>
+					<i class="fa-solid fa-chevron-right chev"></i>
+				</div>
+				<div class="tv-sheet-item" id="tvSettingsItem">
+					<i class="fa-solid fa-gear"></i>
+					<span>Settings</span>
+					<i class="fa-solid fa-chevron-right chev"></i>
+				</div>
+				<div class="tv-sheet-item" id="tvSupportItem">
+					<i class="fa-solid fa-headset"></i>
+					<span>Support Tar TV</span>
+					<i class="fa-solid fa-chevron-right chev"></i>
+				</div>
+				<div class="tv-sheet-item" id="tvRemoveAdsItem">
+					<i class="fa-solid fa-crown"></i>
+					<span>Remove ads</span>
+					<i class="fa-solid fa-chevron-right chev"></i>
+				</div>
+				<button class="tv-sheet-cancel" data-close-sheet>Cancel</button>
+			</div>
+		</div>
 
-    <!-- ─── Settings Sheet ────────────────────────── -->
-    <div class="tv-sheet-overlay" id="tvSettingsSheet">
-      <div class="tv-sheet">
-        <h3><i class="fa-solid fa-gear"></i> Settings</h3>
-        <div class="tv-setting-row">
-          <div class="label">
-            <i class="fa-solid fa-volume-xmark"></i> Start muted
-          </div>
-          <label class="tv-switch">
-            <input type="checkbox" id="tvStartMutedToggle" checked />
-            <span class="slider"></span>
-          </label>
-        </div>
-        <div class="tv-setting-row">
-          <div class="label"><i class="fa-solid fa-wifi"></i> Data saver</div>
-          <label class="tv-switch">
-            <input type="checkbox" id="tvDataSaverToggle" />
-            <span class="slider"></span>
-          </label>
-        </div>
-        <div
-          class="tv-sheet-item"
-          id="tvSettingsSupportItem"
-          style="margin-top: 1rem"
-        >
-          <i class="fa-solid fa-headset"></i>
-          <span>Support Tar TV</span>
-          <i class="fa-solid fa-chevron-right chev"></i>
-        </div>
-        <button class="tv-sheet-cancel" data-close-sheet>Close</button>
-      </div>
-    </div>
+		<!-- ─── Settings Sheet ────────────────────────── -->
+		<div class="tv-sheet-overlay" id="tvSettingsSheet">
+			<div class="tv-sheet">
+				<h3><i class="fa-solid fa-gear"></i> Settings</h3>
+				<div class="tv-setting-row">
+					<div class="label">
+						<i class="fa-solid fa-volume-xmark"></i> Start muted
+					</div>
+					<label class="tv-switch">
+						<input type="checkbox" id="tvStartMutedToggle" checked />
+						<span class="slider"></span>
+					</label>
+				</div>
+				<div class="tv-setting-row">
+					<div class="label"><i class="fa-solid fa-wifi"></i> Data saver</div>
+					<label class="tv-switch">
+						<input type="checkbox" id="tvDataSaverToggle" />
+						<span class="slider"></span>
+					</label>
+				</div>
+				<div
+					class="tv-sheet-item"
+					id="tvSettingsSupportItem"
+					style="margin-top: 1rem"
+				>
+					<i class="fa-solid fa-headset"></i>
+					<span>Support Tar TV</span>
+					<i class="fa-solid fa-chevron-right chev"></i>
+				</div>
+				<button class="tv-sheet-cancel" data-close-sheet>Close</button>
+			</div>
+		</div>
 
-    <!-- ─── Support Sheet ─────────────────────────── -->
-    <div class="tv-sheet-overlay" id="tvSupportSheet">
-      <div class="tv-sheet">
-        <h3><i class="fa-solid fa-headset"></i> Support Tar TV</h3>
-        <p
-          style="
-            color: #c5bfb3;
-            font-size: 0.9rem;
-            line-height: 1.6;
-            margin-bottom: 1.25rem;
-          "
-        >
-          Thank you for watching Tar TV. If you have questions, feedback, or
-          need assistance, our concierge is here for you.
-        </p>
-        <a
-          href="index.html?redirect=concierge.html"
-          class="tv-sheet-item"
-          style="justify-content: center"
-        >
-          <i class="fa-solid fa-comment-dots"></i>
-          <span>Contact Concierge</span>
-        </a>
-        <button class="tv-sheet-cancel" data-close-sheet>Close</button>
-      </div>
-    </div>
+		<!-- ─── Support Sheet ─────────────────────────── -->
+		<div class="tv-sheet-overlay" id="tvSupportSheet">
+			<div class="tv-sheet">
+				<h3><i class="fa-solid fa-headset"></i> Support Tar TV</h3>
+				<p
+					style="
+						color: #c5bfb3;
+						font-size: 0.9rem;
+						line-height: 1.6;
+						margin-bottom: 1.25rem;
+					"
+				>
+					Thank you for watching Tar TV. If you have questions, feedback, or
+					need assistance, our concierge is here for you.
+				</p>
+				<a
+					href="index.html?redirect=concierge.html"
+					class="tv-sheet-item"
+					style="justify-content: center"
+				>
+					<i class="fa-solid fa-comment-dots"></i>
+					<span>Contact Concierge</span>
+				</a>
+				<button class="tv-sheet-cancel" data-close-sheet>Close</button>
+			</div>
+		</div>
 
-    <!-- ─── Send to Reh User Sheet ──────────────────── -->
-    <div class="tv-sheet-overlay" id="tvSendSheet">
-      <div class="tv-sheet">
-        <h3><i class="fa-solid fa-paper-plane"></i> Send to...</h3>
-        <input
-          type="text"
-          class="tv-sheet-search-input"
-          id="tvSendSearchInput"
-          placeholder="Search members…"
-          autocomplete="off"
-        />
-        <div class="tv-search-results" id="tvSendResults">
-          <p
-            style="
-              color: #8a857a;
-              text-align: center;
-              padding: 1rem;
-              font-size: 0.85rem;
-            "
-          >
-            Loading members…
-          </p>
-        </div>
-        <button class="tv-sheet-cancel" data-close-sheet>Cancel</button>
-      </div>
-    </div>
+		<!-- ─── Send to Reh User Sheet ──────────────────── -->
+		<div class="tv-sheet-overlay" id="tvSendSheet">
+			<div class="tv-sheet">
+				<h3><i class="fa-solid fa-paper-plane"></i> Send to...</h3>
+				<input
+					type="text"
+					class="tv-sheet-search-input"
+					id="tvSendSearchInput"
+					placeholder="Search members…"
+					autocomplete="off"
+				/>
+				<div class="tv-search-results" id="tvSendResults">
+					<p
+						style="
+							color: #8a857a;
+							text-align: center;
+							padding: 1rem;
+							font-size: 0.85rem;
+						"
+					>
+						Loading members…
+					</p>
+				</div>
+				<button class="tv-sheet-cancel" data-close-sheet>Cancel</button>
+			</div>
+		</div>
 
-    <div class="tv-container" id="tvContainer"></div>
+		<div class="tv-container" id="tvContainer"></div>
 
-    <!-- Comments Panel -->
-    <div class="comments-panel" id="commentsPanel">
-      <div class="comments-panel-header">
-        <h3><i class="fa-regular fa-comment"></i> Comments</h3>
-        <button id="closeCommentsBtn"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-      <div class="comments-list" id="commentsList">
-        <!-- injected -->
-      </div>
-      <div class="comments-input-area">
-        <input type="text" id="commentInput" placeholder="Write a comment..." />
-        <button id="sendCommentBtn">
-          <i class="fa-regular fa-paper-plane"></i>
-        </button>
-      </div>
-    </div>
+		<!-- Comments Panel -->
+		<div class="comments-panel" id="commentsPanel">
+			<div class="comments-panel-header">
+				<h3><i class="fa-regular fa-comment"></i> Comments</h3>
+				<button id="closeCommentsBtn"><i class="fa-solid fa-xmark"></i></button>
+			</div>
+			<div class="comments-list" id="commentsList">
+				<!-- injected -->
+			</div>
+			<div class="comments-input-area">
+				<input type="text" id="commentInput" placeholder="Write a comment..." />
+				<button id="sendCommentBtn">
+					<i class="fa-regular fa-paper-plane"></i>
+				</button>
+			</div>
+		</div>
 
-    <!-- ─── Share Modal ──────────────────────────────── -->
-    <div id="shareModal" class="share-modal-overlay" style="display: none">
-      <div class="share-modal">
-        <div class="share-modal-header">
-          <h3><i class="fa-solid fa-share-nodes"></i> Share Video</h3>
-          <button class="share-modal-close" id="shareModalClose">
-            <i class="fa-solid fa-xmark"></i>
-          </button>
-        </div>
-        <div class="share-modal-body">
-          <button
-            class="share-option"
-            id="shareSendInRehBtn"
-            style="
-              background: linear-gradient(
-                135deg,
-                rgba(200, 160, 60, 0.15),
-                rgba(139, 26, 43, 0.15)
-              );
-              border-color: rgba(200, 160, 60, 0.4);
-            "
-          >
-            <i
-              class="fa-solid fa-paper-plane"
-              style="color: var(--gold-light)"
-            ></i>
-            <span>Send in Reh</span>
-          </button>
-          <button class="share-option" id="shareDownloadBtn">
-            <i class="fa-solid fa-download"></i>
-            <span>Download Video</span>
-          </button>
-          <button class="share-option" id="shareCopyLinkBtn">
-            <i class="fa-solid fa-link"></i>
-            <span>Copy Link</span>
-          </button>
-        </div>
-        <div class="share-modal-footer">
-          <button class="share-cancel" id="shareCancelBtn">Cancel</button>
-        </div>
-      </div>
-    </div>
-    <script>
-      // ─── Vercel Analytics bootstrap (inline + synchronous, always runs) ───
-      window.va =
-        window.va ||
-        function () {
-          (window.vaq = window.vaq || []).push(arguments);
-        };
-    </script>
-    <script>
-      // ─── Team accounts: excluded from analytics + view counts ───
-      window._REH_TEAM_EMAILS = [
-        "rehcrown@gmail.com",
-        // add more team emails here, one per line
-      ];
-    </script>
-    <script>
-      // ─── Analytics loader with team-account exclusion ───
-      (function () {
-        var ANALYTICS_SKIP_EMAILS = window._REH_TEAM_EMAILS || [];
+		<!-- ─── Share Modal ──────────────────────────────── -->
+		<div id="shareModal" class="share-modal-overlay" style="display: none">
+			<div class="share-modal">
+				<div class="share-modal-header">
+					<h3><i class="fa-solid fa-share-nodes"></i> Share Video</h3>
+					<button class="share-modal-close" id="shareModalClose">
+						<i class="fa-solid fa-xmark"></i>
+					</button>
+				</div>
+				<div class="share-modal-body">
+					<button
+						class="share-option"
+						id="shareSendInRehBtn"
+						style="
+							background: linear-gradient(
+								135deg,
+								rgba(200, 160, 60, 0.15),
+								rgba(139, 26, 43, 0.15)
+							);
+							border-color: rgba(200, 160, 60, 0.4);
+						"
+					>
+						<i
+							class="fa-solid fa-paper-plane"
+							style="color: var(--gold-light)"
+						></i>
+						<span>Send in Reh</span>
+					</button>
+					<button class="share-option" id="shareDownloadBtn">
+						<i class="fa-solid fa-download"></i>
+						<span>Download Video</span>
+					</button>
+					<button class="share-option" id="shareCopyLinkBtn">
+						<i class="fa-solid fa-link"></i>
+						<span>Copy Link</span>
+					</button>
+				</div>
+				<div class="share-modal-footer">
+					<button class="share-cancel" id="shareCancelBtn">Cancel</button>
+				</div>
+			</div>
+		</div>
+		<script>
+			// ─── Vercel Analytics bootstrap (inline + synchronous, always runs) ───
+			window.va =
+				window.va ||
+				function () {
+					(window.vaq = window.vaq || []).push(arguments);
+				};
+		</script>
+		<script>
+			// ─── Team accounts: excluded from analytics + view counts ───
+			window._REH_TEAM_EMAILS = [
+				"rehcrown@gmail.com",
+				// add more team emails here, one per line
+			];
+		</script>
+		<script>
+			// ─── Analytics loader with team-account exclusion ───
+			(function () {
+				var ANALYTICS_SKIP_EMAILS = window._REH_TEAM_EMAILS || [];
 
-        function loadAnalytics() {
-          var s = document.createElement("script");
-          s.src = "/_vercel/insights/script.js";
-          document.head.appendChild(s);
-        }
+				function loadAnalytics() {
+					var s = document.createElement("script");
+					s.src = "/_vercel/insights/script.js";
+					document.head.appendChild(s);
+				}
 
-        try {
-          var session = {};
-          try {
-            session = JSON.parse(localStorage.getItem("reh_user") || "{}");
-          } catch (e) {}
+				try {
+					var session = {};
+					try {
+						session = JSON.parse(localStorage.getItem("reh_user") || "{}");
+					} catch (e) {}
 
-          var userEmail = (session.email || "").toLowerCase().trim();
-          var params = new URLSearchParams(window.location.search);
+					var userEmail = (session.email || "").toLowerCase().trim();
+					var params = new URLSearchParams(window.location.search);
 
-          var skipByUrl = params.has("noanalytics");
-          var skipByFlag =
-            localStorage.getItem("reh_skip_analytics") === "true";
-          var skipByAccount =
-            !!userEmail && ANALYTICS_SKIP_EMAILS.indexOf(userEmail) !== -1;
+					var skipByUrl = params.has("noanalytics");
+					var skipByFlag =
+						localStorage.getItem("reh_skip_analytics") === "true";
+					var skipByAccount =
+						!!userEmail && ANALYTICS_SKIP_EMAILS.indexOf(userEmail) !== -1;
 
-          if (skipByUrl || skipByFlag || skipByAccount) {
-            console.log(
-              "[analytics] Skipped — reason:",
-              skipByUrl
-                ? "url param"
-                : skipByFlag
-                  ? "localStorage flag"
-                  : "team account",
-            );
-            return;
-          }
+					if (skipByUrl || skipByFlag || skipByAccount) {
+						console.log(
+							"[analytics] Skipped — reason:",
+							skipByUrl
+								? "url param"
+								: skipByFlag
+									? "localStorage flag"
+									: "team account",
+						);
+						return;
+					}
 
-          loadAnalytics();
-        } catch (err) {
-          loadAnalytics();
-        }
-      })();
-    </script>
+					loadAnalytics();
+				} catch (err) {
+					loadAnalytics();
+				}
+			})();
+		</script>
 
-    <!-- Firebase Compat -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+		<!-- Firebase Compat -->
+		<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+		<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
-    <!-- ─── Video Upload Module ─── -->
-    <script type="module">
-      import { initVideoUpload } from "./assets/modules/video-upload.js";
-      initVideoUpload();
-    </script>
+		<!-- ─── Video Upload Module ─── -->
+		<script type="module">
+			import { initVideoUpload } from "./assets/modules/video-upload.js";
+			initVideoUpload();
+		</script>
 
-    <script>
-      (function () {
-        // ─── Error Display ──────────────────────────────────────
-        const errorDiv = document.getElementById("tar-tv-error");
-        function showError(msg) {
-          errorDiv.textContent = "❌ " + msg;
-          errorDiv.style.display = "block";
-          document.getElementById("loader").style.display = "none";
-          console.error(msg);
-        }
+		<script>
+			(function () {
+				// ─── Error Display ──────────────────────────────────────
+				const errorDiv = document.getElementById("tar-tv-error");
+				function showError(msg) {
+					errorDiv.textContent = "❌ " + msg;
+					errorDiv.style.display = "block";
+					document.getElementById("loader").style.display = "none";
+					console.error(msg);
+				}
 
-        // ─── Firebase Config ────────────────────────────────────
-        const firebaseConfig = {
-          apiKey: "AIzaSyClJ9Mlln04N_7XFSvy1zGHaE6w5E2DQ8I",
-          authDomain: "rehp-c82b8.firebaseapp.com",
-          projectId: "rehp-c82b8",
-          storageBucket: "rehp-c82b8.firebasestorage.app",
-          messagingSenderId: "363083908702",
-          appId: "1:363083908702:web:33e7d66890c9ef79fb96cf",
-          measurementId: "G-KX9ZEBL3E1",
-        };
+				// ─── Firebase Config ────────────────────────────────────
+				const firebaseConfig = {
+					apiKey: "AIzaSyClJ9Mlln04N_7XFSvy1zGHaE6w5E2DQ8I",
+					authDomain: "rehp-c82b8.firebaseapp.com",
+					projectId: "rehp-c82b8",
+					storageBucket: "rehp-c82b8.firebasestorage.app",
+					messagingSenderId: "363083908702",
+					appId: "1:363083908702:web:33e7d66890c9ef79fb96cf",
+					measurementId: "G-KX9ZEBL3E1",
+				};
 
-        try {
-          firebase.initializeApp(firebaseConfig);
-        } catch (e) {
-          showError("Firebase init error: " + e.message);
-          return;
-        }
+				try {
+					firebase.initializeApp(firebaseConfig);
+				} catch (e) {
+					showError("Firebase init error: " + e.message);
+					return;
+				}
 
-        const db = firebase.firestore();
-        const FieldValue = firebase.firestore.FieldValue;
+				const db = firebase.firestore();
+				const FieldValue = firebase.firestore.FieldValue;
 
-        // ─── Session View Tracking ─────────────────────────────
-        const VIEWED_KEY = "tar_tv_viewed_videos";
-        function loadViewedSet() {
-          const stored = sessionStorage.getItem(VIEWED_KEY);
-          if (stored) {
-            try {
-              return new Set(JSON.parse(stored));
-            } catch (e) {
-              return new Set();
-            }
-          }
-          return new Set();
-        }
-        function saveViewedSet(set) {
-          sessionStorage.setItem(VIEWED_KEY, JSON.stringify([...set]));
-        }
-        let viewedSet = loadViewedSet();
+				// ─── URL mode ─────────────────────────────────────────
+				const _URL_MODE =
+					new URLSearchParams(window.location.search).get("mode") || "default";
+				const _IS_AI_MODE = _URL_MODE === "ai";
 
-        // ─── Skeleton Slide Renderer ───────────────────
-        function renderSkeletonSlides(count = 3) {
-          const tvContainer = document.getElementById("tvContainer");
-          if (!tvContainer) return;
-          // Hide old spinner if present
-          const loader = document.getElementById("loader");
-          if (loader) loader.classList.add("hidden");
+				// ─── Session View Tracking ─────────────────────────────
+				const VIEWED_KEY = "tar_tv_viewed_videos";
+				function loadViewedSet() {
+					const stored = sessionStorage.getItem(VIEWED_KEY);
+					if (stored) {
+						try {
+							return new Set(JSON.parse(stored));
+						} catch (e) {
+							return new Set();
+						}
+					}
+					return new Set();
+				}
+				function saveViewedSet(set) {
+					sessionStorage.setItem(VIEWED_KEY, JSON.stringify([...set]));
+				}
+				let viewedSet = loadViewedSet();
 
-          let html = "";
-          for (let i = 0; i < count; i++) {
-            html += `
+				// ─── Skeleton Slide Renderer ───────────────────
+				function renderSkeletonSlides(count = 3) {
+					const tvContainer = document.getElementById("tvContainer");
+					if (!tvContainer) return;
+					// Hide old spinner if present
+					const loader = document.getElementById("loader");
+					if (loader) loader.classList.add("hidden");
+
+					let html = "";
+					for (let i = 0; i < count; i++) {
+						html += `
       <div class="tv-skeleton-slide">
         <div class="tv-skeleton-media"></div>
         <div class="tv-skeleton-actions">
@@ -1404,170 +1409,174 @@
         </div>
       </div>
     `;
-          }
-          tvContainer.innerHTML = html;
-        }
+					}
+					tvContainer.innerHTML = html;
+				}
 
-        // ─── Comments Panel State ──────────────────────────────
-        let currentVideoId = null;
-        let commentsListener = null;
+				// ─── Comments Panel State ──────────────────────────────
+				let currentVideoId = null;
+				let commentsListener = null;
 
-        function getCurrentUser() {
-          try {
-            return JSON.parse(localStorage.getItem("reh_user") || "{}");
-          } catch {
-            return {};
-          }
-        }
+				function getCurrentUser() {
+					try {
+						return JSON.parse(localStorage.getItem("reh_user") || "{}");
+					} catch {
+						return {};
+					}
+				}
 
-        // ─── Main Execution ─────────────────────────────────────
-        (async function init() {
-          const tvContainer = document.getElementById("tvContainer");
-          const loader = document.getElementById("loader");
+				// ─── Main Execution ─────────────────────────────────────
+				(async function init() {
+					const tvContainer = document.getElementById("tvContainer");
+					const loader = document.getElementById("loader");
 
-          //---- show skeleton slides immediately ----//
-          renderSkeletonSlides();
+					//---- show skeleton slides immediately ----//
+					renderSkeletonSlides();
 
-          try {
-            const snapshot = await db
-              .collection("tar_tv_videos")
-              .orderBy("createdAt", "desc")
-              .get();
+					try {
+						const snapshot = await db
+							.collection("tar_tv_videos")
+							.orderBy("createdAt", "desc")
+							.get();
 
-            loader.style.display = "none";
+						loader.style.display = "none";
 
-            if (snapshot.empty) {
-              tvContainer.innerHTML =
-                '<div style="text-align:center;margin-top:40vh;color:var(--text-muted);">No videos yet</div>';
-              return;
-            }
+						if (snapshot.empty) {
+							tvContainer.innerHTML =
+								'<div style="text-align:center;margin-top:40vh;color:var(--text-muted);">No videos yet</div>';
+							return;
+						}
 
-            const videos = [];
-            snapshot.forEach((doc) => {
-              videos.push({ id: doc.id, ...doc.data() });
-            });
+						const allVideos = [];
+snapshot.forEach(doc => {
+    allVideos.push({ id: doc.id, ...doc.data() });
+});
+const videos = allVideos.filter(v => {
+    const vidIsAI = v.isAI === true;
+    return _IS_AI_MODE ? vidIsAI : !vidIsAI;
+});
 
-            // ─── Clear skeleton slides ───
-            tvContainer.innerHTML = "";
+						// ─── Clear skeleton slides ───
+						tvContainer.innerHTML = "";
 
-            let activeVideo = null;
-            let activeMuteOverlay = null;
+						let activeVideo = null;
+						let activeMuteOverlay = null;
 
-            // ─── Intersection Observer ─────────────────────
-            const observer = new IntersectionObserver(
-              (entries) => {
-                entries.forEach((entry) => {
-                  const slide = entry.target;
-                  const video = slide.querySelector("video");
-                  const videoId = slide.dataset.videoId;
-                  const viewsElement = slide.querySelector(".view-count");
+						// ─── Intersection Observer ─────────────────────
+						const observer = new IntersectionObserver(
+							(entries) => {
+								entries.forEach((entry) => {
+									const slide = entry.target;
+									const video = slide.querySelector("video");
+									const videoId = slide.dataset.videoId;
+									const viewsElement = slide.querySelector(".view-count");
 
-                  if (entry.isIntersecting) {
-                    if (activeVideo && activeVideo !== video) {
-                      activeVideo.pause();
-                    }
-                    if (video) {
-                      if (!video.src) video.src = video.dataset.src;
-                      video.muted = isMuted; // global mute state
-                      video.play().catch(() => {
-                        // Autoplay with sound blocked — retry muted
-                        if (!video.muted) {
-                          video.muted = true;
-                          isMuted = true; // ✅ sync global state so tap-to-unmute works
-                          video.play().catch(() => {});
-                          const icon = slide.querySelector(".mute-overlay i");
-                          if (icon) icon.className = "fa-solid fa-volume-xmark";
-                        }
-                      });
-                    }
-                    activeVideo = video;
-                    window._activeTvVideoId = slide.dataset.videoId;
+									if (entry.isIntersecting) {
+										if (activeVideo && activeVideo !== video) {
+											activeVideo.pause();
+										}
+										if (video) {
+											if (!video.src) video.src = video.dataset.src;
+											video.muted = isMuted; // global mute state
+											video.play().catch(() => {
+												// Autoplay with sound blocked — retry muted
+												if (!video.muted) {
+													video.muted = true;
+													isMuted = true; // ✅ sync global state so tap-to-unmute works
+													video.play().catch(() => {});
+													const icon = slide.querySelector(".mute-overlay i");
+													if (icon) icon.className = "fa-solid fa-volume-xmark";
+												}
+											});
+										}
+										activeVideo = video;
+										window._activeTvVideoId = slide.dataset.videoId;
 
-                    // View counting
-                    // View counting — skipped for team accounts
-                    const _teamEmails = window._REH_TEAM_EMAILS || [];
-                    const _viewerEmail = (getCurrentUser().email || "")
-                      .toLowerCase()
-                      .trim();
-                    const _isTeamViewer = _teamEmails
-                      .map((e) => String(e).toLowerCase().trim())
-                      .includes(_viewerEmail);
+										// View counting
+										// View counting — skipped for team accounts
+										const _teamEmails = window._REH_TEAM_EMAILS || [];
+										const _viewerEmail = (getCurrentUser().email || "")
+											.toLowerCase()
+											.trim();
+										const _isTeamViewer = _teamEmails
+											.map((e) => String(e).toLowerCase().trim())
+											.includes(_viewerEmail);
 
-                    if (videoId && !viewedSet.has(videoId)) {
-                      if (_isTeamViewer) {
-                        // Debug log: set localStorage.reh_debug_team = 'true' to enable
-                        if (localStorage.getItem("reh_debug_team") === "true") {
-                          console.log(
-                            "[tar-tv] View skipped (team account):",
-                            _viewerEmail,
-                          );
-                        }
-                      } else {
-                        const docRef = db
-                          .collection("tar_tv_videos")
-                          .doc(videoId);
-                        docRef
-                          .update({
-                            views: FieldValue.increment(1),
-                          })
-                          .then(() => {
-                            const currentCount = parseInt(
-                              viewsElement?.textContent || "0",
-                              10,
-                            );
-                            if (viewsElement)
-                              viewsElement.textContent = currentCount + 1;
-                          })
-                          .catch((err) =>
-                            console.error("Failed to increment views:", err),
-                          );
-                        viewedSet.add(videoId);
-                        saveViewedSet(viewedSet);
-                      }
-                    }
-                  } else {
-                    if (video) video.pause();
-                  }
-                });
-              },
-              { threshold: 0.5 },
-            );
+										if (videoId && !viewedSet.has(videoId)) {
+											if (_isTeamViewer) {
+												// Debug log: set localStorage.reh_debug_team = 'true' to enable
+												if (localStorage.getItem("reh_debug_team") === "true") {
+													console.log(
+														"[tar-tv] View skipped (team account):",
+														_viewerEmail,
+													);
+												}
+											} else {
+												const docRef = db
+													.collection("tar_tv_videos")
+													.doc(videoId);
+												docRef
+													.update({
+														views: FieldValue.increment(1),
+													})
+													.then(() => {
+														const currentCount = parseInt(
+															viewsElement?.textContent || "0",
+															10,
+														);
+														if (viewsElement)
+															viewsElement.textContent = currentCount + 1;
+													})
+													.catch((err) =>
+														console.error("Failed to increment views:", err),
+													);
+												viewedSet.add(videoId);
+												saveViewedSet(viewedSet);
+											}
+										}
+									} else {
+										if (video) video.pause();
+									}
+								});
+							},
+							{ threshold: 0.5 },
+						);
 
-            // ─── Helpers ────────────────────────────────────
-            function formatTime(seconds) {
-              if (!seconds || isNaN(seconds)) return "0:00";
-              const hrs = Math.floor(seconds / 3600);
-              const mins = Math.floor((seconds % 3600) / 60);
-              const secs = Math.floor(seconds % 60);
-              if (hrs > 0) {
-                return (
-                  hrs +
-                  ":" +
-                  (mins < 10 ? "0" : "") +
-                  mins +
-                  ":" +
-                  (secs < 10 ? "0" : "") +
-                  secs
-                );
-              }
-              return mins + ":" + (secs < 10 ? "0" : "") + secs;
-            }
+						// ─── Helpers ────────────────────────────────────
+						function formatTime(seconds) {
+							if (!seconds || isNaN(seconds)) return "0:00";
+							const hrs = Math.floor(seconds / 3600);
+							const mins = Math.floor((seconds % 3600) / 60);
+							const secs = Math.floor(seconds % 60);
+							if (hrs > 0) {
+								return (
+									hrs +
+									":" +
+									(mins < 10 ? "0" : "") +
+									mins +
+									":" +
+									(secs < 10 ? "0" : "") +
+									secs
+								);
+							}
+							return mins + ":" + (secs < 10 ? "0" : "") + secs;
+						}
 
-            // Read initial mute preference; default muted for autoplay compliance
-            let isMuted =
-              localStorage.getItem("tar_tv_initial_muted") !== "false";
+						// Read initial mute preference; default muted for autoplay compliance
+						let isMuted =
+							localStorage.getItem("tar_tv_initial_muted") !== "false";
 
-            // ─── Build Slides ──────────────────────────────
-            videos.forEach((v) => {
-              const slide = document.createElement("div");
-              slide.className = "video-slide";
-              slide.dataset.videoId = v.id;
+						// ─── Build Slides ──────────────────────────────
+						videos.forEach((v) => {
+							const slide = document.createElement("div");
+							slide.className = "video-slide";
+							slide.dataset.videoId = v.id;
 
-              const views = v.views || 0;
-              const likes = v.likes || 0;
-              const commentsCount = v.commentCount || 0;
+							const views = v.views || 0;
+							const likes = v.likes || 0;
+							const commentsCount = v.commentCount || 0;
 
-              slide.innerHTML = `
+							slide.innerHTML = `
                             <div class="video-placeholder" style="background-image:url('${v.thumbnail || ""}')"></div>
                             <video data-src="${v.videoUrl}" muted loop playsinline preload="metadata"></video>
 
@@ -1607,241 +1616,241 @@
 </div>
                         </div>
                         `;
-              tvContainer.appendChild(slide);
+							tvContainer.appendChild(slide);
 
-              // ─── Hide placeholder once video actually plays ───
-              const placeholderEl = slide.querySelector(".video-placeholder");
-              const videoEl = slide.querySelector("video");
+							// ─── Hide placeholder once video actually plays ───
+							const placeholderEl = slide.querySelector(".video-placeholder");
+							const videoEl = slide.querySelector("video");
 
-              if (videoEl && placeholderEl) {
-                videoEl.addEventListener(
-                  "playing",
-                  () => {
-                    placeholderEl.classList.add("hidden");
-                    setTimeout(() => {
-                      if (placeholderEl.parentNode) placeholderEl.remove();
-                    }, 500);
-                  },
-                  { once: true },
-                );
+							if (videoEl && placeholderEl) {
+								videoEl.addEventListener(
+									"playing",
+									() => {
+										placeholderEl.classList.add("hidden");
+										setTimeout(() => {
+											if (placeholderEl.parentNode) placeholderEl.remove();
+										}, 500);
+									},
+									{ once: true },
+								);
 
-                videoEl.addEventListener(
-                  "error",
-                  () => {
-                    placeholderEl.classList.add("hidden");
-                  },
-                  { once: true },
-                );
-              }
+								videoEl.addEventListener(
+									"error",
+									() => {
+										placeholderEl.classList.add("hidden");
+									},
+									{ once: true },
+								);
+							}
 
-              const video = slide.querySelector("video");
-              const seekSlider = slide.querySelector(".seek-slider");
-              const currentTimeLabel =
-                slide.querySelector(".seek-time.current");
-              const durationLabel = slide.querySelector(".seek-time.duration");
-              const muteOverlay = slide.querySelector(".mute-overlay");
+							const video = slide.querySelector("video");
+							const seekSlider = slide.querySelector(".seek-slider");
+							const currentTimeLabel =
+								slide.querySelector(".seek-time.current");
+							const durationLabel = slide.querySelector(".seek-time.duration");
+							const muteOverlay = slide.querySelector(".mute-overlay");
 
-              // ─── Tap-to-Mute on Center ──────────────────
-              const centerTap = slide.querySelector(".tap-zone-center");
-              centerTap.addEventListener("click", function (e) {
-                e.stopPropagation();
-                isMuted = !isMuted;
-                if (video) {
-                  video.muted = isMuted;
-                  // show overlay icon
-                  const icon = muteOverlay.querySelector("i");
-                  if (isMuted) {
-                    icon.className = "fa-solid fa-volume-xmark";
-                  } else {
-                    icon.className = "fa-solid fa-volume-up";
-                  }
-                  muteOverlay.classList.add("show");
-                  setTimeout(() => {
-                    muteOverlay.classList.remove("show");
-                  }, 600);
-                }
-              });
+							// ─── Tap-to-Mute on Center ──────────────────
+							const centerTap = slide.querySelector(".tap-zone-center");
+							centerTap.addEventListener("click", function (e) {
+								e.stopPropagation();
+								isMuted = !isMuted;
+								if (video) {
+									video.muted = isMuted;
+									// show overlay icon
+									const icon = muteOverlay.querySelector("i");
+									if (isMuted) {
+										icon.className = "fa-solid fa-volume-xmark";
+									} else {
+										icon.className = "fa-solid fa-volume-up";
+									}
+									muteOverlay.classList.add("show");
+									setTimeout(() => {
+										muteOverlay.classList.remove("show");
+									}, 600);
+								}
+							});
 
-              // ─── Left/Right Tap Navigation ──────────────
-              slide
-                .querySelector(".tap-zone-left")
-                .addEventListener("click", function (e) {
-                  e.stopPropagation();
-                  // Navigate to previous video – we can scroll manually
-                  const slides = tvContainer.querySelectorAll(".video-slide");
-                  const idx = Array.from(slides).indexOf(slide);
-                  if (idx > 0) {
-                    slides[idx - 1].scrollIntoView({
-                      behavior: "smooth",
-                      block: "start",
-                    });
-                  }
-                });
-              slide
-                .querySelector(".tap-zone-right")
-                .addEventListener("click", function (e) {
-                  e.stopPropagation();
-                  const slides = tvContainer.querySelectorAll(".video-slide");
-                  const idx = Array.from(slides).indexOf(slide);
-                  if (idx < slides.length - 1) {
-                    slides[idx + 1].scrollIntoView({
-                      behavior: "smooth",
-                      block: "start",
-                    });
-                  }
-                });
+							// ─── Left/Right Tap Navigation ──────────────
+							slide
+								.querySelector(".tap-zone-left")
+								.addEventListener("click", function (e) {
+									e.stopPropagation();
+									// Navigate to previous video – we can scroll manually
+									const slides = tvContainer.querySelectorAll(".video-slide");
+									const idx = Array.from(slides).indexOf(slide);
+									if (idx > 0) {
+										slides[idx - 1].scrollIntoView({
+											behavior: "smooth",
+											block: "start",
+										});
+									}
+								});
+							slide
+								.querySelector(".tap-zone-right")
+								.addEventListener("click", function (e) {
+									e.stopPropagation();
+									const slides = tvContainer.querySelectorAll(".video-slide");
+									const idx = Array.from(slides).indexOf(slide);
+									if (idx < slides.length - 1) {
+										slides[idx + 1].scrollIntoView({
+											behavior: "smooth",
+											block: "start",
+										});
+									}
+								});
 
-              // ─── Seek Bar ────────────────────────────────
-              video.addEventListener("timeupdate", () => {
-                if (video.duration && !isNaN(video.duration)) {
-                  const progress = video.currentTime / video.duration;
-                  seekSlider.value = progress;
-                  currentTimeLabel.textContent = formatTime(video.currentTime);
-                  const percent = progress * 100;
-                  seekSlider.style.background = `linear-gradient(to right, var(--gold-light) ${percent}%, rgba(255,255,255,0.25) ${percent}%)`;
-                }
-              });
+							// ─── Seek Bar ────────────────────────────────
+							video.addEventListener("timeupdate", () => {
+								if (video.duration && !isNaN(video.duration)) {
+									const progress = video.currentTime / video.duration;
+									seekSlider.value = progress;
+									currentTimeLabel.textContent = formatTime(video.currentTime);
+									const percent = progress * 100;
+									seekSlider.style.background = `linear-gradient(to right, var(--gold-light) ${percent}%, rgba(255,255,255,0.25) ${percent}%)`;
+								}
+							});
 
-              video.addEventListener("loadedmetadata", () => {
-                if (video.duration) {
-                  durationLabel.textContent = formatTime(video.duration);
-                }
-              });
+							video.addEventListener("loadedmetadata", () => {
+								if (video.duration) {
+									durationLabel.textContent = formatTime(video.duration);
+								}
+							});
 
-              seekSlider.addEventListener("input", (e) => {
-                if (video.duration && !isNaN(video.duration)) {
-                  const newTime = parseFloat(e.target.value) * video.duration;
-                  video.currentTime = newTime;
-                  currentTimeLabel.textContent = formatTime(newTime);
-                  const percent = parseFloat(e.target.value) * 100;
-                  seekSlider.style.background = `linear-gradient(to right, var(--gold-light) ${percent}%, rgba(255,255,255,0.25) ${percent}%)`;
-                }
-              });
+							seekSlider.addEventListener("input", (e) => {
+								if (video.duration && !isNaN(video.duration)) {
+									const newTime = parseFloat(e.target.value) * video.duration;
+									video.currentTime = newTime;
+									currentTimeLabel.textContent = formatTime(newTime);
+									const percent = parseFloat(e.target.value) * 100;
+									seekSlider.style.background = `linear-gradient(to right, var(--gold-light) ${percent}%, rgba(255,255,255,0.25) ${percent}%)`;
+								}
+							});
 
-              observer.observe(slide);
-            });
+							observer.observe(slide);
+						});
 
-            // ─── Deep link: ?video=<id> ─────────────────────
-            const params = new URLSearchParams(window.location.search);
-            const targetVideoId = params.get("video");
-            if (targetVideoId) {
-              setTimeout(() => {
-                const slides = tvContainer.querySelectorAll(".video-slide");
-                let found = false;
-                slides.forEach((slide) => {
-                  if (slide.dataset.videoId === targetVideoId) {
-                    slide.scrollIntoView({
-                      behavior: "smooth",
-                      block: "start",
-                    });
-                    found = true;
-                  }
-                });
-                if (!found) {
-                  if (typeof showError === "function") {
-                    showError("Video unavailable — showing latest.");
-                  }
-                  const firstSlide = slides[0];
-                  if (firstSlide) {
-                    firstSlide.scrollIntoView({
-                      behavior: "smooth",
-                      block: "start",
-                    });
-                  }
-                }
-              }, 400);
-            }
+						// ─── Deep link: ?video=<id> ─────────────────────
+						const params = new URLSearchParams(window.location.search);
+						const targetVideoId = params.get("video");
+						if (targetVideoId) {
+							setTimeout(() => {
+								const slides = tvContainer.querySelectorAll(".video-slide");
+								let found = false;
+								slides.forEach((slide) => {
+									if (slide.dataset.videoId === targetVideoId) {
+										slide.scrollIntoView({
+											behavior: "smooth",
+											block: "start",
+										});
+										found = true;
+									}
+								});
+								if (!found) {
+									if (typeof showError === "function") {
+										showError("Video unavailable — showing latest.");
+									}
+									const firstSlide = slides[0];
+									if (firstSlide) {
+										firstSlide.scrollIntoView({
+											behavior: "smooth",
+											block: "start",
+										});
+									}
+								}
+							}, 400);
+						}
 
-            // ─── Like Button ─────────────────────────────────
-            document.querySelectorAll(".like-btn").forEach((btn) => {
-              btn.addEventListener("click", async (e) => {
-                e.stopPropagation();
-                const user = getCurrentUser();
-                if (!user || !user.email) {
-                  window.location.href = "index.html?redirect=register.html";
-                  return;
-                }
-                const id = btn.dataset.id;
-                const docRef = db.collection("tar_tv_videos").doc(id);
-                try {
-                  await docRef.update({
-                    likes: FieldValue.increment(1),
-                  });
-                  const snap = await docRef.get();
-                  const newLikes = snap.data().likes || 0;
-                  btn.querySelector(".like-count").textContent = newLikes;
-                } catch (err) {
-                  console.error("Like error:", err);
-                  showError("Like failed: " + err.message);
-                }
-              });
-            });
+						// ─── Like Button ─────────────────────────────────
+						document.querySelectorAll(".like-btn").forEach((btn) => {
+							btn.addEventListener("click", async (e) => {
+								e.stopPropagation();
+								const user = getCurrentUser();
+								if (!user || !user.email) {
+									window.location.href = "index.html?redirect=register.html";
+									return;
+								}
+								const id = btn.dataset.id;
+								const docRef = db.collection("tar_tv_videos").doc(id);
+								try {
+									await docRef.update({
+										likes: FieldValue.increment(1),
+									});
+									const snap = await docRef.get();
+									const newLikes = snap.data().likes || 0;
+									btn.querySelector(".like-count").textContent = newLikes;
+								} catch (err) {
+									console.error("Like error:", err);
+									showError("Like failed: " + err.message);
+								}
+							});
+						});
 
-            // ─── Comment Button ─────────────────────────────
-            document.querySelectorAll(".comment-btn").forEach((btn) => {
-              btn.addEventListener("click", function (e) {
-                e.stopPropagation();
-                const user = getCurrentUser();
-                if (!user || !user.email) {
-                  window.location.href = "index.html?redirect=register.html";
-                  return;
-                }
-                const videoId = this.dataset.id;
-                openCommentsPanel(videoId);
-              });
-            });
+						// ─── Comment Button ─────────────────────────────
+						document.querySelectorAll(".comment-btn").forEach((btn) => {
+							btn.addEventListener("click", function (e) {
+								e.stopPropagation();
+								const user = getCurrentUser();
+								if (!user || !user.email) {
+									window.location.href = "index.html?redirect=register.html";
+									return;
+								}
+								const videoId = this.dataset.id;
+								openCommentsPanel(videoId);
+							});
+						});
 
-            // ─── Comments Panel Logic ────────────────────────
-            const panel = document.getElementById("commentsPanel");
-            const closeBtn = document.getElementById("closeCommentsBtn");
-            const commentsList = document.getElementById("commentsList");
-            const commentInput = document.getElementById("commentInput");
-            const sendBtn = document.getElementById("sendCommentBtn");
+						// ─── Comments Panel Logic ────────────────────────
+						const panel = document.getElementById("commentsPanel");
+						const closeBtn = document.getElementById("closeCommentsBtn");
+						const commentsList = document.getElementById("commentsList");
+						const commentInput = document.getElementById("commentInput");
+						const sendBtn = document.getElementById("sendCommentBtn");
 
-            function openCommentsPanel(videoId) {
-              if (
-                currentVideoId === videoId &&
-                panel.classList.contains("open")
-              ) {
-                // if already open, close it
-                closeCommentsPanel();
-                return;
-              }
-              currentVideoId = videoId;
-              panel.classList.add("open");
-              // Load comments
-              loadComments(videoId);
-              // Ensure the panel doesn't interfere with video playback (e.g., pause on open? we keep playing)
-            }
+						function openCommentsPanel(videoId) {
+							if (
+								currentVideoId === videoId &&
+								panel.classList.contains("open")
+							) {
+								// if already open, close it
+								closeCommentsPanel();
+								return;
+							}
+							currentVideoId = videoId;
+							panel.classList.add("open");
+							// Load comments
+							loadComments(videoId);
+							// Ensure the panel doesn't interfere with video playback (e.g., pause on open? we keep playing)
+						}
 
-            async function loadComments(videoId) {
-              commentsList.innerHTML =
-                '<div style="color:var(--text-muted);text-align:center;padding:1rem;">Loading comments...</div>';
-              try {
-                const snapshot = await db
-                  .collection("tar_tv_videos")
-                  .doc(videoId)
-                  .collection("comments")
-                  .orderBy("timestamp", "desc")
-                  .get();
+						async function loadComments(videoId) {
+							commentsList.innerHTML =
+								'<div style="color:var(--text-muted);text-align:center;padding:1rem;">Loading comments...</div>';
+							try {
+								const snapshot = await db
+									.collection("tar_tv_videos")
+									.doc(videoId)
+									.collection("comments")
+									.orderBy("timestamp", "desc")
+									.get();
 
-                commentsList.innerHTML = "";
-                if (snapshot.empty) {
-                  commentsList.innerHTML =
-                    '<div style="color:var(--text-muted);text-align:center;padding:1rem;">No comments yet. Be the first!</div>';
-                  return;
-                }
-                snapshot.forEach((doc) => {
-                  const c = doc.data();
-                  const div = document.createElement("div");
-                  div.className = "comment-item";
-                  const initial = c.userName
-                    ? c.userName.charAt(0).toUpperCase()
-                    : "?";
-                  const time = c.timestamp?.seconds
-                    ? new Date(c.timestamp.seconds * 1000).toLocaleString()
-                    : "";
-                  div.innerHTML = `
+								commentsList.innerHTML = "";
+								if (snapshot.empty) {
+									commentsList.innerHTML =
+										'<div style="color:var(--text-muted);text-align:center;padding:1rem;">No comments yet. Be the first!</div>';
+									return;
+								}
+								snapshot.forEach((doc) => {
+									const c = doc.data();
+									const div = document.createElement("div");
+									div.className = "comment-item";
+									const initial = c.userName
+										? c.userName.charAt(0).toUpperCase()
+										: "?";
+									const time = c.timestamp?.seconds
+										? new Date(c.timestamp.seconds * 1000).toLocaleString()
+										: "";
+									div.innerHTML = `
                                     <div class="comment-avatar">${initial}</div>
                                     <div class="comment-body">
                                         <div class="comment-user">${c.userName || "Anonymous"}</div>
@@ -1849,794 +1858,801 @@
                                         <div class="comment-time">${time}</div>
                                     </div>
                                 `;
-                  commentsList.appendChild(div);
-                });
-              } catch (err) {
-                console.error("Error loading comments:", err);
-                commentsList.innerHTML =
-                  '<div style="color:var(--danger);text-align:center;padding:1rem;">Failed to load comments.</div>';
-              }
-            }
+									commentsList.appendChild(div);
+								});
+							} catch (err) {
+								console.error("Error loading comments:", err);
+								commentsList.innerHTML =
+									'<div style="color:var(--danger);text-align:center;padding:1rem;">Failed to load comments.</div>';
+							}
+						}
 
-            function closeCommentsPanel() {
-              panel.classList.remove("open");
-              currentVideoId = null;
-              commentsList.innerHTML = "";
-              commentInput.value = "";
-            }
+						function closeCommentsPanel() {
+							panel.classList.remove("open");
+							currentVideoId = null;
+							commentsList.innerHTML = "";
+							commentInput.value = "";
+						}
 
-            closeBtn.addEventListener("click", closeCommentsPanel);
+						closeBtn.addEventListener("click", closeCommentsPanel);
 
-            sendBtn.addEventListener("click", async function () {
-              const text = commentInput.value.trim();
-              if (!text || !currentVideoId) return;
-              const user = getCurrentUser();
-              if (!user || !user.email) {
-                window.location.href = "index.html?redirect=register.html";
-                return;
-              }
-              try {
-                await db
-                  .collection("tar_tv_videos")
-                  .doc(currentVideoId)
-                  .collection("comments")
-                  .add({
-                    userId: user.email,
-                    userName:
-                      user.firstName + " " + user.lastName || user.email,
-                    text: text,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                  });
-                // Increment commentCount on video
-                await db
-                  .collection("tar_tv_videos")
-                  .doc(currentVideoId)
-                  .update({
-                    commentCount: FieldValue.increment(1),
-                  });
-                // Update the badge in the UI
-                const commentBtns = document.querySelectorAll(
-                  `.comment-btn[data-id="${currentVideoId}"]`,
-                );
-                commentBtns.forEach((btn) => {});
-                commentInput.value = "";
-                // Reload comments
-                loadComments(currentVideoId);
-              } catch (err) {
-                console.error("Error posting comment:", err);
-                showError("Failed to post comment.");
-              }
-            });
+						sendBtn.addEventListener("click", async function () {
+							const text = commentInput.value.trim();
+							if (!text || !currentVideoId) return;
+							const user = getCurrentUser();
+							if (!user || !user.email) {
+								window.location.href = "index.html?redirect=register.html";
+								return;
+							}
+							try {
+								await db
+									.collection("tar_tv_videos")
+									.doc(currentVideoId)
+									.collection("comments")
+									.add({
+										userId: user.email,
+										userName:
+											user.firstName + " " + user.lastName || user.email,
+										text: text,
+										timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+									});
+								// Increment commentCount on video
+								await db
+									.collection("tar_tv_videos")
+									.doc(currentVideoId)
+									.update({
+										commentCount: FieldValue.increment(1),
+									});
+								// Update the badge in the UI
+								const commentBtns = document.querySelectorAll(
+									`.comment-btn[data-id="${currentVideoId}"]`,
+								);
+								commentBtns.forEach((btn) => {});
+								commentInput.value = "";
+								// Reload comments
+								loadComments(currentVideoId);
+							} catch (err) {
+								console.error("Error posting comment:", err);
+								showError("Failed to post comment.");
+							}
+						});
 
-            commentInput.addEventListener("keydown", (e) => {
-              if (e.key === "Enter") sendBtn.click();
-            });
-          } catch (error) {
-            console.error("Tar TV error:", error);
-            showError("Error: " + error.message);
-            loader.style.display = "none";
-            tvContainer.innerHTML = "";
-          }
-        })();
+						commentInput.addEventListener("keydown", (e) => {
+							if (e.key === "Enter") sendBtn.click();
+						});
+					} catch (error) {
+						console.error("Tar TV error:", error);
+						showError("Error: " + error.message);
+						loader.style.display = "none";
+						tvContainer.innerHTML = "";
+					}
+				})();
 
-        // ─── Share Modal ──────────────────────────────────
-        const shareModal = document.getElementById("shareModal");
-        const shareModalClose = document.getElementById("shareModalClose");
-        const shareCancelBtn = document.getElementById("shareCancelBtn");
-        const shareDownloadBtn = document.getElementById("shareDownloadBtn");
-        const shareCopyLinkBtn = document.getElementById("shareCopyLinkBtn");
+				// ─── Share Modal ──────────────────────────────────
+				const shareModal = document.getElementById("shareModal");
+				const shareModalClose = document.getElementById("shareModalClose");
+				const shareCancelBtn = document.getElementById("shareCancelBtn");
+				const shareDownloadBtn = document.getElementById("shareDownloadBtn");
+				const shareCopyLinkBtn = document.getElementById("shareCopyLinkBtn");
 
-        let currentShareUrl = "";
+				let currentShareUrl = "";
 
-        function openShareModal(videoUrl) {
-          if (!videoUrl) {
-            showToast("No video to share.");
-            return;
-          }
-          currentShareUrl = videoUrl;
-          shareModal.style.display = "flex";
-          // Use requestAnimationFrame to apply transition
-          requestAnimationFrame(() => {
-            shareModal.classList.add("active");
-          });
-        }
+				function openShareModal(videoUrl) {
+					if (!videoUrl) {
+						showToast("No video to share.");
+						return;
+					}
+					currentShareUrl = videoUrl;
+					shareModal.style.display = "flex";
+					// Use requestAnimationFrame to apply transition
+					requestAnimationFrame(() => {
+						shareModal.classList.add("active");
+					});
+				}
 
-        function closeShareModal() {
-          shareModal.classList.remove("active");
-          setTimeout(() => {
-            shareModal.style.display = "none";
-            currentShareUrl = "";
-          }, 300);
-        }
+				function closeShareModal() {
+					shareModal.classList.remove("active");
+					setTimeout(() => {
+						shareModal.style.display = "none";
+						currentShareUrl = "";
+					}, 300);
+				}
 
-        // Close modal on backdrop click
-        shareModal.addEventListener("click", function (e) {
-          if (e.target === this) closeShareModal();
-        });
+				// Close modal on backdrop click
+				shareModal.addEventListener("click", function (e) {
+					if (e.target === this) closeShareModal();
+				});
 
-        shareModalClose.addEventListener("click", closeShareModal);
-        shareCancelBtn.addEventListener("click", closeShareModal);
+				shareModalClose.addEventListener("click", closeShareModal);
+				shareCancelBtn.addEventListener("click", closeShareModal);
 
-        // ─── Download Video ──────────────────────────────
-        shareDownloadBtn.addEventListener("click", function () {
-          if (!currentShareUrl) {
-            showToast("No video URL.");
-            closeShareModal();
-            return;
-          }
-          // Attempt to download using <a> tag with download attribute
-          const a = document.createElement("a");
-          a.href = currentShareUrl;
-          // Try to extract filename from URL
-          const urlParts = currentShareUrl.split("/");
-          const filename = urlParts[urlParts.length - 1] || "video.mp4";
-          // Ensure .mp4 extension if missing
-          const finalName = filename.includes(".")
-            ? filename
-            : filename + ".mp4";
-          a.download = finalName;
-          a.target = "_blank"; // fallback
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          closeShareModal();
-          showToast("⬇️ Download started.");
-        });
+				// ─── Download Video ──────────────────────────────
+				shareDownloadBtn.addEventListener("click", function () {
+					if (!currentShareUrl) {
+						showToast("No video URL.");
+						closeShareModal();
+						return;
+					}
+					// Attempt to download using <a> tag with download attribute
+					const a = document.createElement("a");
+					a.href = currentShareUrl;
+					// Try to extract filename from URL
+					const urlParts = currentShareUrl.split("/");
+					const filename = urlParts[urlParts.length - 1] || "video.mp4";
+					// Ensure .mp4 extension if missing
+					const finalName = filename.includes(".")
+						? filename
+						: filename + ".mp4";
+					a.download = finalName;
+					a.target = "_blank"; // fallback
+					document.body.appendChild(a);
+					a.click();
+					document.body.removeChild(a);
+					closeShareModal();
+					showToast("⬇️ Download started.");
+				});
 
-        // ─── Copy Link (Reh deeplink) ───────────────────
-        shareCopyLinkBtn.addEventListener("click", function () {
-          // Build Reh deeplink from active video ID
-          const videoId = window._activeTvVideoId;
-          const deeplink = videoId
-            ? `https://reh-crown.vercel.app/api/og?video=${encodeURIComponent(videoId)}`
-            : window.location.href;
+				// ─── Copy Link (Reh deeplink) ───────────────────
+				shareCopyLinkBtn.addEventListener("click", function () {
+					// Build Reh deeplink from active video ID
+					const videoId = window._activeTvVideoId;
+					const deeplink = videoId
+						? `https://reh-crown.vercel.app/api/og?video=${encodeURIComponent(videoId)}`
+						: window.location.href;
 
-          if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard
-              .writeText(deeplink)
-              .then(() => {
-                showToast("📋 Link copied to clipboard!");
-                closeShareModal();
-              })
-              .catch(() => {
-                fallbackCopy(deeplink);
-              });
-          } else {
-            fallbackCopy(deeplink);
-          }
-        });
+					if (navigator.clipboard && navigator.clipboard.writeText) {
+						navigator.clipboard
+							.writeText(deeplink)
+							.then(() => {
+								showToast("📋 Link copied to clipboard!");
+								closeShareModal();
+							})
+							.catch(() => {
+								fallbackCopy(deeplink);
+							});
+					} else {
+						fallbackCopy(deeplink);
+					}
+				});
 
-        function fallbackCopy(text) {
-          const input = document.createElement("input");
-          input.value = text;
-          document.body.appendChild(input);
-          input.select();
-          try {
-            document.execCommand("copy");
-            showToast("📋 Link copied!");
-          } catch (e) {
-            showToast("Could not copy link. Please copy manually.");
-          }
-          document.body.removeChild(input);
-          closeShareModal();
-        }
+				function fallbackCopy(text) {
+					const input = document.createElement("input");
+					input.value = text;
+					document.body.appendChild(input);
+					input.select();
+					try {
+						document.execCommand("copy");
+						showToast("📋 Link copied!");
+					} catch (e) {
+						showToast("Could not copy link. Please copy manually.");
+					}
+					document.body.removeChild(input);
+					closeShareModal();
+				}
 
-        // ─── Hook Share Button ──────────────────────────
-        // Update existing share button listener (inside the slide creation or globally)
-        // We'll attach a delegated listener to all share buttons.
-        document.addEventListener("click", function (e) {
-          const shareBtn = e.target.closest(".action-btn.share-btn");
-          if (shareBtn) {
-            e.stopPropagation();
-            const slide = shareBtn.closest(".video-slide");
-            if (slide) {
-              const video = slide.querySelector("video");
-              if (video && video.src) {
-                openShareModal(video.src);
-              } else {
-                // Fallback: get from dataset
-                const url = slide.dataset.videoUrl;
-                if (url) openShareModal(url);
-                else showToast("Video not ready.");
-              }
-            }
-          }
-        });
+				// ─── Hook Share Button ──────────────────────────
+				// Update existing share button listener (inside the slide creation or globally)
+				// We'll attach a delegated listener to all share buttons.
+				document.addEventListener("click", function (e) {
+					const shareBtn = e.target.closest(".action-btn.share-btn");
+					if (shareBtn) {
+						e.stopPropagation();
+						const slide = shareBtn.closest(".video-slide");
+						if (slide) {
+							const video = slide.querySelector("video");
+							if (video && video.src) {
+								openShareModal(video.src);
+							} else {
+								// Fallback: get from dataset
+								const url = slide.dataset.videoUrl;
+								if (url) openShareModal(url);
+								else showToast("Video not ready.");
+							}
+						}
+					}
+				});
 
-        // ─── Tar TV: Send in Reh ────────────────────────
-        (function initTvSendInReh() {
-          // ── Encryption helpers (same scheme as the chat) ──
-          async function deriveKey(salt, password) {
-            const enc = new TextEncoder();
-            const keyMaterial = await crypto.subtle.importKey(
-              "raw",
-              enc.encode(password),
-              { name: "PBKDF2" },
-              false,
-              ["deriveKey"],
-            );
-            return crypto.subtle.deriveKey(
-              {
-                name: "PBKDF2",
-                salt: enc.encode(salt),
-                iterations: 100000,
-                hash: "SHA-256",
-              },
-              keyMaterial,
-              { name: "AES-GCM", length: 256 },
-              false,
-              ["encrypt", "decrypt"],
-            );
-          }
-          async function encryptMessage(plaintext, key) {
-            const iv = crypto.getRandomValues(new Uint8Array(12));
-            const enc = new TextEncoder();
-            const ct = await crypto.subtle.encrypt(
-              { name: "AES-GCM", iv },
-              key,
-              enc.encode(plaintext),
-            );
-            return {
-              iv: Array.from(iv),
-              ciphertext: Array.from(new Uint8Array(ct)),
-            };
-          }
-          function getConversationId(a, b) {
-            return [a, b].sort().join("_");
-          }
-          function escHtml(s) {
-            const d = document.createElement("div");
-            d.textContent = String(s == null ? "" : s);
-            return d.innerHTML;
-          }
+				// ─── Tar TV: Send in Reh ────────────────────────
+				(function initTvSendInReh() {
+					// ── Encryption helpers (same scheme as the chat) ──
+					async function deriveKey(salt, password) {
+						const enc = new TextEncoder();
+						const keyMaterial = await crypto.subtle.importKey(
+							"raw",
+							enc.encode(password),
+							{ name: "PBKDF2" },
+							false,
+							["deriveKey"],
+						);
+						return crypto.subtle.deriveKey(
+							{
+								name: "PBKDF2",
+								salt: enc.encode(salt),
+								iterations: 100000,
+								hash: "SHA-256",
+							},
+							keyMaterial,
+							{ name: "AES-GCM", length: 256 },
+							false,
+							["encrypt", "decrypt"],
+						);
+					}
+					async function encryptMessage(plaintext, key) {
+						const iv = crypto.getRandomValues(new Uint8Array(12));
+						const enc = new TextEncoder();
+						const ct = await crypto.subtle.encrypt(
+							{ name: "AES-GCM", iv },
+							key,
+							enc.encode(plaintext),
+						);
+						return {
+							iv: Array.from(iv),
+							ciphertext: Array.from(new Uint8Array(ct)),
+						};
+					}
+					function getConversationId(a, b) {
+						return [a, b].sort().join("_");
+					}
+					function escHtml(s) {
+						const d = document.createElement("div");
+						d.textContent = String(s == null ? "" : s);
+						return d.innerHTML;
+					}
 
-          // ── Build the message body: a friendly line + the deeplink ──
-          function buildMessageBody(videoTitle, videoId) {
-            const url = `https://reh-crown.vercel.app/tartv.html?video=${encodeURIComponent(videoId)}`;
-            const title = videoTitle || "this video";
-            return `🎬 Check out "${title}" on Tar TV\n${url}`;
-          }
+					// ── Build the message body: a friendly line + the deeplink ──
+					function buildMessageBody(videoTitle, videoId) {
+						const url = `https://reh-crown.vercel.app/tartv.html?video=${encodeURIComponent(videoId)}`;
+						const title = videoTitle || "this video";
+						return `🎬 Check out "${title}" on Tar TV\n${url}`;
+					}
 
-          // ── Send the video share to a recipient ──────────
-          async function sendVideoTo(
-            recipientEmail,
-            videoId,
-            videoTitle,
-            thumbnail,
-          ) {
-            const user = getCurrentUser();
-            if (!user || !user.email) {
-              window._tvShowToast("Please log in.");
-              return false;
-            }
-            if (recipientEmail === user.email) {
-              window._tvShowToast("You cannot send to yourself.");
-              return false;
-            }
+					// ── Send the video share to a recipient ──────────
+					async function sendVideoTo(
+						recipientEmail,
+						videoId,
+						videoTitle,
+						thumbnail,
+					) {
+						const user = getCurrentUser();
+						if (!user || !user.email) {
+							window._tvShowToast("Please log in.");
+							return false;
+						}
+						if (recipientEmail === user.email) {
+							window._tvShowToast("You cannot send to yourself.");
+							return false;
+						}
 
-            const convId = getConversationId(user.email, recipientEmail);
-            const key = await deriveKey(convId, convId);
+						const convId = getConversationId(user.email, recipientEmail);
+						const key = await deriveKey(convId, convId);
 
-            const body = buildMessageBody(videoTitle, videoId);
-            const encrypted = await encryptMessage(body, key);
+						const body = buildMessageBody(videoTitle, videoId);
+						const encrypted = await encryptMessage(body, key);
 
-            const now = firebase.firestore.FieldValue.serverTimestamp();
+						const now = firebase.firestore.FieldValue.serverTimestamp();
 
-            try {
-              // 1. Write the message into the conversation
-              await db
-                .collection("chats")
-                .doc(convId)
-                .collection("messages")
-                .add({
-                  from: user.email,
-                  to: recipientEmail,
-                  text: encrypted,
-                  previewText: `🎬 Shared a Tar TV video`,
-                  sharedVideoId: videoId,
-                  sharedVideoTitle: videoTitle || "",
-                  sharedVideoThumb: thumbnail || "",
-                  timestamp: now,
-                  read: false,
-                });
+						try {
+							// 1. Write the message into the conversation
+							await db
+								.collection("chats")
+								.doc(convId)
+								.collection("messages")
+								.add({
+									from: user.email,
+									to: recipientEmail,
+									text: encrypted,
+									previewText: `🎬 Shared a Tar TV video`,
+									sharedVideoId: videoId,
+									sharedVideoTitle: videoTitle || "",
+									sharedVideoThumb: thumbnail || "",
+									timestamp: now,
+									read: false,
+								});
 
-              // 2. Ensure/update the parent chat document
-              const chatRef = db.collection("chats").doc(convId);
-              const chatSnap = await chatRef.get();
-              if (chatSnap.exists) {
-                await chatRef.update({
-                  lastTimestamp: now,
-                  [`unread_${recipientEmail}`]:
-                    firebase.firestore.FieldValue.increment(1),
-                });
-              } else {
-                await chatRef.set({
-                  participants: [user.email, recipientEmail],
-                  lastTimestamp: now,
-                  [`unread_${user.email}`]: 0,
-                  [`unread_${recipientEmail}`]: 1,
-                });
-              }
+							// 2. Ensure/update the parent chat document
+							const chatRef = db.collection("chats").doc(convId);
+							const chatSnap = await chatRef.get();
+							if (chatSnap.exists) {
+								await chatRef.update({
+									lastTimestamp: now,
+									[`unread_${recipientEmail}`]:
+										firebase.firestore.FieldValue.increment(1),
+								});
+							} else {
+								await chatRef.set({
+									participants: [user.email, recipientEmail],
+									lastTimestamp: now,
+									[`unread_${user.email}`]: 0,
+									[`unread_${recipientEmail}`]: 1,
+								});
+							}
 
-              // 3. Fire a notification for the recipient
-              await db.collection("notifications").add({
-                title: "🎬 New Tar TV share",
-                body: `${user.firstName || "Someone"} shared a video with you`,
-                timestamp: now,
-                targetEmail: recipientEmail,
-                senderEmail: user.email,
-                readBy: [],
-              });
+							// 3. Fire a notification for the recipient
+							await db.collection("notifications").add({
+								title: "🎬 New Tar TV share",
+								body: `${user.firstName || "Someone"} shared a video with you`,
+								timestamp: now,
+								targetEmail: recipientEmail,
+								senderEmail: user.email,
+								readBy: [],
+							});
 
-              return true;
-            } catch (err) {
-              console.error("[sendVideoTo] error:", err);
-              window._tvShowToast(
-                "Send failed: " + (err.message || "unknown error"),
-              );
-              return false;
-            }
-          }
+							return true;
+						} catch (err) {
+							console.error("[sendVideoTo] error:", err);
+							window._tvShowToast(
+								"Send failed: " + (err.message || "unknown error"),
+							);
+							return false;
+						}
+					}
 
-          // ── Fetch the list of other members ──────────────
-          let _sendUsersCache = null;
-          async function fetchSendUsers() {
-            if (_sendUsersCache) return _sendUsersCache;
-            const user = getCurrentUser();
-            const snap = await db.collection("users").limit(100).get();
-            const list = [];
-            snap.forEach((doc) => {
-              const u = doc.data();
-              if (!u.email || u.email === user.email) return;
-              if (u.banned || u.visibility === false) return;
-              list.push({
-                email: u.email,
-                name:
-                  `${u.firstName || ""} ${u.lastName || ""}`.trim() || u.email,
-                avatar: u.avatar || "",
-                age: u.age || "",
-                location: u.location || "",
-              });
-            });
-            list.sort((a, b) => a.name.localeCompare(b.name));
-            _sendUsersCache = list;
-            return list;
-          }
+					// ── Fetch the list of other members ──────────────
+					let _sendUsersCache = null;
+					async function fetchSendUsers() {
+						if (_sendUsersCache) return _sendUsersCache;
+						const user = getCurrentUser();
+						const snap = await db.collection("users").limit(100).get();
+						const list = [];
+						snap.forEach((doc) => {
+							const u = doc.data();
+							if (!u.email || u.email === user.email) return;
+							if (u.banned || u.visibility === false) return;
+							list.push({
+								email: u.email,
+								name:
+									`${u.firstName || ""} ${u.lastName || ""}`.trim() || u.email,
+								avatar: u.avatar || "",
+								age: u.age || "",
+								location: u.location || "",
+							});
+						});
+						list.sort((a, b) => a.name.localeCompare(b.name));
+						_sendUsersCache = list;
+						return list;
+					}
 
-          // ── Render the user list in the sheet ────────────
-          function renderSendResults(query) {
-            const box = document.getElementById("tvSendResults");
-            const q = (query || "").toLowerCase().trim();
+					// ── Render the user list in the sheet ────────────
+					function renderSendResults(query) {
+						const box = document.getElementById("tvSendResults");
+						const q = (query || "").toLowerCase().trim();
 
-            fetchSendUsers()
-              .then((users) => {
-                const filtered = q
-                  ? users.filter(
-                      (u) =>
-                        u.name.toLowerCase().includes(q) ||
-                        u.email.toLowerCase().includes(q),
-                    )
-                  : users;
+						fetchSendUsers()
+							.then((users) => {
+								const filtered = q
+									? users.filter(
+											(u) =>
+												u.name.toLowerCase().includes(q) ||
+												u.email.toLowerCase().includes(q),
+										)
+									: users;
 
-                if (!filtered.length) {
-                  box.innerHTML =
-                    '<p style="color:#8a857a;text-align:center;padding:1rem;font-size:0.85rem;">No members match.</p>';
-                  return;
-                }
+								if (!filtered.length) {
+									box.innerHTML =
+										'<p style="color:#8a857a;text-align:center;padding:1rem;font-size:0.85rem;">No members match.</p>';
+									return;
+								}
 
-                box.innerHTML = filtered
-                  .map(
-                    (u) => `
+								box.innerHTML = filtered
+									.map(
+										(u) => `
         <div class="tv-search-result" data-send-email="${escHtml(u.email)}">
           ${
-            u.avatar
-              ? `<img src="${escHtml(u.avatar)}" alt="" onerror="this.style.display='none'">`
-              : '<div style="width:48px;height:48px;border-radius:50%;background:#c9a84c;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#080c24;font-weight:700;">' +
-                escHtml((u.name || "?").charAt(0).toUpperCase()) +
-                "</div>"
-          }
+						u.avatar
+							? `<img src="${escHtml(u.avatar)}" alt="" onerror="this.style.display='none'">`
+							: '<div style="width:48px;height:48px;border-radius:50%;background:#c9a84c;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#080c24;font-weight:700;">' +
+								escHtml((u.name || "?").charAt(0).toUpperCase()) +
+								"</div>"
+					}
           <div class="info">
   <div class="t">${escHtml(u.name)}</div>
   <div class="a">${u.age ? escHtml(u.age) + " · " : ""}${escHtml(u.location || "Reh member")}</div>
 </div>
         </div>
       `,
-                  )
-                  .join("");
+									)
+									.join("");
 
-                box.querySelectorAll(".tv-search-result").forEach((el) => {
-                  el.addEventListener("click", async () => {
-                    const email = el.dataset.sendEmail;
-                    const videoId = window._activeTvVideoId;
-                    if (!videoId) {
-                      window._tvShowToast("No active video to send.");
-                      return;
-                    }
-                    const title =
-                      document
-                        .querySelector(
-                          '.video-slide[data-video-id="' +
-                            videoId +
-                            '"] .video-title',
-                        )
-                        ?.textContent?.trim() || "";
-                    const thumb =
-                      document.querySelector(
-                        '.video-slide[data-video-id="' +
-                          videoId +
-                          '"] .video-placeholder',
-                      )?.style?.backgroundImage || "";
-                    const thumbUrl = thumb
-                      .replace(/^url\(["']?/, "")
-                      .replace(/["']?\)$/, "");
+								box.querySelectorAll(".tv-search-result").forEach((el) => {
+									el.addEventListener("click", async () => {
+										const email = el.dataset.sendEmail;
+										const videoId = window._activeTvVideoId;
+										if (!videoId) {
+											window._tvShowToast("No active video to send.");
+											return;
+										}
+										const title =
+											document
+												.querySelector(
+													'.video-slide[data-video-id="' +
+														videoId +
+														'"] .video-title',
+												)
+												?.textContent?.trim() || "";
+										const thumb =
+											document.querySelector(
+												'.video-slide[data-video-id="' +
+													videoId +
+													'"] .video-placeholder',
+											)?.style?.backgroundImage || "";
+										const thumbUrl = thumb
+											.replace(/^url\(["']?/, "")
+											.replace(/["']?\)$/, "");
 
-                    // Visual feedback while sending
-                    el.style.opacity = "0.5";
-                    el.style.pointerEvents = "none";
+										// Visual feedback while sending
+										el.style.opacity = "0.5";
+										el.style.pointerEvents = "none";
 
-                    const ok = await sendVideoTo(
-                      email,
-                      videoId,
-                      title,
-                      thumbUrl,
-                    );
+										const ok = await sendVideoTo(
+											email,
+											videoId,
+											title,
+											thumbUrl,
+										);
 
-                    if (ok) {
-                      window._tvShowToast("🎬 Sent!");
-                      window._tvCloseAllSheets();
-                    } else {
-                      el.style.opacity = "1";
-                      el.style.pointerEvents = "";
-                    }
-                  });
-                });
-              })
-              .catch((err) => {
-                console.error("[renderSendResults] error:", err);
-                box.innerHTML =
-                  '<p style="color:#e74c3c;text-align:center;padding:1rem;font-size:0.85rem;">Could not load members.</p>';
-              });
-          }
+										if (ok) {
+											window._tvShowToast("🎬 Sent!");
+											window._tvCloseAllSheets();
+										} else {
+											el.style.opacity = "1";
+											el.style.pointerEvents = "";
+										}
+									});
+								});
+							})
+							.catch((err) => {
+								console.error("[renderSendResults] error:", err);
+								box.innerHTML =
+									'<p style="color:#e74c3c;text-align:center;padding:1rem;font-size:0.85rem;">Could not load members.</p>';
+							});
+					}
 
-          // ── Hook the "Send in Reh" button ────────────────
-          const sendBtn = document.getElementById("shareSendInRehBtn");
-          if (sendBtn) {
-            sendBtn.addEventListener("click", () => {
-              closeShareModal();
-              // Small delay so the share modal slide-down finishes first
-              setTimeout(() => {
-                window._tvOpenSheet("tvSendSheet");
-                renderSendResults("");
-                const input = document.getElementById("tvSendSearchInput");
-                if (input) {
-                  input.value = "";
-                  setTimeout(() => input.focus(), 320);
-                }
-              }, 200);
-            });
-          }
+					// ── Hook the "Send in Reh" button ────────────────
+					const sendBtn = document.getElementById("shareSendInRehBtn");
+					if (sendBtn) {
+						sendBtn.addEventListener("click", () => {
+							closeShareModal();
+							// Small delay so the share modal slide-down finishes first
+							setTimeout(() => {
+								window._tvOpenSheet("tvSendSheet");
+								renderSendResults("");
+								const input = document.getElementById("tvSendSearchInput");
+								if (input) {
+									input.value = "";
+									setTimeout(() => input.focus(), 320);
+								}
+							}, 200);
+						});
+					}
 
-          // ── Live search inside the send sheet ────────────
-          const sendInput = document.getElementById("tvSendSearchInput");
-          if (sendInput) {
-            sendInput.addEventListener("input", (e) =>
-              renderSendResults(e.target.value),
-            );
-          }
-        })();
+					// ── Live search inside the send sheet ────────────
+					const sendInput = document.getElementById("tvSendSearchInput");
+					if (sendInput) {
+						sendInput.addEventListener("input", (e) =>
+							renderSendResults(e.target.value),
+						);
+					}
+				})();
 
-        // ─── Tar TV Top Nav & Bottom Sheets ─────────────
-        (function initTvTopNav() {
-          const SETTINGS_KEYS = {
-            muted: "tar_tv_initial_muted",
-            dataSaver: "tar_tv_data_saver",
-          };
+				// ─── Tar TV Top Nav & Bottom Sheets ─────────────
+				(function initTvTopNav() {
+					const SETTINGS_KEYS = {
+						muted: "tar_tv_initial_muted",
+						dataSaver: "tar_tv_data_saver",
+					};
 
-          // Load persisted settings
-          const initialMuted =
-            localStorage.getItem(SETTINGS_KEYS.muted) !== "false";
-          const dataSaverOn =
-            localStorage.getItem(SETTINGS_KEYS.dataSaver) === "true";
-          window._tvDataSaver = dataSaverOn;
-          // NOTE: Data saver currently only toggles video.preload attributes.
-          // Future: wire into preloadAdjacentVideos() when that function is restored.
+					// Load persisted settings
+					const initialMuted =
+						localStorage.getItem(SETTINGS_KEYS.muted) !== "false";
+					const dataSaverOn =
+						localStorage.getItem(SETTINGS_KEYS.dataSaver) === "true";
+					window._tvDataSaver = dataSaverOn;
+					// NOTE: Data saver currently only toggles video.preload attributes.
+					// Future: wire into preloadAdjacentVideos() when that function is restored.
 
-          // ─── Nav toast (self-contained) ─────────
-          function showTvToast(msg) {
-            let toast = document.getElementById("tvNavToast");
-            if (!toast) {
-              toast = document.createElement("div");
-              toast.id = "tvNavToast";
-              toast.style.cssText =
-                "position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(20,30,60,0.95);color:#f0e4c8;border:1px solid #c9a84c;padding:12px 24px;border-radius:50px;font-size:0.85rem;z-index:400;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;font-family:Inter,sans-serif;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);max-width:85%;text-align:center;";
-              document.body.appendChild(toast);
-            }
-            toast.textContent = msg;
-            requestAnimationFrame(() => {
-              toast.style.opacity = "1";
-              toast.style.transform = "translateX(-50%) translateY(0)";
-            });
-            clearTimeout(showTvToast._t);
-            showTvToast._t = setTimeout(() => {
-              toast.style.opacity = "0";
-              toast.style.transform = "translateX(-50%) translateY(20px)";
-            }, 2400);
-          }
+					// ─── Nav toast (self-contained) ─────────
+					function showTvToast(msg) {
+						let toast = document.getElementById("tvNavToast");
+						if (!toast) {
+							toast = document.createElement("div");
+							toast.id = "tvNavToast";
+							toast.style.cssText =
+								"position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(20,30,60,0.95);color:#f0e4c8;border:1px solid #c9a84c;padding:12px 24px;border-radius:50px;font-size:0.85rem;z-index:400;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;font-family:Inter,sans-serif;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);max-width:85%;text-align:center;";
+							document.body.appendChild(toast);
+						}
+						toast.textContent = msg;
+						requestAnimationFrame(() => {
+							toast.style.opacity = "1";
+							toast.style.transform = "translateX(-50%) translateY(0)";
+						});
+						clearTimeout(showTvToast._t);
+						showTvToast._t = setTimeout(() => {
+							toast.style.opacity = "0";
+							toast.style.transform = "translateX(-50%) translateY(20px)";
+						}, 2400);
+					}
 
-          // ─── Sheet helpers ─────────────────────
-          function openSheet(id) {
-            const el = document.getElementById(id);
-            if (el) el.classList.add("show");
-          }
-          function closeSheet(id) {
-            const el = document.getElementById(id);
-            if (el) el.classList.remove("show");
-          }
-          function closeAllSheets() {
-            document
-              .querySelectorAll(".tv-sheet-overlay.show")
-              .forEach((el) => el.classList.remove("show"));
-          }
+					// ─── Sheet helpers ─────────────────────
+					function openSheet(id) {
+						const el = document.getElementById(id);
+						if (el) el.classList.add("show");
+					}
+					function closeSheet(id) {
+						const el = document.getElementById(id);
+						if (el) el.classList.remove("show");
+					}
+					function closeAllSheets() {
+						document
+							.querySelectorAll(".tv-sheet-overlay.show")
+							.forEach((el) => el.classList.remove("show"));
+					}
 
-          // Expose for other modules (send-in-Reh, future features)
-          window._tvOpenSheet = openSheet;
-          window._tvCloseAllSheets = closeAllSheets;
-          window._tvShowToast = showTvToast;
+					// Expose for other modules (send-in-Reh, future features)
+					window._tvOpenSheet = openSheet;
+					window._tvCloseAllSheets = closeAllSheets;
+					window._tvShowToast = showTvToast;
 
-          document.querySelectorAll(".tv-sheet-overlay").forEach((overlay) => {
-            overlay.addEventListener("click", function (e) {
-              if (
-                e.target === overlay ||
-                e.target.closest("[data-close-sheet]")
-              ) {
-                closeAllSheets();
-              }
-            });
-          });
+					document.querySelectorAll(".tv-sheet-overlay").forEach((overlay) => {
+						overlay.addEventListener("click", function (e) {
+							if (
+								e.target === overlay ||
+								e.target.closest("[data-close-sheet]")
+							) {
+								closeAllSheets();
+							}
+						});
+					});
 
-          // ─── Back button ────────────────────────
-          document.getElementById("tvBackBtn").addEventListener("click", () => {
-            // Same-origin referrer → real history back (deeplink-safe).
-            // Otherwise (e.g. WhatsApp deeplink) → fall back to Discover.
-            if (
-              document.referrer &&
-              document.referrer.includes(window.location.host)
-            ) {
-              history.back();
-            } else {
-              window.location.href = "discover.html";
-            }
-          });
+					// ─── Back button ────────────────────────
+					document.getElementById("tvBackBtn").addEventListener("click", () => {
+						// Same-origin referrer → real history back (deeplink-safe).
+						// Otherwise (e.g. WhatsApp deeplink) → fall back to Discover.
+						if (
+							document.referrer &&
+							document.referrer.includes(window.location.host)
+						) {
+							history.back();
+						} else {
+							window.location.href = "discover.html";
+						}
+					});
 
-          // ─── Search sheet ───────────────────────
-          const searchInput = document.getElementById("tvSearchInput");
-          const searchResults = document.getElementById("tvSearchResults");
+					// ─── Search sheet ───────────────────────
+					const searchInput = document.getElementById("tvSearchInput");
+					const searchResults = document.getElementById("tvSearchResults");
 
-          function getVideoList() {
-            return Array.from(document.querySelectorAll(".video-slide")).map(
-              (slide) => {
-                const t = slide.querySelector(".video-title");
-                const a = slide.querySelector(".video-author");
-                const ph = slide.querySelector(".video-placeholder");
-                let thumb = "";
-                if (ph && ph.style.backgroundImage) {
-                  thumb = ph.style.backgroundImage
-                    .replace(/^url\(["']?/, "")
-                    .replace(/["']?\)$/, "");
-                }
-                return {
-                  id: slide.dataset.videoId,
-                  title: t ? t.textContent.trim() : "",
-                  author: a ? a.textContent.replace(/^@/, "").trim() : "",
-                  thumbnail: thumb,
-                };
-              },
-            );
-          }
-          function escHtml(s) {
-            const d = document.createElement("div");
-            d.textContent = String(s);
-            return d.innerHTML;
-          }
-          function renderSearchResults(query) {
-            const q = (query || "").toLowerCase().trim();
-            const all = getVideoList();
-            const list = q
-              ? all.filter(
-                  (v) =>
-                    v.title.toLowerCase().includes(q) ||
-                    v.author.toLowerCase().includes(q),
-                )
-              : all.slice(0, 20);
+					function getVideoList() {
+						return Array.from(document.querySelectorAll(".video-slide")).map(
+							(slide) => {
+								const t = slide.querySelector(".video-title");
+								const a = slide.querySelector(".video-author");
+								const ph = slide.querySelector(".video-placeholder");
+								let thumb = "";
+								if (ph && ph.style.backgroundImage) {
+									thumb = ph.style.backgroundImage
+										.replace(/^url\(["']?/, "")
+										.replace(/["']?\)$/, "");
+								}
+								return {
+									id: slide.dataset.videoId,
+									title: t ? t.textContent.trim() : "",
+									author: a ? a.textContent.replace(/^@/, "").trim() : "",
+									thumbnail: thumb,
+								};
+							},
+						);
+					}
+					function escHtml(s) {
+						const d = document.createElement("div");
+						d.textContent = String(s);
+						return d.innerHTML;
+					}
+					function renderSearchResults(query) {
+						const q = (query || "").toLowerCase().trim();
+						const all = getVideoList();
+						const list = q
+							? all.filter(
+									(v) =>
+										v.title.toLowerCase().includes(q) ||
+										v.author.toLowerCase().includes(q),
+								)
+							: all.slice(0, 20);
 
-            if (!list.length) {
-              searchResults.innerHTML =
-                '<p style="color:#8a857a;text-align:center;padding:1rem;font-size:0.85rem;">No videos match.</p>';
-              return;
-            }
-            searchResults.innerHTML = list
-              .map(
-                (v) => `
+						if (!list.length) {
+							searchResults.innerHTML =
+								'<p style="color:#8a857a;text-align:center;padding:1rem;font-size:0.85rem;">No videos match.</p>';
+							return;
+						}
+						searchResults.innerHTML = list
+							.map(
+								(v) => `
       <div class="tv-search-result" data-video-id="${v.id}">
         ${
-          v.thumbnail
-            ? `<img src="${v.thumbnail}" alt="" onerror="this.style.display='none'">`
-            : '<div style="width:48px;height:48px;border-radius:8px;background:#111;flex-shrink:0;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-video" style="color:#c9a84c;opacity:.5;"></i></div>'
-        }
+					v.thumbnail
+						? `<img src="${v.thumbnail}" alt="" onerror="this.style.display='none'">`
+						: '<div style="width:48px;height:48px;border-radius:8px;background:#111;flex-shrink:0;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-video" style="color:#c9a84c;opacity:.5;"></i></div>'
+				}
         <div class="info">
           <div class="t">${escHtml(v.title || "Untitled")}</div>
           <div class="a">@${escHtml(v.author || "Reh")}</div>
         </div>
       </div>
     `,
-              )
-              .join("");
-            searchResults
-              .querySelectorAll(".tv-search-result")
-              .forEach((el) => {
-                el.addEventListener("click", () => {
-                  const slide = document.querySelector(
-                    `.video-slide[data-video-id="${el.dataset.videoId}"]`,
-                  );
-                  if (slide)
-                    slide.scrollIntoView({
-                      behavior: "smooth",
-                      block: "start",
-                    });
-                  closeAllSheets();
-                });
-              });
-          }
-          document
-            .getElementById("tvSearchBtn")
-            .addEventListener("click", () => {
-              openSheet("tvSearchSheet");
-              renderSearchResults("");
-              setTimeout(() => searchInput.focus(), 320);
-            });
-          searchInput.addEventListener("input", (e) =>
-            renderSearchResults(e.target.value),
-          );
+							)
+							.join("");
+						searchResults
+							.querySelectorAll(".tv-search-result")
+							.forEach((el) => {
+								el.addEventListener("click", () => {
+									const slide = document.querySelector(
+										`.video-slide[data-video-id="${el.dataset.videoId}"]`,
+									);
+									if (slide)
+										slide.scrollIntoView({
+											behavior: "smooth",
+											block: "start",
+										});
+									closeAllSheets();
+								});
+							});
+					}
+					document
+						.getElementById("tvSearchBtn")
+						.addEventListener("click", () => {
+							openSheet("tvSearchSheet");
+							renderSearchResults("");
+							setTimeout(() => searchInput.focus(), 320);
+						});
+					searchInput.addEventListener("input", (e) =>
+						renderSearchResults(e.target.value),
+					);
 
-          // ─── Segment (visual only) ──────────────
-          document.querySelectorAll("#tvSegment button").forEach((btn) => {
-            btn.addEventListener("click", function () {
-              const seg = this.dataset.seg;
-              if (seg === "ireh") {
-                window.location.href = "/ireh";
-                return;
-              }
-              if (seg === "aireh") {
-                window.location.href = "/aireh";
-                return;
-              }
-              document
-                .querySelectorAll("#tvSegment button")
-                .forEach((b) => b.classList.remove("active"));
-              this.classList.add("active");
-              showTvToast(`Switched to ${this.textContent}`);
-            });
-          });
+					// ─── Segment (visual only) ──────────────
+					document.querySelectorAll("#tvSegment button").forEach((btn) => {
+						btn.addEventListener("click", function () {
+							const seg = this.dataset.seg;
+							if (seg === "ireh") {
+								window.location.href = "/ireh";
+								return;
+							}
+							if (seg === "aireh") {
+								window.location.href = "/aireh";
+								return;
+							}
+							document
+								.querySelectorAll("#tvSegment button")
+								.forEach((b) => b.classList.remove("active"));
+							this.classList.add("active");
+							showTvToast(`Switched to ${this.textContent}`);
+						});
+					});
 
-          // ─── Watch full videos placeholder ──────
-          document
-            .getElementById("tvFullVideosBtn")
-            .addEventListener("click", () => {
-              window.location.href = "/videos";
-            });
+					// ─── Watch full videos placeholder ──────
+					document
+						.getElementById("tvFullVideosBtn")
+						.addEventListener("click", () => {
+							window.location.href = "/videos";
+						});
 
-          // ─── Kebab menu ─────────────────────────
-          document
-            .getElementById("tvKebabBtn")
-            .addEventListener("click", () => openSheet("tvKebabSheet"));
+					// ─── Kebab menu ─────────────────────────
+					document
+						.getElementById("tvKebabBtn")
+						.addEventListener("click", () => openSheet("tvKebabSheet"));
 
-          document
-            .getElementById("tvOfflineItem")
-            .addEventListener("click", () => {
-              closeAllSheets();
-              showTvToast("📥 Offline videos coming soon.");
-            });
-          document
-            .getElementById("tvSettingsItem")
-            .addEventListener("click", () => {
-              closeSheet("tvKebabSheet");
-              openSheet("tvSettingsSheet");
-            });
-          document
-            .getElementById("tvSupportItem")
-            .addEventListener("click", () => {
-              closeSheet("tvKebabSheet");
-              openSheet("tvSupportSheet");
-            });
-          document
-            .getElementById("tvSettingsSupportItem")
-            .addEventListener("click", () => {
-              closeSheet("tvSettingsSheet");
-              openSheet("tvSupportSheet");
-            });
-          document
-            .getElementById("tvRemoveAdsItem")
-            .addEventListener("click", () => {
-              closeAllSheets();
-              showTvToast(
-                "👑 Ad-free experience coming soon. Available in a future update.",
-              );
-            });
+					document
+						.getElementById("tvOfflineItem")
+						.addEventListener("click", () => {
+							closeAllSheets();
+							showTvToast("📥 Offline videos coming soon.");
+						});
+					document
+						.getElementById("tvSettingsItem")
+						.addEventListener("click", () => {
+							closeSheet("tvKebabSheet");
+							openSheet("tvSettingsSheet");
+						});
+					document
+						.getElementById("tvSupportItem")
+						.addEventListener("click", () => {
+							closeSheet("tvKebabSheet");
+							openSheet("tvSupportSheet");
+						});
+					document
+						.getElementById("tvSettingsSupportItem")
+						.addEventListener("click", () => {
+							closeSheet("tvSettingsSheet");
+							openSheet("tvSupportSheet");
+						});
+					document
+						.getElementById("tvRemoveAdsItem")
+						.addEventListener("click", () => {
+							closeAllSheets();
+							showTvToast(
+								"👑 Ad-free experience coming soon. Available in a future update.",
+							);
+						});
 
-          // ─── Settings toggles ───────────────────
-          const mutedToggle = document.getElementById("tvStartMutedToggle");
-          const dataSaverToggle = document.getElementById("tvDataSaverToggle");
-          mutedToggle.checked = initialMuted;
-          dataSaverToggle.checked = dataSaverOn;
+					// ─── Settings toggles ───────────────────
+					const mutedToggle = document.getElementById("tvStartMutedToggle");
+					const dataSaverToggle = document.getElementById("tvDataSaverToggle");
+					mutedToggle.checked = initialMuted;
+					dataSaverToggle.checked = dataSaverOn;
 
-          mutedToggle.addEventListener("change", function () {
-            localStorage.setItem(
-              SETTINGS_KEYS.muted,
-              this.checked ? "true" : "false",
-            );
-            // Apply live to current active video
-            const active = document.querySelector(
-              ".video-slide video:not([paused])",
-            );
-            if (active) {
-              if (this.checked) {
-                active.muted = true;
-              } else {
-                active.muted = false;
-                active.play().catch(() => {
-                  active.muted = true;
-                });
-              }
-            }
-            showTvToast(
-              this.checked
-                ? "🔇 Videos will start muted"
-                : "🔊 Videos will start unmuted",
-            );
-          });
+					mutedToggle.addEventListener("change", function () {
+						localStorage.setItem(
+							SETTINGS_KEYS.muted,
+							this.checked ? "true" : "false",
+						);
+						// Apply live to current active video
+						const active = document.querySelector(
+							".video-slide video:not([paused])",
+						);
+						if (active) {
+							if (this.checked) {
+								active.muted = true;
+							} else {
+								active.muted = false;
+								active.play().catch(() => {
+									active.muted = true;
+								});
+							}
+						}
+						showTvToast(
+							this.checked
+								? "🔇 Videos will start muted"
+								: "🔊 Videos will start unmuted",
+						);
+					});
 
-          dataSaverToggle.addEventListener("change", function () {
-            const on = this.checked;
-            localStorage.setItem(
-              SETTINGS_KEYS.dataSaver,
-              on ? "true" : "false",
-            );
-            window._tvDataSaver = on;
-            applyDataSaver();
-            showTvToast(on ? "📶 Data saver ON" : "📶 Data saver OFF");
-          });
+					dataSaverToggle.addEventListener("change", function () {
+						const on = this.checked;
+						localStorage.setItem(
+							SETTINGS_KEYS.dataSaver,
+							on ? "true" : "false",
+						);
+						window._tvDataSaver = on;
+						applyDataSaver();
+						showTvToast(on ? "📶 Data saver ON" : "📶 Data saver OFF");
+					});
 
-          function applyDataSaver() {
-            const on = window._tvDataSaver;
-            document.querySelectorAll(".video-slide video").forEach((v) => {
-              if (v.src && !v.paused) return; // don't disturb the active video
-              v.preload = on ? "none" : "metadata";
-            });
-          }
-          applyDataSaver();
+					function applyDataSaver() {
+						const on = window._tvDataSaver;
+						document.querySelectorAll(".video-slide video").forEach((v) => {
+							if (v.src && !v.paused) return; // don't disturb the active video
+							v.preload = on ? "none" : "metadata";
+						});
+					}
+					applyDataSaver();
 
-          // Reapply when slides are (re)built (skeleton → real transition)
-          const tvC = document.getElementById("tvContainer");
-          if (tvC && window.MutationObserver) {
-            const mo = new MutationObserver(() => applyDataSaver());
-            mo.observe(tvC, { childList: true, subtree: true });
-          }
-          setTimeout(applyDataSaver, 2500);
-          setTimeout(applyDataSaver, 6000);
-        })();
-      })();
-    </script>
+					// Reapply when slides are (re)built (skeleton → real transition)
+					const tvC = document.getElementById("tvContainer");
+					if (tvC && window.MutationObserver) {
+						const mo = new MutationObserver(() => applyDataSaver());
+						mo.observe(tvC, { childList: true, subtree: true });
+					}
+					  setTimeout(applyDataSaver, 2500);
+  setTimeout(applyDataSaver, 6000);
 
-    <script>
-      (function () {
-        const FLAG = "reh_full_videos_announced";
-        if (localStorage.getItem(FLAG) === "true") return;
-        // Don't block the video feed for more than a moment — delay insertion
-        setTimeout(() => {
-          const modal = document.createElement("div");
-          modal.style.cssText =
-            "position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(8px);z-index:99999;display:flex;align-items:center;justify-content:center;padding:1.5rem;opacity:0;transition:opacity 0.3s;";
-          modal.innerHTML = `
+  // Highlight the correct segment tab based on mode
+  if (_IS_AI_MODE) {
+    document.querySelectorAll('#tvSegment button').forEach(b => b.classList.remove('active'));
+    const aiTab = document.querySelector('#tvSegment button[data-seg="aireh"]');
+    if (aiTab) aiTab.classList.add('active');
+  }
+})();
+			})();
+		</script>
+
+		<script>
+			(function () {
+				const FLAG = "reh_full_videos_announced";
+				if (localStorage.getItem(FLAG) === "true") return;
+				// Don't block the video feed for more than a moment — delay insertion
+				setTimeout(() => {
+					const modal = document.createElement("div");
+					modal.style.cssText =
+						"position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(8px);z-index:99999;display:flex;align-items:center;justify-content:center;padding:1.5rem;opacity:0;transition:opacity 0.3s;";
+					modal.innerHTML = `
         <div style="background:linear-gradient(145deg,rgba(15,20,50,0.98),rgba(15,20,50,0.92));border:1px solid #c9a84c;border-radius:24px;padding:2rem 1.5rem;max-width:420px;width:100%;text-align:center;box-shadow:0 25px 60px rgba(0,0,0,0.6);">
           <div style="font-size:2.5rem;margin-bottom:0.5rem;">🎬</div>
           <h2 style="font-family:'Playfair Display',serif;color:#dfc278;font-size:1.4rem;margin-bottom:0.75rem;">Introducing Full Videos</h2>
@@ -2647,19 +2663,19 @@
           </div>
         </div>
       `;
-          document.body.appendChild(modal);
-          requestAnimationFrame(() => (modal.style.opacity = "1"));
-          function dismiss() {
-            localStorage.setItem(FLAG, "true");
-            modal.style.opacity = "0";
-            setTimeout(() => modal.remove(), 300);
-          }
-          modal.querySelector("#fvLaterBtn").addEventListener("click", dismiss);
-          modal.querySelector("a").addEventListener("click", () => {
-            localStorage.setItem(FLAG, "true");
-          });
-        }, 1200);
-      })();
-    </script>
-  </body>
+					document.body.appendChild(modal);
+					requestAnimationFrame(() => (modal.style.opacity = "1"));
+					function dismiss() {
+						localStorage.setItem(FLAG, "true");
+						modal.style.opacity = "0";
+						setTimeout(() => modal.remove(), 300);
+					}
+					modal.querySelector("#fvLaterBtn").addEventListener("click", dismiss);
+					modal.querySelector("a").addEventListener("click", () => {
+						localStorage.setItem(FLAG, "true");
+					});
+				}, 1200);
+			})();
+		</script>
+	</body>
 </html>

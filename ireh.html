@@ -1,583 +1,273 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>iReh | Reh</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-    />
-    <link rel="stylesheet" href="assets/main.css" />
-    <script type="module" src="assets/firebase.js"></script>
-    <style>
-      :root {
-        --deep-navy: #080c24;
-        --gold: #c9a84c;
-        --gold-light: #dfc278;
-        --champagne: #f0e4c8;
-        --glass-border: rgba(255, 255, 255, 0.08);
-        --glass-card: rgba(15, 20, 50, 0.55);
-        --text-primary: #f0ece6;
-        --text-secondary: #c5bfb3;
-        --text-muted: #8a857a;
-      }
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-      body {
-        font-family: "Inter", system-ui, sans-serif;
-        background: var(--deep-navy);
-        color: var(--text-primary);
-        min-height: 100vh;
-        overflow-x: hidden;
-        line-height: 1.6;
-      }
-      .main-wrapper {
-        position: relative;
-        z-index: 2;
-      }
-      .ireh-container {
-        max-width: 1600px;
-        margin: 2rem auto 4rem;
-        padding: 0 1.25rem;
-      }
-      .page-title {
-        font-family: "Playfair Display", serif;
-        font-size: clamp(2rem, 5vw, 3rem);
-        background: linear-gradient(
-          180deg,
-          #fff 0%,
-          #f0d9b0 40%,
-          var(--gold) 100%
-        );
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        margin-bottom: 0.3rem;
-        text-align: center;
-      }
-      .page-subtitle {
-        color: var(--text-secondary);
-        font-style: italic;
-        font-size: 0.95rem;
-        margin-bottom: 1.5rem;
-        text-align: center;
-      }
-      .batch-chips {
-        display: flex;
-        gap: 0.5rem;
-        overflow-x: auto;
-        padding-bottom: 1rem;
-        margin-bottom: 1.5rem;
-        justify-content: center;
-        scrollbar-width: none;
-        -ms-overflow-style: none;
-      }
-      .batch-chips::-webkit-scrollbar {
-        display: none;
-      }
-      .batch-chip {
-        flex-shrink: 0;
-        padding: 8px 18px;
-        border-radius: 50px;
-        border: 1px solid var(--glass-border);
-        background: rgba(255, 255, 255, 0.02);
-        color: var(--text-secondary);
-        font-size: 0.8rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: 0.25s;
-        white-space: nowrap;
-        font-family: inherit;
-      }
-      .batch-chip:hover {
-        border-color: var(--gold-light);
-        color: var(--champagne);
-      }
-      .batch-chip.active {
-        background: linear-gradient(
-          135deg,
-          rgba(200, 160, 60, 0.3),
-          rgba(200, 160, 60, 0.15)
-        );
-        border-color: var(--gold);
-        color: var(--champagne);
-      }
-      .masonry {
-        column-count: 2;
-        column-gap: 0.75rem;
-      }
-      @media (min-width: 640px) {
-        .masonry {
-          column-count: 3;
-        }
-      }
-      @media (min-width: 1024px) {
-        .masonry {
-          column-count: 4;
-        }
-      }
-      @media (min-width: 1440px) {
-        .masonry {
-          column-count: 5;
-        }
-      }
-      .masonry-item {
-        break-inside: avoid;
-        margin-bottom: 0.75rem;
-        border-radius: 12px;
-        overflow: hidden;
-        background: rgba(255, 255, 255, 0.03);
-        cursor: pointer;
-        transition:
-          transform 0.25s,
-          box-shadow 0.25s;
-      }
-      .masonry-item:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
-      }
-      .masonry-item img {
-        display: block;
-        width: 100%;
-        height: auto;
-        background: #111;
-        transition: opacity 0.3s;
-      }
-      .masonry-item.loading img {
-        opacity: 0;
-      }
-      .masonry-item.loaded img {
-        opacity: 1;
-      }
-      .masonry-item.error {
-        display: none;
-      }
-      .sk-item {
-        break-inside: avoid;
-        margin-bottom: 0.75rem;
-        border-radius: 12px;
-        background: linear-gradient(
-          90deg,
-          rgba(255, 255, 255, 0.03) 0%,
-          rgba(200, 160, 60, 0.1) 50%,
-          rgba(255, 255, 255, 0.03) 100%
-        );
-        background-size: 800px 100%;
-        animation: shimmer 1.6s infinite linear;
-      }
-      @keyframes shimmer {
-        0% {
-          background-position: -400px 0;
-        }
-        100% {
-          background-position: 400px 0;
-        }
-      }
-      .empty-state {
-        text-align: center;
-        padding: 4rem 1rem;
-        color: var(--text-muted);
-      }
-      .empty-state i {
-        font-size: 2.5rem;
-        color: var(--gold-light);
-        opacity: 0.5;
-        display: block;
-        margin-bottom: 0.75rem;
-      }
-      .lightbox {
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.95);
-        z-index: 9999;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        touch-action: none;
-      }
-      .lightbox.open {
-        display: flex;
-      }
-      .lightbox img {
-        max-width: 95vw;
-        max-height: 90vh;
-        object-fit: contain;
-        user-select: none;
-      }
-      .lightbox-close {
-        position: absolute;
-        top: 20px;
-        right: 20px;
-        background: none;
-        border: none;
-        color: white;
-        font-size: 2rem;
-        cursor: pointer;
-        z-index: 10;
-      }
-      .lightbox-nav {
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-        background: rgba(0, 0, 0, 0.5);
-        border: none;
-        color: white;
-        width: 48px;
-        height: 48px;
-        border-radius: 50%;
-        cursor: pointer;
-        font-size: 1.4rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .lightbox-prev {
-        left: 16px;
-      }
-      .lightbox-next {
-        right: 16px;
-      }
-      .lightbox-counter {
-        position: absolute;
-        top: 20px;
-        left: 20px;
-        color: rgba(255, 255, 255, 0.6);
-        font-size: 0.85rem;
-        font-weight: 600;
-      }
-      @media (max-width: 640px) {
-        .lightbox-nav {
-          width: 40px;
-          height: 40px;
-          font-size: 1.1rem;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="main-wrapper">
-      <nav class="nav"></nav>
-      <aside class="sidebar invisible" id="sidebar"></aside>
-      <div class="ireh-container">
-        <h1 class="page-title">iReh</h1>
-        <p class="page-subtitle">Moments captured by Reh</p>
-        <div class="batch-chips" id="batchChips"></div>
-        <div class="masonry" id="masonryGrid"></div>
-        <div id="emptyState" style="display: none">
-          <div class="empty-state">
-            <i class="fa-solid fa-images"></i>No images yet. Check back soon.
-          </div>
-        </div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>iReh | Reh</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="assets/main.css" />
+  <script type="module" src="assets/firebase.js"></script>
+  <style>
+    :root{--deep-navy:#080c24;--gold:#c9a84c;--gold-light:#dfc278;--champagne:#f0e4c8;--glass-border:rgba(255,255,255,0.08);--text-primary:#f0ece6;--text-secondary:#c5bfb3;--text-muted:#8a857a;}
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'Inter',system-ui,sans-serif;background:var(--deep-navy);color:var(--text-primary);min-height:100vh;overflow-x:hidden;line-height:1.6;}
+    .main-wrapper{position:relative;z-index:2;}
+    .ireh-container{max-width:1600px;margin:2rem auto 4rem;padding:0 1.25rem;}
+    .page-title{font-family:'Playfair Display',serif;font-size:clamp(2rem,5vw,3rem);background:linear-gradient(180deg,#fff 0%,#f0d9b0 40%,var(--gold) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:0.3rem;text-align:center;}
+    .page-subtitle{color:var(--text-secondary);font-style:italic;font-size:0.95rem;margin-bottom:0.5rem;text-align:center;}
+    .page-disclaimer{text-align:center;font-size:0.75rem;color:var(--text-muted);margin-bottom:1.5rem;display:none;}
+    .batch-chips{display:flex;gap:0.5rem;overflow-x:auto;padding-bottom:1rem;margin-bottom:1.5rem;justify-content:center;scrollbar-width:none;-ms-overflow-style:none;}
+    .batch-chips::-webkit-scrollbar{display:none;}
+    .batch-chip{flex-shrink:0;padding:8px 18px;border-radius:50px;border:1px solid var(--glass-border);background:rgba(255,255,255,0.02);color:var(--text-secondary);font-size:0.8rem;font-weight:600;cursor:pointer;transition:0.25s;white-space:nowrap;font-family:inherit;}
+    .batch-chip:hover{border-color:var(--gold-light);color:var(--champagne);}
+    .batch-chip.active{background:linear-gradient(135deg,rgba(200,160,60,0.3),rgba(200,160,60,0.15));border-color:var(--gold);color:var(--champagne);}
+    .sk-item{break-inside:avoid;margin-bottom:0.75rem;border-radius:12px;background:linear-gradient(90deg,rgba(255,255,255,0.03) 0%,rgba(200,160,60,0.10) 50%,rgba(255,255,255,0.03) 100%);background-size:800px 100%;animation:shimmer 1.6s infinite linear;}
+    @keyframes shimmer{0%{background-position:-400px 0;}100%{background-position:400px 0;}}
+    .empty-state{text-align:center;padding:4rem 1rem;color:var(--text-muted);column-span:all;}
+    .empty-state i{font-size:2.5rem;color:var(--gold-light);opacity:0.5;display:block;margin-bottom:0.75rem;}
+		/* Masonry gallery */
+.masonry{column-count:2;column-gap:0.75rem;}
+@media (min-width:640px){.masonry{column-count:3;}}
+@media (min-width:1024px){.masonry{column-count:4;}}
+@media (min-width:1440px){.masonry{column-count:5;}}
+.masonry-item{break-inside:avoid;margin-bottom:0.75rem;border-radius:12px;overflow:hidden;background:rgba(255,255,255,0.03);cursor:pointer;transition:transform 0.25s,box-shadow 0.25s;position:relative;}
+.masonry-item:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,0,0,0.4);}
+.masonry-item img{display:block;width:100%;height:auto;background:#111;transition:opacity 0.3s;}
+.masonry-item.loading img{opacity:0;}
+.masonry-item.loaded img{opacity:1;}
+.masonry-item.error{display:none;}
+.ai-badge{position:absolute;top:6px;left:6px;background:rgba(0,0,0,0.7);color:#dfc278;font-size:0.6rem;font-weight:700;padding:2px 8px;border-radius:50px;letter-spacing:0.05em;border:1px solid rgba(200,160,60,0.4);z-index:2;}
+		.sk-item{break-inside:avoid;margin-bottom:0.75rem;border-radius:12px;background:linear-gradient(90deg,rgba(255,255,255,0.03) 0%,rgba(200,160,60,0.10) 50%,rgba(255,255,255,0.03) 100%);background-size:800px 100%;animation:shimmer 1.6s infinite linear;}
+    .lightbox{position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:9999;display:none;align-items:center;justify-content:center;touch-action:none;}
+    .lightbox.open{display:flex;}
+    .lightbox img{max-width:95vw;max-height:90vh;object-fit:contain;user-select:none;}
+    .lightbox-close{position:absolute;top:20px;right:20px;background:none;border:none;color:white;font-size:2rem;cursor:pointer;z-index:10;}
+    .lightbox-nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,0.5);border:none;color:white;width:48px;height:48px;border-radius:50%;cursor:pointer;font-size:1.4rem;display:flex;align-items:center;justify-content:center;}
+    .lightbox-prev{left:16px;}
+    .lightbox-next{right:16px;}
+    .lightbox-counter{position:absolute;top:20px;left:20px;color:rgba(255,255,255,0.6);font-size:0.85rem;font-weight:600;}
+    @media (max-width:640px){.lightbox-nav{width:40px;height:40px;font-size:1.1rem;}}
+  </style>
+</head>
+<body>
+  <div class="main-wrapper">
+    <nav class="nav"></nav>
+    <aside class="sidebar invisible" id="sidebar"></aside>
+    <div class="ireh-container">
+      <h1 class="page-title" id="pageTitle">iReh</h1>
+      <p class="page-subtitle" id="pageSubtitle">Moments captured by Reh</p>
+      <p class="page-disclaimer" id="pageDisclaimer">All content on this page is AI-generated by Reh Studio.</p>
+      <div class="batch-chips" id="batchChips"></div>
+      <div id="masonryGrid"></div>
+      <div id="emptyState" style="display:none;">
+        <div class="empty-state"><i class="fa-solid fa-images"></i><span id="emptyText">No images yet. Check back soon.</span></div>
       </div>
-      <div class="lightbox" id="lightbox">
-        <div class="lightbox-counter" id="lightboxCounter"></div>
-        <button class="lightbox-close" id="lightboxClose">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-        <button class="lightbox-nav lightbox-prev" id="lightboxPrev">
-          <i class="fa-solid fa-chevron-left"></i>
-        </button>
-        <button class="lightbox-nav lightbox-next" id="lightboxNext">
-          <i class="fa-solid fa-chevron-right"></i>
-        </button>
-        <img id="lightboxImg" src="" alt="" />
-      </div>
-      <footer class="footer"></footer>
     </div>
-    <script src="assets/general.js"></script>
-    <script>
-      (function () {
-        const PAGE_SIZE = 30;
-        const CACHE_KEY = "ireh_cache";
-        const CACHE_TTL = 5 * 60 * 1000;
-        const grid = document.getElementById("masonryGrid");
-        const chips = document.getElementById("batchChips");
-        const emptyState = document.getElementById("emptyState");
-        let allBatches = [];
-        let filteredImages = [];
-        let rendered = 0;
+    <div class="lightbox" id="lightbox">
+      <div class="lightbox-counter" id="lightboxCounter"></div>
+      <button class="lightbox-close" id="lightboxClose"><i class="fa-solid fa-xmark"></i></button>
+      <button class="lightbox-nav lightbox-prev" id="lightboxPrev"><i class="fa-solid fa-chevron-left"></i></button>
+      <button class="lightbox-nav lightbox-next" id="lightboxNext"><i class="fa-solid fa-chevron-right"></i></button>
+      <img id="lightboxImg" src="" alt="" />
+    </div>
+    <footer class="footer"></footer>
+  </div>
+  <script src="assets/general.js"></script>
+  <script type="module">
+    import { renderGallery, initLightbox } from './assets/modules/gallery.js';
 
-        let activeBatch = "all";
+    const PAGE_SIZE = 30;
+    const CACHE_KEY = 'ireh_cache';
+    const CACHE_TTL = 5 * 60 * 1000;
 
-        // ── Engagement tracking ──────────────────────
-        // Fire-and-forget. Never blocks UI. Never throws.
-        async function trackBatchView(batchId) {
-          if (!batchId) return;
-          const key = "ireh_bv_" + batchId;
-          if (sessionStorage.getItem(key)) return;
-          sessionStorage.setItem(key, "1");
-          try {
-            await window.updateDoc(
-              window.doc(window.db, "ireh_batches", batchId),
-              {
-                views: window.increment(1),
-                lastViewedAt: window.serverTimestamp(),
-              },
-            );
-          } catch (e) {
-            console.warn("[ireh] batch view bump failed:", e);
-          }
-        }
+    const aiFilter = new URLSearchParams(window.location.search).get('filter') === 'ai';
 
-        async function trackImageView(batchId, index) {
-          if (!batchId) return;
-          const key = "ireh_iv_" + batchId + "_" + index;
-          if (sessionStorage.getItem(key)) return;
-          sessionStorage.setItem(key, "1");
-          try {
-            await window.setDoc(
-              window.doc(
-                window.db,
-                "ireh_batches",
-                batchId,
-                "imageStats",
-                String(index),
-              ),
-              {
-                views: window.increment(1),
-                lastViewedAt: window.serverTimestamp(),
-              },
-              { merge: true },
-            );
-          } catch (e) {
-            console.warn("[ireh] image view bump failed:", e);
-          }
-        }
-        const params = new URLSearchParams(window.location.search);
-        const initialBatch = params.get("batch");
+    const grid = document.getElementById('masonryGrid');
+    const chips = document.getElementById('batchChips');
+    const emptyState = document.getElementById('emptyState');
+    const pageTitle = document.getElementById('pageTitle');
+    const pageSubtitle = document.getElementById('pageSubtitle');
+    const pageDisclaimer = document.getElementById('pageDisclaimer');
+    const emptyText = document.getElementById('emptyText');
 
-        function waitForFirebase(cb) {
-          if (window.db && window.collection && window.getDocs) cb();
-          else {
-            let n = 0;
-            const t = setInterval(() => {
-              if (window.db && window.collection && window.getDocs) {
-                clearInterval(t);
-                cb();
-              }
-              if (++n > 100) {
-                clearInterval(t);
-              }
-            }, 100);
-          }
-        }
+    if (aiFilter) {
+      pageTitle.textContent = 'AI Reh Gallery';
+      pageSubtitle.textContent = 'AI-generated visuals from Reh Studio';
+      pageDisclaimer.style.display = 'block';
+      emptyText.textContent = 'No AI visuals yet. Check back soon.';
+    }
 
-        function renderSkeleton(n) {
-          let html = "";
-          for (let i = 0; i < n; i++) {
-            const h = 150 + Math.floor(Math.random() * 200);
-            html += `<div class="sk-item" style="height:${h}px;"></div>`;
-          }
-          grid.innerHTML = html;
-        }
+    let allBatches = [];
+    let filteredImages = [];
+    let rendered = 0;
+    let activeBatch = 'all';
+    let lightboxCtl = null;
 
-        function renderBatchChips() {
-          if (allBatches.length <= 1) {
-            chips.style.display = "none";
-            return;
-          }
-          chips.style.display = "flex";
-          const items = [{ id: "all", title: "All" }].concat(
-            allBatches.map((b) => ({ id: b.id, title: b.title })),
-          );
-          chips.innerHTML = items
-            .map(
-              (b) =>
-                `<button class="batch-chip ${b.id === activeBatch ? "active" : ""}" data-batch="${b.id}">${b.title}</button>`,
-            )
-            .join("");
-          chips.querySelectorAll(".batch-chip").forEach((c) => {
-            c.addEventListener("click", () => {
-              activeBatch = c.dataset.batch;
-              if (activeBatch !== "all") trackBatchView(activeBatch);
-              chips
-                .querySelectorAll(".batch-chip")
-                .forEach((x) =>
-                  x.classList.toggle("active", x.dataset.batch === activeBatch),
-                );
-              applyFilter();
-            });
-          });
-        }
+    function waitForFirebase(cb) {
+      if (window.db && window.collection && window.getDocs) cb();
+      else {
+        let n = 0;
+        const t = setInterval(() => {
+          if (window.db && window.collection && window.getDocs) { clearInterval(t); cb(); }
+          if (++n > 100) { clearInterval(t); }
+        }, 100);
+      }
+    }
 
-        function applyFilter() {
-          filteredImages = [];
-          allBatches.forEach((b) => {
-            if (activeBatch !== "all" && b.id !== activeBatch) return;
-            (b.images||[]).forEach((url,idx)=>filteredImages.push({url,batchId:b.id,imageIndex:idx}));
-          });
-          rendered = 0;
-          grid.innerHTML = "";
-          emptyState.style.display =
-            filteredImages.length === 0 ? "block" : "none";
-          if (filteredImages.length > 0) renderNextPage();
-        }
+    function renderSkeleton(n) {
+  let html = '';
+  for (let i = 0; i < n; i++) {
+    const h = 150 + Math.floor(Math.random() * 200);
+    html += `<div class="sk-item" style="height:${h}px;"></div>`;
+  }
+  grid.className = 'masonry';
+  grid.innerHTML = html;
+}
 
-        function renderNextPage() {
-          const next = filteredImages.slice(rendered, rendered + PAGE_SIZE);
-          let html = "";
-          next.forEach((item, idx) => {
-            const i = rendered + idx;
-            html += `<div class="masonry-item loading" data-i="${i}"><img src="${item.url}" loading="lazy" alt="" onerror="this.parentElement.classList.add('error')"></div>`;
-          });
-          grid.insertAdjacentHTML("beforeend", html);
-          rendered += next.length;
-          grid.querySelectorAll(".masonry-item.loading img").forEach((img) => {
-            if (img.complete) {
-              img.parentElement.classList.remove("loading");
-              img.parentElement.classList.add("loaded");
-            } else {
-              img.addEventListener(
-                "load",
-                () => {
-                  img.parentElement.classList.remove("loading");
-                  img.parentElement.classList.add("loaded");
-                },
-                { once: true },
-              );
+    function renderBatchChips() {
+      if (allBatches.length <= 1) { chips.style.display = 'none'; return; }
+      chips.style.display = 'flex';
+      const items = [{ id: 'all', title: 'All' }].concat(allBatches.map(b => ({ id: b.id, title: b.title })));
+      chips.innerHTML = items.map(b => `<button class="batch-chip ${b.id === activeBatch ? 'active' : ''}" data-batch="${b.id}">${b.title}</button>`).join('');
+      chips.querySelectorAll('.batch-chip').forEach(c => {
+        c.addEventListener('click', () => {
+          activeBatch = c.dataset.batch;
+          chips.querySelectorAll('.batch-chip').forEach(x => x.classList.toggle('active', x.dataset.batch === activeBatch));
+          applyFilter();
+        });
+      });
+    }
+
+    function applyFilter() {
+      filteredImages = [];
+      allBatches.forEach(b => {
+        if (activeBatch !== 'all' && b.id !== activeBatch) return;
+        (b.images || []).forEach((url, idx) => {
+          filteredImages.push({ url, batchId: b.id, imageIndex: idx });
+        });
+      });
+      rendered = 0;
+      grid.innerHTML = '';
+      emptyState.style.display = filteredImages.length === 0 ? 'block' : 'none';
+
+      if (filteredImages.length > 0) {
+        renderNextPage();
+        const urls = filteredImages.map(f => f.url);
+        lightboxCtl = initLightbox(urls, {
+          onOpen: (i) => {
+            const item = filteredImages[i];
+            if (item && item.batchId) {
+              trackBatchView(item.batchId);
+              trackImageView(item.batchId, item.imageIndex);
             }
-          });
-        }
-
-        const sentinel = document.createElement("div");
-        sentinel.style.height = "1px";
-        document.querySelector(".ireh-container").appendChild(sentinel);
-        if ("IntersectionObserver" in window) {
-          new IntersectionObserver(
-            (entries) => {
-              if (entries[0].isIntersecting && rendered < filteredImages.length)
-                renderNextPage();
-            },
-            { rootMargin: "600px" },
-          ).observe(sentinel);
-        }
-
-        let lbIndex = -1;
-        const lb = document.getElementById("lightbox");
-        const lbImg = document.getElementById("lightboxImg");
-        const lbCounter = document.getElementById("lightboxCounter");
-        function openLightbox(i) {
-          lbIndex = i;
-          lbImg.src = filteredImages[i].url;
-          lbCounter.textContent = i + 1 + " / " + filteredImages.length;
-          lb.classList.add("open");
-          const item = filteredImages[i];
-          if (item && item.batchId) {
-            trackBatchView(item.batchId);
-            trackImageView(item.batchId, i);
           }
-        }
-        function closeLightbox() {
-          lb.classList.remove("open");
-          lbImg.src = "";
-          lbIndex = -1;
-        }
-        function navLightbox(d) {
-          if (lbIndex < 0) return;
-          lbIndex =
-            (lbIndex + d + filteredImages.length) % filteredImages.length;
-          lbImg.src = filteredImages[lbIndex].url;
-          lbCounter.textContent = lbIndex + 1 + " / " + filteredImages.length;
-        }
-        document
-          .getElementById("lightboxClose")
-          .addEventListener("click", closeLightbox);
-        document
-          .getElementById("lightboxPrev")
-          .addEventListener("click", (e) => {
-            e.stopPropagation();
-            navLightbox(-1);
-          });
-        document
-          .getElementById("lightboxNext")
-          .addEventListener("click", (e) => {
-            e.stopPropagation();
-            navLightbox(1);
-          });
-        lb.addEventListener("click", (e) => {
-          if (e.target === lb) closeLightbox();
         });
-        grid.addEventListener("click", (e) => {
-          const item = e.target.closest(".masonry-item");
-          if (!item) return;
-          const i = parseInt(item.dataset.i, 10);
-          if (!isNaN(i) && filteredImages[i]) openLightbox(i);
-        });
-        document.addEventListener("keydown", (e) => {
-          if (!lb.classList.contains("open")) return;
-          if (e.key === "Escape") closeLightbox();
-          if (e.key === "ArrowLeft") navLightbox(-1);
-          if (e.key === "ArrowRight") navLightbox(1);
-        });
-        let touchStartX = 0;
-        lb.addEventListener(
-          "touchstart",
-          (e) => {
-            touchStartX = e.touches[0].clientX;
-          },
-          { passive: true },
+      }
+    }
+
+    function renderNextPage() {
+      const next = filteredImages.slice(rendered, rendered + PAGE_SIZE);
+      if (next.length === 0) return;
+
+      const nextEls = document.createElement('div');
+      nextEls.style.display = 'contents';
+      renderGallery(nextEls, next.map(f => f.url), { showAIBadge: aiFilter });
+
+      nextEls.querySelectorAll('.masonry-item').forEach((el, idx) => {
+        el.dataset.i = String(rendered + idx);
+      });
+      while (nextEls.firstChild) grid.appendChild(nextEls.firstChild);
+
+      rendered += next.length;
+    }
+
+    const sentinel = document.createElement('div');
+    sentinel.style.height = '1px';
+    document.querySelector('.ireh-container').appendChild(sentinel);
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(entries => {
+        if (entries[0].isIntersecting && rendered < filteredImages.length) renderNextPage();
+      }, { rootMargin: '600px' }).observe(sentinel);
+    }
+
+    grid.addEventListener('click', (e) => {
+      const item = e.target.closest('.masonry-item');
+      if (!item) return;
+      const i = parseInt(item.dataset.i, 10);
+      if (!isNaN(i) && lightboxCtl) lightboxCtl.open(i);
+    });
+
+    async function trackBatchView(batchId) {
+      if (!batchId) return;
+      const key = 'ireh_bv_' + batchId;
+      if (sessionStorage.getItem(key)) return;
+      sessionStorage.setItem(key, '1');
+      try {
+        await window.updateDoc(
+          window.doc(window.db, 'ireh_batches', batchId),
+          { views: window.increment(1), lastViewedAt: window.serverTimestamp() }
         );
-        lb.addEventListener("touchend", (e) => {
-          const dx = e.changedTouches[0].clientX - touchStartX;
-          if (Math.abs(dx) > 50) navLightbox(dx < 0 ? 1 : -1);
-        });
+      } catch (e) { console.warn('[ireh] batch view bump failed:', e); }
+    }
 
-        renderSkeleton(12);
-        waitForFirebase(async () => {
+    async function trackImageView(batchId, index) {
+      if (!batchId) return;
+      const key = 'ireh_iv_' + batchId + '_' + index;
+      if (sessionStorage.getItem(key)) return;
+      sessionStorage.setItem(key, '1');
+      try {
+        await window.setDoc(
+          window.doc(window.db, 'ireh_batches', batchId, 'imageStats', String(index)),
+          { views: window.increment(1), lastViewedAt: window.serverTimestamp() },
+          { merge: true }
+        );
+      } catch (e) { console.warn('[ireh] image view bump failed:', e); }
+    }
+
+    renderSkeleton(12);
+
+    waitForFirebase(async () => {
+      try {
+        let data = null;
+        const cached = sessionStorage.getItem(CACHE_KEY);
+        if (cached) {
           try {
-            let data = null;
-            const cached = sessionStorage.getItem(CACHE_KEY);
-            if (cached) {
-              try {
-                const c = JSON.parse(cached);
-                if (Date.now() - c.ts < CACHE_TTL) data = c.data;
-              } catch (e) {}
-            }
-            if (!data) {
-              const snap = await window.getDocs(
-                window.query(
-                  window.collection(window.db, "ireh_batches"),
-                  window.where("status", "==", "published"),
-                ),
-              );
-              data = [];
-              snap.forEach((doc) =>
-                data.push(Object.assign({ id: doc.id }, doc.data())),
-              );
-              data.sort((a, b) => {
-                const am = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
-                const bm = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
-                return bm - am;
-              });
-              try {
-                sessionStorage.setItem(
-                  CACHE_KEY,
-                  JSON.stringify({ data, ts: Date.now() }),
-                );
-              } catch (e) {}
-            }
-            allBatches = data;
-            if (initialBatch && allBatches.some((b) => b.id === initialBatch))
-              activeBatch = initialBatch;
-            renderBatchChips();
-            applyFilter();
-          } catch (err) {
-            console.error("[ireh] load failed:", err);
-            grid.innerHTML =
-              '<div class="empty-state" style="column-span:all;"><i class="fa-solid fa-triangle-exclamation"></i>Could not load gallery. Please refresh.</div>';
-          }
-        });
-      })();
-    </script>
-  </body>
+            const c = JSON.parse(cached);
+            if (Date.now() - c.ts < CACHE_TTL) data = c.data;
+          } catch (e) {}
+        }
+        if (!data) {
+          const snap = await window.getDocs(
+            window.query(
+              window.collection(window.db, 'ireh_batches'),
+              window.where('status', '==', 'published')
+            )
+          );
+          data = [];
+          snap.forEach(doc => data.push(Object.assign({ id: doc.id }, doc.data())));
+          data.sort((a, b) => {
+            const am = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+            const bm = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+            return bm - am;
+          });
+          try { sessionStorage.setItem(CACHE_KEY, JSON.stringify({ data, ts: Date.now() })); } catch (e) {}
+        }
+
+        allBatches = data.filter(b => aiFilter ? b.isAI === true : b.isAI !== true);
+
+        const initialBatch = new URLSearchParams(window.location.search).get('batch');
+        if (initialBatch && allBatches.some(b => b.id === initialBatch)) activeBatch = initialBatch;
+
+        renderBatchChips();
+        applyFilter();
+      } catch (err) {
+        console.error('[ireh] load failed:', err);
+        grid.innerHTML = '<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i>Could not load gallery. Please refresh.</div>';
+      }
+    });
+  </script>
+</body>
 </html>
