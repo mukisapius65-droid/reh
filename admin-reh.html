@@ -751,9 +751,7 @@
 					<a href="#" data-page="newsletter"
 						><i class="fa-solid fa-newspaper"></i> Newsletter</a
 					>
-					<a href="#" data-page="reports"
-						><i class="fa-solid fa-flag"></i> Reports</a
-					>
+					<a href="#" data-page="reports"><i class="fa-solid fa-flag"></i> Reports</a>
 					<a href="#" data-page="settings"
 						><i class="fa-solid fa-gear"></i> Admin Settings</a
 					>
@@ -1284,6 +1282,20 @@
 				</div>
 
 				<!-- Reports -->
+				<div id="page-reported-videos" class="page">
+  <div class="page-header">
+    <h2 class="page-title"><i class="fa-solid fa-video"></i> Reported Videos</h2>
+  </div>
+  <div class="table-container">
+    <table id="reportedVideosTable">
+      <thead>
+        <tr><th>Thumbnail</th><th>Title</th><th>Author</th><th>Reports</th><th>Status</th><th>Actions</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+				</div>
+				
 				<div id="page-reports" class="page">
 					<div class="page-header">
 						<h2 class="page-title">
@@ -3393,6 +3405,61 @@
 						}
 					}
 
+					async function loadReportedVideos() {
+  const tbody = document.querySelector('#reportedVideosTable tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;"><i class="fa-solid fa-spinner fa-spin"></i></td></tr>';
+  try {
+    const snap = await window.getDocs(
+      window.query(
+        window.collection(window.db, 'tar_tv_videos'),
+        window.where('reports', '>=', 1),
+        window.orderBy('reports', 'desc'),
+        window.limit(50)
+      )
+    );
+    tbody.innerHTML = '';
+    if (snap.empty) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);">No reported videos.</td></tr>';
+      return;
+    }
+    snap.forEach(doc => {
+      const v = doc.data();
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td><img src="${v.thumbnail || ''}" style="width:60px;height:60px;border-radius:8px;object-fit:cover;background:#111;" onerror="this.style.opacity=0.3"></td>
+        <td>${v.title || ''}</td>
+        <td>${v.author || ''}</td>
+        <td><span class="badge badge-danger">${v.reports || 0}</span></td>
+        <td><span class="badge ${v.status === 'hidden' ? 'badge-danger' : 'badge-warning'}">${v.status || 'published'}</span></td>
+        <td>
+          <a class="btn-sm btn-edit" href="/tartv.html?video=${doc.id}" target="_blank">View</a>
+          <button class="btn-sm btn-ban hide-video-report" data-id="${doc.id}">Hide</button>
+          <button class="btn-sm btn-delete delete-video-report" data-id="${doc.id}">Delete</button>
+        </td>
+      `;
+      tbody.appendChild(row);
+    });
+    document.querySelectorAll('.hide-video-report').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        await window.updateDoc(window.doc(window.db, 'tar_tv_videos', btn.dataset.id), { status: 'hidden' });
+        loadReportedVideos();
+      });
+    });
+    document.querySelectorAll('.delete-video-report').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Delete this video permanently?')) return;
+        await window.deleteDoc(window.doc(window.db, 'tar_tv_videos', btn.dataset.id));
+        loadReportedVideos();
+      });
+    });
+  } catch (err) {
+    console.error('[admin] reported videos load failed:', err);
+    tbody.innerHTML = '<tr><td colspan="6" style="color:var(--danger);text-align:center;">Failed to load. A composite index on reports + reports (desc) may be required.</td></tr>';
+  }
+}
+window.loadReportedVideos = loadReportedVideos;
+
 					async function loadReports() {
 						const tbody = document.querySelector("#reportsTable tbody");
 						tbody.innerHTML =
@@ -3551,6 +3618,7 @@
 								if (page === "concierge") loadConciergeRequests();
 								if (page === "notifications") loadNotifications();
 								if (page === "newsletter") loadNewsletterSubscribers();
+								if (page === 'reported-videos') loadReportedVideos();
 								if (page === "reports") loadReports();
 								if (page === "event-invitations") loadEventInvitations();
 							});

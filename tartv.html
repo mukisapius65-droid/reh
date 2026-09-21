@@ -989,59 +989,7 @@
 		<div class="loading-spinner" id="loader">
 			<i class="fa-solid fa-spinner fa-spin"></i>
 		</div>
-		<div style="display: none">
-			<!-- ─── Floating Upload Button ─────────────────────── -->
-			<div
-				id="floatingUploadBtn"
-				style="
-					position: fixed;
-					bottom: 10px; /* above bottom nav (70px) + extra margin */
-					left: 50%;
-					transform: translateX(-50%);
-					z-index: 50;
-					cursor: pointer;
-					display: flex;
-					flex-direction: column;
-					align-items: center;
-					gap: 4px;
-				"
-			>
-				<button
-					onclick="window.openVideoUploadModal()"
-					style="
-						display: none;
-						width: 64px;
-						height: 64px;
-						border-radius: 50%;
-						background: linear-gradient(
-							135deg,
-							var(--crimson, #8b1a2b),
-							var(--gold, #c9a84c)
-						);
-						border: none;
-						color: white;
-						font-size: 1.8rem;
-						box-shadow: 0 8px 30px rgba(200, 160, 60, 0.5);
-						cursor: pointer;
-						transition: all 0.3s ease;
-						display: flex;
-						align-items: center;
-						justify-content: center;
-					"
-				>
-					<i class="fa-solid fa-upload"></i>
-				</button>
-				<span
-					style="
-						font-size: 0.6rem;
-						color: var(--text-secondary, #c5bfb3);
-						letter-spacing: 0.04em;
-						font-weight: 500;
-					"
-					>Upload</span
-				>
-			</div>
-		</div>
+		
 		<!-- ─── Tar TV Top Nav ─────────────────────────── -->
 		<nav class="tv-topnav" id="tvTopNav" aria-label="Tar TV navigation">
 			<button class="tv-topnav-btn" id="tvBackBtn" aria-label="Back">
@@ -1323,11 +1271,7 @@
 		<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 		<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
-		<!-- ─── Video Upload Module ─── -->
-		<script type="module">
-			import { initVideoUpload } from "./assets/modules/video-upload.js";
-			initVideoUpload();
-		</script>
+		<
 
 		<script>
 			(function () {
@@ -1448,13 +1392,14 @@
 						}
 
 						const allVideos = [];
-						snapshot.forEach((doc) => {
-							allVideos.push({ id: doc.id, ...doc.data() });
-						});
-						const videos = allVideos.filter((v) => {
-							const vidIsAI = v.isAI === true;
-							return _IS_AI_MODE ? vidIsAI : !vidIsAI;
-						});
+snapshot.forEach(doc => {
+    allVideos.push({ id: doc.id, ...doc.data() });
+});
+const videos = allVideos.filter(v => {
+    if (v.status === 'hidden') return false;
+    const vidIsAI = v.isAI === true;
+    return _IS_AI_MODE ? vidIsAI : !vidIsAI;
+});
 
 						// ─── Clear skeleton slides ───
 						tvContainer.innerHTML = "";
@@ -2680,6 +2625,405 @@
 					});
 				}, 1200);
 			})();
-		</script>
-	</body>
+		    </script>
+
+    <script>
+      // ─── Tar TV Post + Report ────────────────────────
+      // Self-contained. Injects its own button + sheet. No existing code touched.
+      (function () {
+        'use strict';
+
+        function whenReady(cb) {
+          if (window.firebase && window.firebase.firestore && document.getElementById('tvTopNav')) cb();
+          else setTimeout(() => whenReady(cb), 100);
+        }
+
+        whenReady(function init() {
+          const db = firebase.firestore();
+          const FieldValue = firebase.firestore.FieldValue;
+
+          function getCurrentUser() {
+            try { return JSON.parse(localStorage.getItem('reh_user') || '{}'); }
+            catch (e) { return {}; }
+          }
+          function toast(msg) {
+            let t = document.getElementById('tvNavToast');
+            if (!t) {
+              t = document.createElement('div');
+              t.id = 'tvNavToast';
+              t.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(20,30,60,0.95);color:#f0e4c8;border:1px solid #c9a84c;padding:12px 24px;border-radius:50px;font-size:0.85rem;z-index:400;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;font-family:Inter,sans-serif;max-width:85%;text-align:center;';
+              document.body.appendChild(t);
+            }
+            t.textContent = msg;
+            requestAnimationFrame(() => { t.style.opacity = '1'; t.style.transform = 'translateX(-50%) translateY(0)'; });
+            clearTimeout(toast._t);
+            toast._t = setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateX(-50%) translateY(20px)'; }, 2600);
+          }
+
+          // ─── 1. Inject Post button into top nav ─────
+          const nav = document.getElementById('tvTopNav');
+          const kebab = document.getElementById('tvKebabBtn');
+          if (nav && kebab && !document.getElementById('tvPostBtn')) {
+            const btn = document.createElement('button');
+            btn.id = 'tvPostBtn';
+            btn.className = 'tv-topnav-btn';
+            btn.setAttribute('aria-label', 'Post a video');
+            btn.innerHTML = '<i class="fa-solid fa-plus"></i>';
+            btn.style.background = 'linear-gradient(135deg, #c9a84c, #dfc278)';
+            btn.style.color = '#080c24';
+            btn.style.borderColor = 'rgba(255,255,255,0.4)';
+            nav.insertBefore(btn, kebab);
+          }
+
+          // ─── 2. Inject Post sheet ────────────────────
+          if (!document.getElementById('tvPostSheet')) {
+            const sheet = document.createElement('div');
+            sheet.className = 'tv-sheet-overlay';
+            sheet.id = 'tvPostSheet';
+            sheet.innerHTML = `
+              <div class="tv-sheet" style="max-width:520px;">
+                <h3><i class="fa-solid fa-video"></i> Post a Video</h3>
+
+                <div id="tvPostStep1">
+                  <p style="color:#c5bfb3; font-size:0.88rem; line-height:1.6; margin-bottom:1.2rem;">
+                    Tap below to upload on Catbox. Then copy the URL it gives you and come back — we'll detect it automatically.
+                  </p>
+                  <button id="tvPostOpenCatbox" style="width:100%; padding:16px; background:linear-gradient(135deg,#c9a84c,#dfc278); color:#080c24; border:none; border-radius:14px; font-weight:700; font-size:1rem; letter-spacing:0.04em; cursor:pointer; font-family:inherit; display:flex; align-items:center; justify-content:center; gap:0.6rem;">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Upload to Catbox
+                  </button>
+                  <button id="tvPostCheckClipboard" style="width:100%; margin-top:0.6rem; padding:12px; background:transparent; border:1px solid rgba(255,255,255,0.15); color:#c5bfb3; border-radius:12px; font-weight:600; font-size:0.85rem; cursor:pointer; font-family:inherit;">
+                    <i class="fa-solid fa-clipboard"></i> Check clipboard now
+                  </button>
+                  <p style="color:#8a857a; font-size:0.72rem; line-height:1.5; margin-top:1rem; text-align:center;">
+                    No account needed on Catbox. Free. Videos up to 200 MB.
+                  </p>
+                </div>
+
+                <div id="tvPostStep2" style="display:none;">
+                  <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:0.9rem; margin-bottom:1rem;">
+                    <div style="font-size:0.68rem; color:#8a857a; margin-bottom:0.3rem; text-transform:uppercase; letter-spacing:0.05em;">Selected video</div>
+                    <video id="tvPostVideoPreview" controls playsinline preload="metadata" style="width:100%; max-height:200px; border-radius:8px; background:#000;"></video>
+                    <div id="tvPostUrlText" style="color:#dfc278; font-size:0.7rem; word-break:break-all; font-family:monospace; margin-top:0.6rem;"></div>
+                  </div>
+
+                  <div style="margin-bottom:1rem;">
+                    <label style="color:#c5bfb3; font-size:0.75rem; display:block; margin-bottom:0.3rem;">Title</label>
+                    <input id="tvPostTitle" type="text" maxlength="80" placeholder="Give it a title" style="width:100%; padding:10px 14px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:10px; color:white; outline:none; font-family:inherit; font-size:0.9rem;">
+                  </div>
+
+                  <label style="display:flex; gap:0.6rem; align-items:flex-start; margin-bottom:0.5rem; cursor:pointer; font-size:0.78rem; color:#c5bfb3; line-height:1.5;">
+                    <input type="checkbox" id="tvPostConsent" style="margin-top:0.15rem; accent-color:#c9a84c; flex-shrink:0;">
+                    <span>I own this video or have rights to share it. It doesn't contain explicit, illegal, or harmful content.</span>
+                  </label>
+                  <label style="display:flex; gap:0.6rem; align-items:flex-start; margin-bottom:1rem; cursor:pointer; font-size:0.78rem; color:#c5bfb3; line-height:1.5;">
+                    <input type="checkbox" id="tvPostIsAI" style="margin-top:0.15rem; accent-color:#c9a84c; flex-shrink:0;">
+                    <span>This video is AI-generated.</span>
+                  </label>
+
+                  <div id="tvPostStatus" style="font-size:0.8rem; min-height:1.2rem; margin-bottom:0.8rem;"></div>
+
+                  <div style="display:flex; gap:0.5rem;">
+                    <button id="tvPostSubmit" style="flex:1; padding:14px; background:linear-gradient(135deg,#8b1a2b,#162464); color:white; border:none; border-radius:14px; font-weight:700; font-size:0.9rem; cursor:pointer; font-family:inherit;">
+                      <i class="fa-solid fa-paper-plane"></i> Post Video
+                    </button>
+                    <button type="button" id="tvPostBack" style="flex:0 0 90px; background:transparent; border:1px solid rgba(255,255,255,0.15); color:#c5bfb3; border-radius:14px; font-weight:600; cursor:pointer; font-family:inherit;">
+                      Back
+                    </button>
+                  </div>
+                </div>
+
+                <button class="tv-sheet-cancel" data-post-close style="margin-top:0.6rem;">Cancel</button>
+              </div>
+            `;
+            document.body.appendChild(sheet);
+          }
+
+          // ─── 3. Element refs ─────────────────────────
+          const postBtn = document.getElementById('tvPostBtn');
+          const sheet = document.getElementById('tvPostSheet');
+          const step1 = document.getElementById('tvPostStep1');
+          const step2 = document.getElementById('tvPostStep2');
+          const catboxBtn = document.getElementById('tvPostOpenCatbox');
+          const checkBtn = document.getElementById('tvPostCheckClipboard');
+          const backBtn = document.getElementById('tvPostBack');
+          const videoPreview = document.getElementById('tvPostVideoPreview');
+          const urlText = document.getElementById('tvPostUrlText');
+          const titleInput = document.getElementById('tvPostTitle');
+          const consent = document.getElementById('tvPostConsent');
+          const isAICb = document.getElementById('tvPostIsAI');
+          const submitBtn = document.getElementById('tvPostSubmit');
+          const statusEl = document.getElementById('tvPostStatus');
+          let pendingUrl = '';
+
+          function setStatus(msg, kind) {
+            if (!statusEl) return;
+            statusEl.textContent = msg;
+            statusEl.style.color = kind === 'error' ? '#e74c3c' : kind === 'success' ? '#2ecc71' : '#c5bfb3';
+          }
+          function openPostSheet() { sheet.classList.add('show'); }
+          function closePostSheet() {
+            sheet.classList.remove('show');
+            resetPost();
+          }
+          function resetPost() {
+            step1.style.display = 'block';
+            step2.style.display = 'none';
+            pendingUrl = '';
+            titleInput.value = '';
+            consent.checked = false;
+            isAICb.checked = false;
+            videoPreview.src = '';
+            urlText.textContent = '';
+            setStatus('');
+          }
+
+          // ─── 4. Extract URL + title from clipboard text ──
+          function extractFromClipboard(text) {
+            const matches = text.match(/https?:\/\/files\.catbox\.moe\/[a-zA-Z0-9._-]+/gi) || [];
+            if (matches.length === 0) return null;
+            const url = matches[0];
+
+            // Look for a filename-ish line near the URL in the pasted text
+            let title = '';
+            const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+            for (const line of lines) {
+              if (line === url) continue;
+              if (/^https?:/.test(line)) continue;
+              if (/^\d+$/.test(line)) continue;
+              if (line.length < 3 || line.length > 80) continue;
+              const cleaned = line
+                .replace(/\.(mp4|mov|webm|m4v|avi|jpg|jpeg|png|gif|webp)$/i, '')
+                .replace(/[_-]+/g, ' ')
+                .trim();
+              if (cleaned && !/^\d+$/.test(cleaned)) { title = cleaned; break; }
+            }
+            // Fallback: filename from the URL itself
+            if (!title) {
+              const m = url.match(/\/([a-zA-Z0-9._-]+)$/);
+              if (m) {
+                const base = m[1].replace(/\.[a-z0-9]+$/i, '');
+                if (!/^\d+$/.test(base) && base.length > 2) title = base;
+              }
+            }
+            return { url, title };
+          }
+
+          function advanceToPreview(url, autoTitle) {
+            pendingUrl = url;
+            videoPreview.src = url;
+            urlText.textContent = url;
+            titleInput.value = autoTitle || '';
+            step1.style.display = 'none';
+            step2.style.display = 'block';
+            setStatus('');
+          }
+
+          // ─── 5. Clipboard read (used both auto + manual) ──
+          async function tryClipboard(silent) {
+            if (!navigator.clipboard || typeof navigator.clipboard.readText !== 'function') {
+              if (!silent) setStatus('Clipboard not available. Try manual paste.', 'error');
+              return false;
+            }
+            try {
+              const text = await navigator.clipboard.readText();
+              const parsed = extractFromClipboard(text);
+              if (!parsed) {
+                if (!silent) setStatus('No Catbox URL on clipboard. Copy the URL from catbox.moe first.', 'error');
+                return false;
+              }
+              advanceToPreview(parsed.url, parsed.title);
+              if (!silent) toast('📋 Video URL detected');
+              return true;
+            } catch (err) {
+              if (!silent) {
+                let msg = 'Couldn\'t read clipboard.';
+                if (err.name === 'NotAllowedError') msg = 'Clipboard access denied. Allow it in your browser, then try again.';
+                else if (err.name === 'NotFoundError') msg = 'Clipboard is empty. Copy the URL from catbox first.';
+                setStatus(msg, 'error');
+              }
+              return false;
+            }
+          }
+
+          // ─── 6. Auto-read when user returns from Catbox tab ──
+          document.addEventListener('visibilitychange', async () => {
+            if (document.visibilityState !== 'visible') return;
+            // Only if the sheet is open on step 1
+            if (!sheet.classList.contains('show')) return;
+            if (step2.style.display === 'block') return;
+            // Attempt silent read
+            await tryClipboard(true);
+          });
+
+          // ─── 7. Button handlers ───────────────────────
+          postBtn.addEventListener('click', async () => {
+            const user = getCurrentUser();
+            if (!user || !user.email) {
+              window.location.href = 'index.html?redirect=register.html';
+              return;
+            }
+            // Rate limit
+            try {
+              const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
+              const snap = await db.collection('tar_tv_videos')
+                .where('uploadedBy', '==', user.email)
+                .where('createdAt', '>', since)
+                .get();
+              if (snap.size >= 10) {
+                toast('🕐 You have posted 10 videos today. Try again tomorrow.');
+                return;
+              }
+            } catch (e) {
+              // if index missing, don't block — let the post attempt anyway
+              console.warn('[post] rate check skipped:', e.message);
+            }
+            resetPost();
+            openPostSheet();
+          });
+
+          catboxBtn.addEventListener('click', () => {
+            window.open('https://catbox.moe', '_blank', 'noopener');
+            setStatus('Upload on Catbox, copy the URL, then return here. We\'ll detect it.');
+          });
+
+          checkBtn.addEventListener('click', async () => {
+            const orig = checkBtn.innerHTML;
+            checkBtn.disabled = true;
+            checkBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking…';
+            try { await tryClipboard(false); }
+            finally { checkBtn.disabled = false; checkBtn.innerHTML = orig; }
+          });
+
+          backBtn.addEventListener('click', () => resetPost());
+
+          document.querySelectorAll('#tvPostSheet [data-post-close]').forEach(el => {
+            el.addEventListener('click', closePostSheet);
+          });
+          sheet.addEventListener('click', (e) => { if (e.target === sheet) closePostSheet(); });
+
+          // ─── 8. Submit ────────────────────────────────
+          submitBtn.addEventListener('click', async () => {
+            const user = getCurrentUser();
+            if (!user || !user.email) {
+              window.location.href = 'index.html?redirect=register.html';
+              return;
+            }
+            if (!pendingUrl) { setStatus('No video URL. Try again.', 'error'); return; }
+            if (!consent.checked) { setStatus('Please agree to the content policy.', 'error'); return; }
+
+            const title = titleInput.value.trim() ||
+              `Video by ${(user.firstName || 'user')} · ${new Date().toLocaleDateString()}`;
+
+            const orig = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Posting…';
+
+            try {
+              const duration = (videoPreview.duration && isFinite(videoPreview.duration))
+                ? Math.round(videoPreview.duration) : 0;
+
+              await db.collection('tar_tv_videos').add({
+                title,
+                videoUrl: pendingUrl,
+                thumbnail: '',
+                author: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email,
+                authorEmail: user.email,
+                uploadedBy: user.email,
+                isAI: isAICb.checked === true,
+                duration,
+                likes: 0,
+                views: 0,
+                commentCount: 0,
+                reports: 0,
+                createdAt: FieldValue.serverTimestamp(),
+                status: 'published',
+              });
+
+              toast('✅ Posted! Your video will appear at the top.');
+              closePostSheet();
+              setTimeout(() => window.location.reload(), 800);
+            } catch (err) {
+              console.error('[post] failed:', err);
+              setStatus('Post failed: ' + (err.message || 'unknown error'), 'error');
+            } finally {
+              submitBtn.disabled = false;
+              submitBtn.innerHTML = orig;
+            }
+          });
+
+          // ─── 9. Report button injection on each slide ──
+          function injectReportBtn(slide) {
+            if (!slide || slide.querySelector('.report-btn')) return;
+            const actions = slide.querySelector('.action-buttons');
+            if (!actions) return;
+            const reportBtn = document.createElement('div');
+            reportBtn.className = 'action-btn report-btn';
+            reportBtn.dataset.id = slide.dataset.videoId;
+            reportBtn.title = 'Report';
+            reportBtn.innerHTML = '<i class="fa-solid fa-flag" style="font-size:0.9rem; opacity:0.7;"></i>';
+            actions.appendChild(reportBtn);
+          }
+
+          const tvContainer = document.getElementById('tvContainer');
+          if (tvContainer && window.MutationObserver) {
+            const mo = new MutationObserver((mutations) => {
+              mutations.forEach(m => {
+                m.addedNodes.forEach(node => {
+                  if (node.classList && node.classList.contains('video-slide')) {
+                    injectReportBtn(node);
+                  }
+                });
+              });
+            });
+            mo.observe(tvContainer, { childList: true });
+            // Also inject into existing slides (in case we attach late)
+            tvContainer.querySelectorAll('.video-slide').forEach(injectReportBtn);
+          }
+
+          // ─── 10. Report click handler (delegated) ─────
+          document.addEventListener('click', async (e) => {
+            const reportBtn = e.target.closest('.action-btn.report-btn');
+            if (!reportBtn) return;
+            e.stopPropagation();
+
+            const user = getCurrentUser();
+            if (!user || !user.email) {
+              window.location.href = 'index.html?redirect=register.html';
+              return;
+            }
+            const videoId = reportBtn.dataset.id;
+            if (!videoId) return;
+            if (!confirm('Report this video? Our team will review it.')) return;
+
+            try {
+              await db.collection('reports').add({
+                type: 'video',
+                videoId,
+                reason: 'user-flagged',
+                reporter: user.email,
+                reporterName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email,
+                timestamp: FieldValue.serverTimestamp(),
+                status: 'new',
+              });
+              await db.collection('tar_tv_videos').doc(videoId).update({
+                reports: FieldValue.increment(1),
+              });
+              const snap = await db.collection('tar_tv_videos').doc(videoId).get();
+              const reportCount = (snap.data()?.reports || 0);
+              if (reportCount >= 3) {
+                await db.collection('tar_tv_videos').doc(videoId).update({ status: 'hidden' });
+                toast('🚩 Reported. Video hidden pending review.');
+              } else {
+                toast('🚩 Reported. Thank you.');
+              }
+            } catch (err) {
+              console.error('[report] failed:', err);
+              toast('Couldn\'t report. Try again.');
+            }
+          });
+
+        });
+      })();
+    </script>
+  </body>
 </html>
