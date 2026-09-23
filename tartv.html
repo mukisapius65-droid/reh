@@ -2478,11 +2478,17 @@ const videos = allVideos.filter(v => {
 								window.location.href = "/aireh";
 								return;
 							}
+							if (seg === "tars") {
+								window.location.href = "/tartv";
+								return;
+							}
+							/*
 							document
 								.querySelectorAll("#tvSegment button")
 								.forEach((b) => b.classList.remove("active"));
 							this.classList.add("active");
 							showTvToast(`Switched to ${this.textContent}`);
+							*/
 						});
 					});
 
