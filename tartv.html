@@ -447,6 +447,10 @@
 					opacity: 1;
 				}
 			}
+			@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+			}
 			.video-placeholder {
 				position: absolute;
 				inset: 0;
@@ -1265,12 +1269,8 @@
 		</script>
 
 		<!-- Firebase Compat -->
-		<!-- Firebase Compat -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-		
-
-		<
 
 		<script>
 			(function () {
@@ -1408,9 +1408,18 @@ const videos = allVideos.filter(v => {
 
 						// ─── Intersection Observer ─────────────────────
 						const observer = new IntersectionObserver(
-							(entries) => {
-								entries.forEach((entry) => {
-									const slide = entry.target;
+  (entries) => {
+    // Only process the most-visible slide per batch — prevents src spam during momentum scroll
+    let bestEntry = null;
+    entries.forEach(e => {
+      if (e.isIntersecting && e.intersectionRatio > (bestEntry?.intersectionRatio || 0)) {
+        bestEntry = e;
+      }
+    });
+
+    entries.forEach((entry) => {
+      if (entry.isIntersecting && entry !== bestEntry) return;
+      const slide = entry.target;
 									const video = slide.querySelector("video");
 									const videoId = slide.dataset.videoId;
 									const viewsElement = slide.querySelector(".view-count");
@@ -1420,9 +1429,13 @@ const videos = allVideos.filter(v => {
 											activeVideo.pause();
 										}
 										if (video) {
-											if (!video.src) video.src = video.dataset.src;
-											video.muted = isMuted; // global mute state
-											video.play().catch(() => {
+  if (!video.src) {
+    video.preload = 'auto';
+    video.src = video.dataset.src;
+    video.load();
+  }
+  video.muted = isMuted; // global mute state
+  video.play().catch(() => {
 												// Autoplay with sound blocked — retry muted
 												if (!video.muted) {
 													video.muted = true;
@@ -1521,8 +1534,10 @@ const videos = allVideos.filter(v => {
 							const commentsCount = v.commentCount || 0;
 
 							slide.innerHTML = `
-                            <div class="video-placeholder" style="background-image:url('${v.thumbnail || ""}')"></div>
-                            <video data-src="${v.videoUrl}" muted loop playsinline preload="metadata"></video>
+    <div class="video-placeholder">
+        ${v.thumbnail ? `<img src="${v.thumbnail}" loading="lazy" decoding="async" alt="" onerror="this.style.display='none'" style="width:100%;height:100%;object-fit:cover;">` : ''}
+    </div>
+    <video data-src="${v.videoUrl}" muted loop playsinline preload="none"></video>
 
                             <!-- Tap Zones -->
                             <div class="tap-zone-left"></div>
