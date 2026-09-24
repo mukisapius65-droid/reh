@@ -297,14 +297,16 @@ export function initStoryModal() {
   });
 
   // ─── Submit handler ─────────────────────────────
-  document
+  const postSubmitBtn = document
     .getElementById("story-upload-submit")
-    .addEventListener("click", async function () {
+    postSubmitBtn.addEventListener("click", async function () {
       const user = getCurrentUser();
       if (!user) {
         showToast("Please log in first.");
         return;
       }
+			postSubmitBtn.innerText = "posting..";
+			postSubmitBtn.disabled = true;
 
       let content;
 
@@ -358,7 +360,7 @@ export function initStoryModal() {
           window.renderStories();
         }
         const emoji =
-          { text: "✍️", photo: "📸", audio: "🎤" }[selectedStoryType] || "✨";
+          { text: "", photo: "", audio: "" }[selectedStoryType] || "✨";
         showToast(`${emoji} Story posted successfully!`);
       } catch (err) {
         console.error("Upload error:", err);
@@ -387,6 +389,8 @@ export function initStoryModal() {
   if (addBtn) {
     addBtn.addEventListener("click", function (e) {
       e.preventDefault();
+			postSubmitBtn.innerText = "post";
+			postSubmitBtn.disabled = false;
       if (typeof window.openStoryUploadModal === "function") {
         window.openStoryUploadModal();
       }
