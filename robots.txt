@@ -1,0 +1,14 @@
+User-agent: *
+Disallow: /admin-reh.html
+Disallow: /admin-reh
+Disallow: /dashboard.html
+Disallow: /dashboard
+Disallow: /profile.html
+Disallow: /profile
+Disallow: /settings.html
+Disallow: /settings
+Disallow: /messages.html
+Disallow: /messages
+Disallow: /api/
+
+Sitemap: https://reh-crown.vercel.app/sitemap.xml
