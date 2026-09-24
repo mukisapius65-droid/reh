@@ -1530,6 +1530,12 @@ const videos = allVideos.filter(v => {
 							slide.dataset.videoId = v.id;
 
 							const views = v.views || 0;
+							let viewText = null;
+							if (views === 1) {
+								viewText = "view"
+							} else {
+								viewText = "views"
+							}
 							const likes = v.likes || 0;
 							const commentsCount = v.commentCount || 0;
 
@@ -1556,7 +1562,7 @@ const videos = allVideos.filter(v => {
                                 
                                 <div class="video-author">@${v.author || "Reh"}</div>
                                 <div class="video-title">${v.title}</div>
-                                <div class="video-views"><i class="fa-regular fa-eye"></i> <span class="view-count">${views}</span> views</div>
+                                <div class="video-views"><i class="fa-regular fa-eye"></i> <span class="view-count">${views}</span> ${viewText}</div>
                             </div>
                             <div class="action-buttons">
                                 <div class="action-btn like-btn" data-id="${v.id}">
