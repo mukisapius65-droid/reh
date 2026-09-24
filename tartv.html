@@ -878,19 +878,29 @@
 			}
 
 			#tar-tv-error {
-				position: fixed;
-				bottom: 80px;
-				left: 10px;
-				right: 10px;
-				background: rgba(0, 0, 0, 0.85);
-				color: #ff6b6b;
-				padding: 1rem;
-				border-radius: 8px;
-				z-index: 9999;
-				font-size: 0.9rem;
-				border: 1px solid #ff6b6b;
-				display: none;
-			}
+    position: fixed;
+    bottom: 80px;
+    left: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.9);
+    color: #ff6b6b;
+    padding: 0.85rem 1rem;
+    border-radius: 10px;
+    z-index: 9999;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    border: 1px solid #ff6b6b;
+    display: none;
+    /* flex layout applied by JS */
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+    animation: tarTvErrorIn 0.25s ease-out;
+}
+@keyframes tarTvErrorIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+				}
 
 			/* ─── Tar TV Skeleton Slides ────────────────── */
 			.tv-skeleton-slide {
@@ -1275,13 +1285,50 @@
 		<script>
 			(function () {
 				// ─── Error Display ──────────────────────────────────────
-				const errorDiv = document.getElementById("tar-tv-error");
-				function showError(msg) {
-					errorDiv.textContent = "❌ " + msg;
-					errorDiv.style.display = "block";
-					document.getElementById("loader").style.display = "none";
-					console.error(msg);
-				}
+				// ─── Error Display ──────────────────────────────────────
+const errorDiv = document.getElementById("tar-tv-error");
+let _errorTimer = null;
+
+function showError(msg, durationMs = 6000) {
+    // Clear previous content safely
+    errorDiv.innerHTML = '';
+
+    const text = document.createElement('span');
+    text.style.flex = '1';
+    text.textContent = '❌ ' + msg;
+
+    const closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.setAttribute('aria-label', 'Dismiss error');
+    closeBtn.innerHTML = '&times;';
+    closeBtn.style.cssText =
+        'background:transparent;border:none;color:#ff6b6b;font-size:1.5rem;' +
+        'line-height:1;cursor:pointer;padding:0 0 0 1rem;font-family:inherit;' +
+        'flex-shrink:0;';
+    closeBtn.addEventListener('click', hideError);
+
+    errorDiv.appendChild(text);
+    errorDiv.appendChild(closeBtn);
+    errorDiv.style.display = 'flex';
+    errorDiv.style.alignItems = 'center';
+    errorDiv.style.gap = '0.5rem';
+
+    document.getElementById('loader').style.display = 'none';
+    console.error(msg);
+
+    // Auto-dismiss
+    clearTimeout(_errorTimer);
+    if (durationMs > 0) {
+        _errorTimer = setTimeout(hideError, durationMs);
+    }
+}
+
+function hideError() {
+    clearTimeout(_errorTimer);
+    _errorTimer = null;
+    errorDiv.style.display = 'none';
+    errorDiv.innerHTML = '';
+}
 
 				// ─── Firebase Config ────────────────────────────────────
 				const firebaseConfig = {
