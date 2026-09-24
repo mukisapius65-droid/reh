@@ -1477,12 +1477,13 @@ const videos = allVideos.filter(v => {
 														views: FieldValue.increment(1),
 													})
 													.then(() => {
-														const currentCount = parseInt(
-															viewsElement?.textContent || "0",
-															10,
-														);
-														if (viewsElement)
-															viewsElement.textContent = currentCount + 1;
+														if (viewsElement) {
+  const currentCount = parseInt(viewsElement.textContent || "0", 10);
+  const newCount = currentCount + 1;
+  viewsElement.textContent = newCount;
+  const labelEl = viewsElement.parentElement?.querySelector('.view-label');
+  if (labelEl) labelEl.textContent = newCount === 1 ? 'view' : 'views';
+}
 													})
 													.catch((err) =>
 														console.error("Failed to increment views:", err),
@@ -1530,12 +1531,6 @@ const videos = allVideos.filter(v => {
 							slide.dataset.videoId = v.id;
 
 							const views = v.views || 0;
-							let viewText = null;
-							if (views === 1) {
-								viewText = "view"
-							} else {
-								viewText = "views"
-							}
 							const likes = v.likes || 0;
 							const commentsCount = v.commentCount || 0;
 
@@ -1562,7 +1557,7 @@ const videos = allVideos.filter(v => {
                                 
                                 <div class="video-author">@${v.author || "Reh"}</div>
                                 <div class="video-title">${v.title}</div>
-                                <div class="video-views"><i class="fa-regular fa-eye"></i> <span class="view-count">${views}</span> ${viewText}</div>
+                                <div class="video-views"><i class="fa-regular fa-eye"></i> <span class="view-count">${views}</span> <span class="view-label">${views === 1 ? 'view' : 'views'}</span></div>
                             </div>
                             <div class="action-buttons">
                                 <div class="action-btn like-btn" data-id="${v.id}">
