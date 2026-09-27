@@ -567,4 +567,209 @@
                 const u = doc.data();
                 if (!u.email || u.email === normalizedEmail) return;
                 if (u.banned || u.visibility === false) return;
-                candidates.pu
+                candidates.push(u);
+              });
+              const top = candidates.slice(0, 5);
+
+              if (!top.length) {
+                body.innerHTML = emptyState('fa-users', 'No matches yet. Complete your profile to attract extraordinary people.');
+                return;
+              }
+
+              body.innerHTML = top.map(u => {
+                const name = `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.email;
+                const age = u.age ? `, ${u.age}` : '';
+                const online = isOnline(u.lastActive);
+                const status = online
+                  ? '<span class="row-badge">🟢 Online</span>'
+                  : `<div class="row-detail">${relativeTime(u.lastActive)}</div>`;
+                return `
+                  <a class="row-item" href="view-profile.html?email=${encodeURIComponent(u.email)}">
+                    <div class="row-avatar"><img src="${escapeHtml(u.avatar || 'https://randomuser.me/api/portraits/women/44.jpg')}" alt=""></div>
+                    <div class="row-info">
+                      <div class="row-name">${escapeHtml(name)}${escapeHtml(age)}</div>
+                      <div class="row-detail"><i class="fa-solid fa-location-dot"></i> ${escapeHtml(u.location || 'Unknown')}</div>
+                    </div>
+                    ${status}
+                  </a>
+                `;
+              }).join('');
+            } catch (err) {
+              console.error('[dashboard] matches error:', err);
+              body.innerHTML = errorState('fa-triangle-exclamation', "Couldn't load matches.", loadMatches);
+              bindRetry(body, loadMatches);
+            }
+          }
+
+          // ── Card 2 — Who's Viewed You ──────────────
+          async function loadViews() {
+            const body = document.getElementById('viewsBody');
+            try {
+              const snap = await window.getDocs(
+                window.query(
+                  window.collection(window.db, 'profileViews'),
+                  window.where('viewed', '==', normalizedEmail),
+                  window.orderBy('timestamp', 'desc'),
+                  window.limit(20)
+                )
+              );
+              const seen = new Map();
+              snap.forEach(doc => {
+                const v = doc.data();
+                if (!v.viewer) return;
+                if (!seen.has(v.viewer)) seen.set(v.viewer, v);
+              });
+              const viewers = Array.from(seen.values()).slice(0, 5);
+
+              if (!viewers.length) {
+                body.innerHTML = emptyState('fa-eye', "No one has viewed your profile yet.");
+                return;
+              }
+
+              body.innerHTML = viewers.map(v => `
+                <a class="row-item" href="view-profile.html?email=${encodeURIComponent(v.viewer)}">
+                  <div class="row-avatar"><img src="${escapeHtml(v.viewerAvatar || 'https://randomuser.me/api/portraits/women/44.jpg')}" alt=""></div>
+                  <div class="row-info">
+                    <div class="row-name">${escapeHtml(v.viewerName || v.viewer)}</div>
+                    <div class="row-detail">${relativeTime(v.timestamp)}</div>
+                  </div>
+                </a>
+              `).join('');
+            } catch (err) {
+              console.error('[dashboard] views error:', err);
+              body.innerHTML = errorState('fa-triangle-exclamation', "Couldn't load views.", loadViews);
+              bindRetry(body, loadViews);
+            }
+          }
+
+          // ── Card 3 — Messages ──────────────────────
+          async function loadMessages() {
+            const body = document.getElementById('messagesBody');
+            try {
+              const snap = await window.getDocs(
+                window.query(
+                  window.collection(window.db, 'chats'),
+                  window.where('participants', 'array-contains', normalizedEmail),
+                  window.limit(10)
+                )
+              );
+
+              const rows = [];
+              snap.forEach(doc => {
+                const data = doc.data();
+                const participants = data.participants || [];
+                const other = participants.find(e => e !== normalizedEmail);
+                if (!other) return;
+                const unread = data[`unread_${normalizedEmail}`] || 0;
+                const lastTs = data.lastTimestamp;
+                rows.push({
+                  email: other,
+                  lastMessage: data.lastMessage || 'Tap to open chat',
+                  lastTs,
+                  unread,
+                });
+              });
+
+              // Sort client-side by lastTimestamp
+              rows.sort((a, b) => {
+                const aMs = a.lastTs?.toMillis ? a.lastTs.toMillis() : (a.lastTs?.seconds ? a.lastTs.seconds * 1000 : 0);
+                const bMs = b.lastTs?.toMillis ? b.lastTs.toMillis() : (b.lastTs?.seconds ? b.lastTs.seconds * 1000 : 0);
+                return bMs - aMs;
+              });
+
+              const top = rows.slice(0, 3);
+
+              if (!top.length) {
+                body.innerHTML = emptyState('fa-comment-dots', 'No messages yet.');
+                return;
+              }
+
+              // Fetch display names for participants
+              const userDocs = await Promise.all(
+                top.map(r => window.getDoc(window.doc(window.db, 'users', r.email)))
+              );
+              const userMap = {};
+              userDocs.forEach((s, i) => {
+                if (s.exists()) userMap[top[i].email] = s.data();
+              });
+
+              body.innerHTML = top.map(r => {
+                const u = userMap[r.email] || {};
+                const name = `${u.firstName || ''} ${u.lastName || ''}`.trim() || r.email;
+                const avatar = u.avatar || 'https://randomuser.me/api/portraits/women/44.jpg';
+                const badge = r.unread > 0
+                  ? `<span class="row-badge unread">${r.unread}</span>`
+                  : `<div class="row-detail">${relativeTime(r.lastTs)}</div>`;
+                return `
+                  <a class="row-item" href="messages.html?open=${encodeURIComponent(r.email)}">
+                    <div class="row-avatar"><img src="${escapeHtml(avatar)}" alt=""></div>
+                    <div class="row-info">
+                      <div class="row-name">${escapeHtml(name)}</div>
+                      <div class="row-detail">${escapeHtml(r.lastMessage || '')}</div>
+                    </div>
+                    ${badge}
+                  </a>
+                `;
+              }).join('');
+            } catch (err) {
+              console.error('[dashboard] messages error:', err);
+              body.innerHTML = errorState('fa-triangle-exclamation', "Couldn't load messages.", loadMessages);
+              bindRetry(body, loadMessages);
+            }
+          }
+
+          // ── Card 4 — Upcoming Events ───────────────
+          async function loadEvents() {
+            const body = document.getElementById('eventsBody');
+            try {
+              const snap = await window.getDocs(
+                window.query(
+                  window.collection(window.db, 'events'),
+                  window.limit(10)
+                )
+              );
+              const events = [];
+              snap.forEach(doc => events.push({ id: doc.id, ...doc.data() }));
+
+              if (!events.length) {
+                body.innerHTML = emptyState('fa-calendar', 'No upcoming events. Check back soon.');
+                return;
+              }
+
+              // Sort by date string (works for "15 June 2026" style), fall back to createdAt
+              events.sort((a, b) => {
+                const aD = a.date ? new Date(a.date).getTime() : 0;
+                const bD = b.date ? new Date(b.date).getTime() : 0;
+                if (!isNaN(aD) && !isNaN(bD) && aD !== bD) return aD - bD;
+                const aC = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+                const bC = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+                return bC - aC;
+              });
+
+              const top = events.slice(0, 3);
+              body.innerHTML = top.map(e => `
+                <a class="event-row" href="index.html?redirect=events.html">
+                  <i class="fa-solid ${escapeHtml(e.icon || 'fa-calendar-star')}"></i>
+                  <div class="event-info">
+                    <h4>${escapeHtml(e.name || 'Event')}</h4>
+                    <p><i class="fa-regular fa-calendar"></i> ${escapeHtml(e.date || '')}${e.time ? ' · ' + escapeHtml(e.time) : ''}</p>
+                  </div>
+                </a>
+              `).join('');
+            } catch (err) {
+              console.error('[dashboard] events error:', err);
+              body.innerHTML = errorState('fa-triangle-exclamation', "Couldn't load events.", loadEvents);
+              bindRetry(body, loadEvents);
+            }
+          }
+
+          // ── Fire all four independently ────────────
+          loadMatches();
+          loadViews();
+          loadMessages();
+          loadEvents();
+        }
+      })();
+    </script>
+  </body>
+</html>
