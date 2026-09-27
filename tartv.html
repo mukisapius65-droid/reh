@@ -1607,21 +1607,24 @@ const videos = allVideos.filter(v => {
                                 <div class="video-views"><i class="fa-regular fa-eye"></i> <span class="view-count">${views}</span> <span class="view-label">${views === 1 ? 'view' : 'views'}</span></div>
                             </div>
                             <div class="action-buttons">
-                                <div class="action-btn like-btn" data-id="${v.id}">
-                                    <i class="fa-solid fa-heart"></i>
-                                    <span class="count-label like-count">${likes}</span>
-                                </div>
-                                <!-- Comment Button -->
-                                <div class="action-btn comment-btn" data-id="${v.id}">
-                                    <i class="fa-regular fa-comment"></i>
-                                    <span class="count-label comment-count">${commentsCount}</span>
-                                   
-                                </div>
-                        
-                                <div class="action-btn share-btn">
-  <i class="fa-solid fa-share"></i>
+    <div class="action-btn like-btn" data-id="${v.id}">
+        <i class="fa-solid fa-heart"></i>
+        <span class="count-label like-count">${likes}</span>
+    </div>
+    <!-- Comment Button -->
+    <div class="action-btn comment-btn" data-id="${v.id}">
+        <i class="fa-regular fa-comment"></i>
+        <span class="count-label comment-count">${commentsCount}</span>
+       
+    </div>
+
+    <div class="action-btn share-btn">
+        <i class="fa-solid fa-share"></i>
+    </div>
+    <div class="action-btn whatsapp-btn" data-id="${v.id}" title="Share on WhatsApp">
+        <i class="fa-brands fa-whatsapp" style="color:#25D366;"></i>
+    </div>
 </div>
-                        </div>
                         `;
 							tvContainer.appendChild(slide);
 
@@ -2058,6 +2061,26 @@ const videos = allVideos.filter(v => {
 						}
 					}
 				});
+
+				// ─── WhatsApp Share Button ────────────────────────
+document.addEventListener("click", function (e) {
+  const waBtn = e.target.closest(".action-btn.whatsapp-btn");
+  if (!waBtn) return;
+  e.stopPropagation();
+
+  const videoId = waBtn.dataset.id;
+  if (!videoId) return;
+
+  const slide = waBtn.closest(".video-slide");
+  const title = slide?.querySelector(".video-title")?.textContent?.trim() || "this video";
+
+  // Use the OG endpoint so WhatsApp renders a preview card
+  const url = `https://reh-crown.vercel.app/api/og?video=${encodeURIComponent(videoId)}`;
+  const message = `🎬 Check out "${title}" on Tar TV\n${url}`;
+
+  const shareUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+  window.open(shareUrl, "_blank", "noopener,noreferrer");
+});
 
 				// ─── Tar TV: Send in Reh ────────────────────────
 				(function initTvSendInReh() {
