@@ -1321,13 +1321,25 @@ document.getElementById('submitAll').addEventListener('click', async function ()
   document.getElementById('firstName').value = firstName;
   document.getElementById('lastName').value = lastName;
   document.getElementById('email').value = normalizedEmail;
-  document.getElementById('phoneStep2Group').style.display = 'block';
+    document.getElementById('phoneStep2Group').style.display = 'block';
 		window._rehGoogleFlowActive = true;			
   document.getElementById('step1Dot').classList.add('done');
   document.getElementById('step1Dot').classList.remove('active');
   document.getElementById('line1').classList.add('active');
   document.getElementById('step2Dot').classList.add('active');
   window.updateStepUI(2);
+
+  // ─── Persistent Google welcome banner on Step 2 ───
+  const step2Panel = document.getElementById('step2Panel');
+  const existingBanner = step2Panel.querySelector('.google-welcome-banner');
+  if (!existingBanner) {
+    const banner = document.createElement('div');
+    banner.className = 'google-welcome-banner';
+    banner.style.cssText = 'background:rgba(200,160,60,0.15); border:1px solid var(--gold); border-radius:12px; padding:0.7rem 1rem; margin-bottom:1rem; font-size:0.85rem; color:var(--gold-light); text-align:center;';
+    banner.innerHTML = '✨ <strong>' + normalizedEmail + '</strong> — signed in with Google. Complete your profile to finish.';
+    step2Panel.insertBefore(banner, step2Panel.firstChild);
+  }
+
   showToast('✨ Signed in with Google. Complete your profile to continue.');
 };
 

@@ -139,10 +139,11 @@ window._rehGoogleSignIn = async function () {
   const ua = navigator.userAgent || '';
   const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
   if (isMobile) {
-    sessionStorage.setItem('reh_google_pending', '1');
-    await signInWithRedirect(auth, provider);
-    return null;
-  }
+  sessionStorage.setItem('reh_google_pending', '1');
+  sessionStorage.setItem('reh_google_pending_at', String(Date.now()));
+  await signInWithRedirect(auth, provider);
+  return null;
+}
   return await signInWithPopup(auth, provider);
 };
 
