@@ -8,7 +8,7 @@
     { "source": "/profile", "destination": "/profile.html" },
     { "source": "/view-profile", "destination": "/view-profile.html" },
     { "source": "/login", "destination": "/login.html" },
-    { "source": "/signup", "destination": "/register.html" },
+    { "source": "/register", "destination": "/register.html" },
     { "source": "/recovery", "destination": "/recovery.html" },
     { "source": "/tell-a-friend", "destination": "/tell-a-friend.html" },
     { "source": "/settings", "destination": "/settings.html" },
