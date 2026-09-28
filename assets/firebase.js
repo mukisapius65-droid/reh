@@ -132,6 +132,10 @@ window.getRedirectResult = getRedirectResult;
 // ── Google sign-in helper (popup on desktop, redirect on mobile) ──
 window._rehGoogleSignIn = async function () {
   const provider = new GoogleAuthProvider();
+  // Set persistence BEFORE the redirect — required so the Auth session
+  // survives the round-trip to Google and back. Without this, mobile
+  // browsers sometimes lose the session and the user lands "logged out".
+  await setPersistence(auth, browserLocalPersistence);
   const ua = navigator.userAgent || '';
   const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
   if (isMobile) {
@@ -179,13 +183,27 @@ console.log(
 // Without it, the listener would fire null during init and wipe valid sessions.
 auth.authStateReady().then(() => {
   onAuthStateChanged(auth, (user) => {
-    if (!user) {
-      try {
-        localStorage.removeItem("reh_user");
-        sessionStorage.removeItem("reh_user");
-      } catch (e) {
-        /* storage unavailable — ignore */
-      }
+    if (user) return;
+
+    let cached = null;
+    try {
+      cached = JSON.parse(
+        localStorage.getItem('reh_user') || sessionStorage.getItem('reh_user') || 'null'
+      );
+    } catch (e) { /* malformed */ }
+
+    if (!cached || !cached.uid) return;
+
+    // Don't clear if we're mid-Google-flow — the Auth session may still be
+    // settling after the redirect round-trip. Give it 3 seconds.
+    if (sessionStorage.getItem('reh_google_pending') === '1') {
+      console.log('[auth] ghost guard deferred — Google flow in progress');
+      return;
     }
+
+    try {
+      localStorage.removeItem('reh_user');
+      sessionStorage.removeItem('reh_user');
+    } catch (e) { /* ignore */ }
   });
 });

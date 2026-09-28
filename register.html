@@ -1303,9 +1303,20 @@ window._rehFinishGoogleProfile = async function() {
       location: document.getElementById('location').value.trim(),
     };
     localStorage.setItem('reh_user', JSON.stringify(session));
-    sessionStorage.removeItem('reh_user');
-    showToast('✨ Profile saved! Choose your plan.');
-    setTimeout(() => { window.location.href = 'plans.html'; }, 1200);
+sessionStorage.removeItem('reh_user');
+
+// Verify the write took, before redirecting
+const verify = localStorage.getItem('reh_user');
+if (!verify) {
+  console.error('[google finish] localStorage write failed');
+  showToast('⚠️ Session save failed. Please try again.');
+  btn.disabled = false;
+  btn.innerHTML = orig;
+  return;
+}
+
+showToast('✨ Profile saved! Choose your plan.');
+setTimeout(() => { window.location.href = 'plans.html'; }, 1200);
   } catch (e) {
     console.error('[google finish] error:', e);
     showToast('❌ Failed to save profile. Please try again.');
