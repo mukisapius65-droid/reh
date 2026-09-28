@@ -880,7 +880,8 @@
         }
 
         function startApp() {
-					let isGoogleFlow = false;
+				// Window-scoped so outer Google helpers can set it
+window._rehGoogleFlowActive = false;
           let submitCancelled = false;
 
 					// ── Google sign-up ────────────────────────────
@@ -1012,7 +1013,7 @@ if (googleUpBtn) {
             if (validateStep1()) updateStepUI(2);
           });
           document.getElementById('nextStep2').addEventListener('click', async () => {
-  if (!isGoogleFlow) { updateStepUI(3); return; }
+  if (!window._rehGoogleFlowActive) { updateStepUI(3); return; }
   await window._rehFinishGoogleProfile();
 });
           document
@@ -1066,6 +1067,14 @@ if (googleUpBtn) {
           // ── Final submission (Firebase Auth + Firestore profile) ───
 document.getElementById('submitAll').addEventListener('click', async function () {
   const btn = this;
+	// If the user signed in via Google, Step 3 shouldn't appear — but if it did,
+// route them through the Google-finish flow rather than creating a new account.
+if (window._rehGoogleFlowActive) {
+  btn.disabled = false;
+  btn.innerHTML = originalHTML;
+  await window._rehFinishGoogleProfile();
+  return;
+}
   const originalHTML = btn.innerHTML;
   btn.disabled = true;
   btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Creating your account…';
@@ -1256,7 +1265,7 @@ document.getElementById('submitAll').addEventListener('click', async function ()
   document.getElementById('lastName').value = lastName;
   document.getElementById('email').value = normalizedEmail;
   document.getElementById('phoneStep2Group').style.display = 'block';
-					isGoogleFlow = true;
+		window._rehGoogleFlowActive = true;			
   document.getElementById('step1Dot').classList.add('done');
   document.getElementById('step1Dot').classList.remove('active');
   document.getElementById('line1').classList.add('active');
@@ -1304,6 +1313,9 @@ window._rehFinishGoogleProfile = async function() {
     };
     localStorage.setItem('reh_user', JSON.stringify(session));
 sessionStorage.removeItem('reh_user');
+// Clear the Google-flow flag now that the profile is done
+window._rehGoogleFlowActive = false;
+sessionStorage.removeItem('reh_google_pending');
 
 // Verify the write took, before redirecting
 const verify = localStorage.getItem('reh_user');
