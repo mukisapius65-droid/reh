@@ -880,6 +880,38 @@
         }
 
         function startApp() {
+					// At the top of register.html startApp, before anything else
+(function resumeGoogleFlow() {
+  const partial = sessionStorage.getItem('reh_user');
+  if (!partial) return;
+  let parsed;
+  try { parsed = JSON.parse(partial); } catch (e) { return; }
+  if (!parsed.email || !parsed.uid) return;
+
+  // If the user's Firestore doc is complete, don't resume — send to dashboard
+  window.getDoc(window.doc(window.db, 'users', parsed.email))
+    .then(snap => {
+      if (snap.exists() && snap.data().profileComplete === true) {
+        sessionStorage.removeItem('reh_user');
+        window.location.href = 'index.html?redirect=dashboard.html';
+        return;
+      }
+      // Otherwise populate Step 2 and jump there
+      window._rehGoogleFlowActive = true;
+      document.getElementById('firstName').value = parsed.firstName || '';
+      document.getElementById('lastName').value = parsed.lastName || '';
+      document.getElementById('email').value = parsed.email;
+      document.getElementById('phoneStep2Group').style.display = 'block';
+      document.getElementById('step1Dot').classList.add('done');
+      document.getElementById('step1Dot').classList.remove('active');
+      document.getElementById('line1').classList.add('active');
+      document.getElementById('step2Dot').classList.add('active');
+      window.updateStepUI(2);
+      showToast('✨ Signed in with Google. Complete your profile to continue.');
+    })
+    .catch(err => console.warn('[google resume] failed:', err));
+})();
+					
   let submitCancelled = false;
 
 					// ── Google sign-up ────────────────────────────
