@@ -880,9 +880,7 @@
         }
 
         function startApp() {
-				// Window-scoped so outer Google helpers can set it
-window._rehGoogleFlowActive = false;
-          let submitCancelled = false;
+  let submitCancelled = false;
 
 					// ── Google sign-up ────────────────────────────
 const googleUpBtn = document.getElementById('googleSignUpBtn');
@@ -939,11 +937,14 @@ if (googleUpBtn) {
           let toastTimer;
 
           function showToast(msg) {
-            if (toastTimer) clearTimeout(toastTimer);
-            toastMessage.textContent = msg;
-            toast.classList.add("show");
-            toastTimer = setTimeout(() => toast.classList.remove("show"), 3000);
-          }
+  if (toastTimer) clearTimeout(toastTimer);
+  toastMessage.textContent = msg;
+  toast.classList.add("show");
+  toastTimer = setTimeout(() => toast.classList.remove("show"), 3000);
+}
+
+// Expose globally so outer-scope helpers (Google flow) can reach it
+window.showToast = showToast;
 
           // ── Step navigation ─────────────────────────
           let currentStep = 1;
@@ -1067,15 +1068,17 @@ if (googleUpBtn) {
           // ── Final submission (Firebase Auth + Firestore profile) ───
 document.getElementById('submitAll').addEventListener('click', async function () {
   const btn = this;
-	// If the user signed in via Google, Step 3 shouldn't appear — but if it did,
-// route them through the Google-finish flow rather than creating a new account.
-if (window._rehGoogleFlowActive) {
-  btn.disabled = false;
-  btn.innerHTML = originalHTML;
-  await window._rehFinishGoogleProfile();
-  return;
-}
   const originalHTML = btn.innerHTML;
+
+  // If the user signed in via Google, Step 3 shouldn't appear — but if it did,
+  // route them through the Google-finish flow rather than creating a new account.
+  if (window._rehGoogleFlowActive) {
+    btn.disabled = false;
+    btn.innerHTML = originalHTML;
+    await window._rehFinishGoogleProfile();
+    return;
+  }
+
   btn.disabled = true;
   btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Creating your account…';
 
@@ -1336,8 +1339,14 @@ setTimeout(() => { window.location.href = 'plans.html'; }, 1200);
   }
 };
 
-        // Kick off after Firebase is ready
-        waitForFirebase(startApp);
+        // Initialize Google flow flag at parse time. Redirect-return may set it to
+// true *before* startApp runs — we don't want to reset it.
+if (typeof window._rehGoogleFlowActive !== 'boolean') {
+  window._rehGoogleFlowActive = false;
+}
+
+// Kick off after Firebase is ready
+waitForFirebase(startApp);
       })();
     </script>
   </body>
