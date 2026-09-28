@@ -547,8 +547,18 @@
     </div>
 
     <div class="register-card">
-      <!-- Step Indicator -->
-      <div class="step-indicator">
+    <button type="button" id="googleSignUpBtn" style="width:100%; padding:12px 20px; margin-bottom:1.5rem; background:rgba(255,255,255,0.06); border:1px solid var(--glass-border); border-radius:14px; color:var(--text-primary); font-family:inherit; font-weight:600; font-size:0.9rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:0.6rem; transition:0.2s;">
+        <i class="fa-brands fa-google" style="color:#dfc278;"></i>
+        Continue with Google
+    </button>
+    <div style="display:flex; align-items:center; gap:0.8rem; margin-bottom:1.5rem;">
+        <span style="flex:1; height:1px; background:var(--glass-border);"></span>
+        <span style="color:var(--text-muted); font-size:0.75rem; letter-spacing:0.05em;">OR</span>
+        <span style="flex:1; height:1px; background:var(--glass-border);"></span>
+    </div>
+
+    <!-- Step Indicator -->
+    <div class="step-indicator">
         <div class="step-dot active" id="step1Dot">1</div>
         <div class="step-line" id="line1"></div>
         <div class="step-dot" id="step2Dot">2</div>
@@ -641,6 +651,10 @@
       <div class="step-panel" id="step2Panel">
         <h2 class="step-title">Your Radiant Self</h2>
         <p class="step-subtitle">A picture speaks a thousand love stories.</p>
+				<div class="form-group" id="phoneStep2Group" style="display:none;">
+    <label><i class="fa-solid fa-phone"></i> Phone Number</label>
+    <input type="tel" id="phoneStep2" placeholder="+256 7XX XXX XXX" />
+				</div>
         <div class="photo-upload" id="photoUpload">
           <!-- <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Profile picture" id="profileAvatarImg"> -->
           <img id="previewImg" style="display: none" />
@@ -866,7 +880,36 @@
         }
 
         function startApp() {
+					let isGoogleFlow = false;
           let submitCancelled = false;
+
+					// ── Google sign-up ────────────────────────────
+const googleUpBtn = document.getElementById('googleSignUpBtn');
+if (googleUpBtn) {
+  googleUpBtn.addEventListener('click', async () => {
+    const btn = googleUpBtn;
+    const origHTML = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Opening Google…';
+    try {
+      const cred = await window._rehGoogleSignIn();
+      if (!cred) return;
+      await window._rehCompleteGoogleSignUp(cred.user);
+    } catch (e) {
+      console.error('[google signup] error:', e);
+      let msg = 'Google sign-up failed. Please try again.';
+      if (e.code === 'auth/account-exists-with-different-credential') {
+        msg = 'You already have an account with this email. Please sign in instead.';
+      } else if (e.code === 'auth/popup-blocked') {
+        msg = 'Popup blocked. Please allow popups and try again.';
+      } else if (e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request') {
+        btn.disabled = false; btn.innerHTML = origHTML; return;
+      }
+      showToast('❌ ' + msg);
+      btn.disabled = false; btn.innerHTML = origHTML;
+    }
+  });
+}
 
           // ── Floating hearts ──────────────────────────
           const heartsContainer = document.getElementById("heartsContainer");
@@ -966,9 +1009,10 @@
           document.getElementById("nextStep1").addEventListener("click", () => {
             if (validateStep1()) updateStepUI(2);
           });
-          document
-            .getElementById("nextStep2")
-            .addEventListener("click", () => updateStepUI(3));
+          document.getElementById('nextStep2').addEventListener('click', async () => {
+  if (!isGoogleFlow) { updateStepUI(3); return; }
+  await window._rehFinishGoogleProfile();
+});
           document
             .getElementById("backStep1")
             .addEventListener("click", () => updateStepUI(1));
@@ -1155,6 +1199,107 @@ document.getElementById('submitAll').addEventListener('click', async function ()
 
           showLastActive: true; // default visible
         }
+
+				
+
+				// ── Google redirect return handler ──
+(async function handleGoogleRedirectReturn() {
+  try {
+    const wasPending = sessionStorage.getItem('reh_google_pending');
+    const result = await window.getRedirectResult(window.auth);
+    if (wasPending) sessionStorage.removeItem('reh_google_pending');
+    if (!result || !result.user) {
+      if (wasPending) showToast('Google sign-up was cancelled or blocked. Try again.');
+      return;
+    }
+    await window._rehCompleteGoogleSignUp(result.user);
+  } catch (e) {
+    console.error('[google redirect register] error:', e);
+  }
+})();
+
+				window._rehCompleteGoogleSignUp = async function(user) {
+  const normalizedEmail = user.email.trim().toLowerCase();
+  const existing = await window.getDoc(window.doc(window.db, 'users', normalizedEmail));
+  if (existing.exists() && existing.data().profileComplete === true) {
+    showToast('You already have an account. Redirecting to sign in…');
+    setTimeout(() => { window.location.href = 'index.html?redirect=login.html'; }, 1500);
+    return;
+  }
+  const nameParts = (user.displayName || '').split(' ');
+  const firstName = nameParts[0] || '';
+  const lastName = nameParts.slice(1).join(' ') || '';
+  await window.setDoc(window.doc(window.db, 'users', normalizedEmail), {
+    email: normalizedEmail, uid: user.uid, firstName, lastName,
+    name: user.displayName || '', avatar: user.photoURL || window.getRandomAvatar(),
+    plan: 'trial', joined: new Date().toISOString().split('T')[0],
+    lastActive: window.serverTimestamp(), createdAt: window.serverTimestamp(),
+    banned: false, visibility: true, profileComplete: false,
+  }, { merge: true });
+  sessionStorage.setItem('reh_user', JSON.stringify({
+    email: normalizedEmail, uid: user.uid, firstName, lastName,
+    avatar: user.photoURL || '', plan: 'trial',
+  }));
+  document.getElementById('firstName').value = firstName;
+  document.getElementById('lastName').value = lastName;
+  document.getElementById('email').value = normalizedEmail;
+  document.getElementById('phoneStep2Group').style.display = 'block';
+					isGoogleFlow = true;
+  document.getElementById('step1Dot').classList.add('done');
+  document.getElementById('step1Dot').classList.remove('active');
+  document.getElementById('line1').classList.add('active');
+  document.getElementById('step2Dot').classList.add('active');
+  updateStepUI(2);
+  showToast('✨ Signed in with Google. Complete your profile to continue.');
+};
+
+window._rehFinishGoogleProfile = async function() {
+  const user = JSON.parse(sessionStorage.getItem('reh_user') || '{}');
+  if (!user.email) {
+    showToast('Session expired. Please sign in with Google again.');
+    setTimeout(() => window.location.reload(), 1500);
+    return;
+  }
+  const phone = (document.getElementById('phoneStep2').value || '').trim();
+  if (!/^[+\d\s\-()]{7,}$/.test(phone)) {
+    showToast('📱 Please enter a valid phone number.');
+    return;
+  }
+  const btn = document.getElementById('nextStep2');
+  const orig = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving…';
+  try {
+    const previewImg = document.getElementById('previewImg');
+    const hasUpload = previewImg && previewImg.getAttribute('src');
+    const avatar = hasUpload ? previewImg.src : (user.avatar || window.getRandomAvatar());
+    await window.updateDoc(window.doc(window.db, 'users', user.email), {
+      age: document.getElementById('age').value,
+      location: document.getElementById('location').value.trim() || 'Milan, Italy',
+      phone: phone, bio: document.getElementById('bio').value,
+      interests: document.getElementById('interests').value,
+      profession: document.getElementById('regProfession').value.trim(),
+      income: document.getElementById('regIncome').value.trim(),
+      netWorth: document.getElementById('regNetWorth').value.trim(),
+      avatar: avatar, profileComplete: true,
+    });
+    const session = {
+      email: user.email, uid: user.uid,
+      firstName: user.firstName || '', lastName: user.lastName || '',
+      avatar: avatar, plan: 'trial', phone: phone,
+      age: document.getElementById('age').value,
+      location: document.getElementById('location').value.trim(),
+    };
+    localStorage.setItem('reh_user', JSON.stringify(session));
+    sessionStorage.removeItem('reh_user');
+    showToast('✨ Profile saved! Choose your plan.');
+    setTimeout(() => { window.location.href = 'plans.html'; }, 1200);
+  } catch (e) {
+    console.error('[google finish] error:', e);
+    showToast('❌ Failed to save profile. Please try again.');
+    btn.disabled = false; btn.innerHTML = orig;
+  }
+};
 
         // Kick off after Firebase is ready
         waitForFirebase(startApp);

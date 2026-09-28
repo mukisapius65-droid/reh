@@ -6,11 +6,14 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
-  // sendPasswordResetEmail: exported here for PR 2 (recovery rewrite). Not used in PR 1.
   sendPasswordResetEmail,
   setPersistence,
   browserLocalPersistence,
   browserSessionPersistence,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 import {
@@ -74,6 +77,10 @@ export {
   setPersistence,
   browserLocalPersistence,
   browserSessionPersistence,
+	GoogleAuthProvider,
+signInWithPopup,
+signInWithRedirect,
+getRedirectResult,
   // Firestore
   writeBatch,
   doc,
@@ -117,6 +124,23 @@ window.sendPasswordResetEmail = sendPasswordResetEmail;
 window.setPersistence = setPersistence;
 window.browserLocalPersistence = browserLocalPersistence;
 window.browserSessionPersistence = browserSessionPersistence;
+window.GoogleAuthProvider = GoogleAuthProvider;
+window.signInWithPopup = signInWithPopup;
+window.signInWithRedirect = signInWithRedirect;
+window.getRedirectResult = getRedirectResult;
+
+// ── Google sign-in helper (popup on desktop, redirect on mobile) ──
+window._rehGoogleSignIn = async function () {
+  const provider = new GoogleAuthProvider();
+  const ua = navigator.userAgent || '';
+  const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
+  if (isMobile) {
+    sessionStorage.setItem('reh_google_pending', '1');
+    await signInWithRedirect(auth, provider);
+    return null;
+  }
+  return await signInWithPopup(auth, provider);
+};
 
 // Firestore
 window.doc = doc;

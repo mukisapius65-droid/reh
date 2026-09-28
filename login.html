@@ -540,12 +540,22 @@
 						Remember me on this device
 					</label>
 				</div>
-				<button type="submit" class="btn-signin">
-					<i class="fa-solid fa-arrow-right-to-bracket"></i> Enter the Circle
-				</button>
-			</form>
+				    <button type="submit" class="btn-signin">
+        <i class="fa-solid fa-arrow-right-to-bracket"></i> Enter the Circle
+    </button>
+</form>
 
-			<div class="extra-links">
+<div style="display:flex; align-items:center; gap:0.8rem; margin:1.2rem 0;">
+    <span style="flex:1; height:1px; background:var(--glass-border);"></span>
+    <span style="color:var(--text-muted); font-size:0.75rem; letter-spacing:0.05em;">OR</span>
+    <span style="flex:1; height:1px; background:var(--glass-border);"></span>
+</div>
+<button type="button" id="googleSignInBtn" style="width:100%; padding:12px 20px; background:rgba(255,255,255,0.06); border:1px solid var(--glass-border); border-radius:14px; color:var(--text-primary); font-family:inherit; font-weight:600; font-size:0.9rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:0.6rem; transition:0.2s;">
+    <i class="fa-brands fa-google" style="color:#dfc278;"></i>
+    Continue with Google
+</button>
+
+<div class="extra-links">
 				<a href="index?redirect=recovery"
 					><i class="fa-solid fa-key"></i> Forgot your password?</a
 				>
@@ -642,6 +652,60 @@
 				}
 
 				function startApp() {
+
+					// ── Google sign-in ───────────────────────────
+const googleBtn = document.getElementById('googleSignInBtn');
+if (googleBtn) {
+  googleBtn.addEventListener('click', async () => {
+    const btn = googleBtn;
+    const origHTML = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Opening Google…';
+    try {
+      const cred = await window._rehGoogleSignIn();
+      if (!cred) return;
+      const normalizedEmail = cred.user.email.trim().toLowerCase();
+      const userRef = window.doc(window.db, 'users', normalizedEmail);
+      const snap = await window.getDoc(userRef);
+      if (!snap.exists() || (snap.exists() && snap.data().profileComplete === false)) {
+        sessionStorage.setItem('reh_user', JSON.stringify({
+          email: normalizedEmail, uid: cred.user.uid,
+          firstName: cred.user.displayName?.split(' ')[0] || '',
+          lastName: cred.user.displayName?.split(' ').slice(1).join(' ') || '',
+          avatar: cred.user.photoURL || '', plan: 'trial',
+        }));
+        window.location.href = 'index.html?redirect=register.html';
+        return;
+      }
+      const profile = snap.data();
+      await window.setPersistence(window.auth, window.browserLocalPersistence);
+      const session = {
+        email: normalizedEmail, uid: cred.user.uid,
+        firstName: profile.firstName || '', lastName: profile.lastName || '',
+        avatar: profile.avatar || '', plan: profile.plan || 'trial',
+        phone: profile.phone || '', age: profile.age || '',
+        location: profile.location || '', blocked: profile.blocked || [],
+      };
+      localStorage.setItem('reh_user', JSON.stringify(session));
+      showToast(`✨ Welcome back, ${profile.firstName || 'Beautiful'}!`);
+      setTimeout(() => { window.location.href = 'index.html?redirect=dashboard.html'; }, 1000);
+    } catch (e) {
+      console.error('[google login] error:', e);
+      let msg = 'Google sign-in failed. Please try again.';
+      if (e.code === 'auth/account-exists-with-different-credential') {
+        msg = 'You already have an account with this email. Please sign in with your password.';
+      } else if (e.code === 'auth/popup-blocked') {
+        msg = 'Popup blocked. Please allow popups and try again.';
+      } else if (e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request') {
+        btn.disabled = false; btn.innerHTML = origHTML; return;
+      } else if (e.code === 'auth/network-request-failed') {
+        msg = 'Network error. Check your connection.';
+      }
+      showToast('❌ ' + msg);
+      btn.disabled = false; btn.innerHTML = origHTML;
+    }
+  });
+}
 					// ── Floating Hearts ───────────────────────
 					const heartsContainer = document.getElementById("heartsContainer");
 					const heartIcons = ["❤️", "💕", "💖", "💗", "💘", "✨", "🌸"];
@@ -842,6 +906,43 @@
 							}
 						});
 				}
+				// ── Google redirect return handler ──
+(async function handleRedirectReturn() {
+  try {
+    const wasPending = sessionStorage.getItem('reh_google_pending');
+    const result = await window.getRedirectResult(window.auth);
+    if (wasPending) sessionStorage.removeItem('reh_google_pending');
+    if (!result || !result.user) {
+      if (wasPending) showToast('Google sign-in was cancelled or blocked. Try again or use email.');
+      return;
+    }
+    const normalizedEmail = result.user.email.trim().toLowerCase();
+    const userRef = window.doc(window.db, 'users', normalizedEmail);
+    const snap = await window.getDoc(userRef);
+    if (!snap.exists() || (snap.exists() && snap.data().profileComplete === false)) {
+      sessionStorage.setItem('reh_user', JSON.stringify({
+        email: normalizedEmail, uid: result.user.uid,
+        firstName: result.user.displayName?.split(' ')[0] || '',
+        lastName: result.user.displayName?.split(' ').slice(1).join(' ') || '',
+        avatar: result.user.photoURL || '', plan: 'trial',
+      }));
+      window.location.href = 'index.html?redirect=register.html';
+      return;
+    }
+    const profile = snap.data();
+    const session = {
+      email: normalizedEmail, uid: result.user.uid,
+      firstName: profile.firstName || '', lastName: profile.lastName || '',
+      avatar: profile.avatar || '', plan: profile.plan || 'trial',
+      phone: profile.phone || '', age: profile.age || '',
+      location: profile.location || '', blocked: profile.blocked || [],
+    };
+    localStorage.setItem('reh_user', JSON.stringify(session));
+    window.location.href = 'index.html?redirect=dashboard.html';
+  } catch (e) {
+    console.error('[google redirect] error:', e);
+  }
+})();
 
 				// Wait for Firebase, then run the app
 				waitForFirebase(startApp);

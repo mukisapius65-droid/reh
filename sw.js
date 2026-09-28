@@ -1,4 +1,4 @@
-const CACHE_NAME = 'reh-cache-v1';
+const CACHE_NAME = 'reh-cache-v2';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -6,7 +6,9 @@ const ASSETS_TO_CACHE = [
   '/elite',
   '/events',
   '/concierge',
-  '/profile'
+  '/profile',
+  '/login.html',
+  '/register.html'
   // Add other routes you want cached
 ];
 
@@ -33,6 +35,8 @@ self.addEventListener('activate', (event) => {
 
 // Fetch event – serve from cache, fall back to network
 self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url);
+  if (url.pathname.startsWith('/api/')) return;
   event.respondWith(
     caches.match(event.request)
       .then((cachedResponse) => cachedResponse || fetch(event.request))
