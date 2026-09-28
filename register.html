@@ -983,6 +983,8 @@ if (googleUpBtn) {
             currentStep = step;
           }
 
+					window.updateStepUI = updateStepUI;
+
           // Validation
           function validateStep1() {
             const firstName = document.getElementById("firstName").value.trim();
@@ -1206,7 +1208,7 @@ document.getElementById('submitAll').addEventListener('click', async function ()
 (function handleGoogleRedirectReturn() {
   let tries = 0;
   const check = setInterval(async () => {
-    if (window.auth && window.getRedirectResult && window._rehCompleteGoogleSignUp) {
+    if (window.auth && window.getRedirectResult && window._rehCompleteGoogleSignUp && window.updateStepUI) {
       clearInterval(check);
       try {
         const wasPending = sessionStorage.getItem('reh_google_pending');
@@ -1259,7 +1261,7 @@ document.getElementById('submitAll').addEventListener('click', async function ()
   document.getElementById('step1Dot').classList.remove('active');
   document.getElementById('line1').classList.add('active');
   document.getElementById('step2Dot').classList.add('active');
-  updateStepUI(2);
+  window.updateStepUI(2);
   showToast('✨ Signed in with Google. Complete your profile to continue.');
 };
 
