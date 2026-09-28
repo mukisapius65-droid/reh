@@ -1202,20 +1202,30 @@ document.getElementById('submitAll').addEventListener('click', async function ()
 
 				
 
-				// ── Google redirect return handler ──
-(async function handleGoogleRedirectReturn() {
-  try {
-    const wasPending = sessionStorage.getItem('reh_google_pending');
-    const result = await window.getRedirectResult(window.auth);
-    if (wasPending) sessionStorage.removeItem('reh_google_pending');
-    if (!result || !result.user) {
-      if (wasPending) showToast('Google sign-up was cancelled or blocked. Try again.');
-      return;
+// ── Google redirect return handler (waits for firebase.js to load) ──
+(function handleGoogleRedirectReturn() {
+  let tries = 0;
+  const check = setInterval(async () => {
+    if (window.auth && window.getRedirectResult && window._rehCompleteGoogleSignUp) {
+      clearInterval(check);
+      try {
+        const wasPending = sessionStorage.getItem('reh_google_pending');
+        const result = await window.getRedirectResult(window.auth);
+        if (wasPending) sessionStorage.removeItem('reh_google_pending');
+        if (!result || !result.user) {
+          if (wasPending) showToast('Google sign-up was cancelled or blocked. Try again.');
+          return;
+        }
+        await window._rehCompleteGoogleSignUp(result.user);
+      } catch (e) {
+        console.error('[google redirect register] error:', e);
+      }
     }
-    await window._rehCompleteGoogleSignUp(result.user);
-  } catch (e) {
-    console.error('[google redirect register] error:', e);
-  }
+    if (++tries > 100) {
+      clearInterval(check);
+      console.error('[google redirect] firebase.js never loaded');
+    }
+  }, 100);
 })();
 
 				window._rehCompleteGoogleSignUp = async function(user) {
