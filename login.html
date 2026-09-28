@@ -556,12 +556,12 @@
 </button>
 
 <div class="extra-links">
-				<a href="index?redirect=recovery"
+				<a href="index.html?redirect=recovery.html"
 					><i class="fa-solid fa-key"></i> Forgot your password?</a
 				>
 				<div>
 					<span class="divider">Don't have an account yet?</span>
-					<a href="index?redirect=register"
+					<a href="index.html?redirect=register.html"
 						><i class="fa-solid fa-user-plus"></i> Join the Circle</a
 					>
 				</div>
@@ -687,8 +687,19 @@ if (googleBtn) {
         location: profile.location || '', blocked: profile.blocked || [],
       };
       localStorage.setItem('reh_user', JSON.stringify(session));
-      showToast(`✨ Welcome back, ${profile.firstName || 'Beautiful'}!`);
-      setTimeout(() => { window.location.href = 'index.html?redirect=dashboard.html'; }, 1000);
+
+// Verify the write took before redirecting
+const verify = localStorage.getItem('reh_user');
+if (!verify) {
+  console.error('[google login] localStorage write failed');
+  showToast('⚠️ Session save failed. Please try again.');
+  btn.disabled = false;
+  btn.innerHTML = origHTML;
+  return;
+}
+
+showToast(`✨ Welcome back, ${profile.firstName || 'Beautiful'}!`);
+setTimeout(() => { window.location.href = 'index.html?redirect=dashboard.html'; }, 1000);
     } catch (e) {
       console.error('[google login] error:', e);
       let msg = 'Google sign-in failed. Please try again.';
@@ -739,6 +750,8 @@ if (googleBtn) {
 						toast.classList.add("show");
 						toastTimer = setTimeout(() => toast.classList.remove("show"), 3000);
 					}
+
+					window.showToast = showToast;
 
 					// ── Member count animation ──────────────
 					const memberSpan = document.getElementById("memberCount");
@@ -907,41 +920,52 @@ if (googleBtn) {
 						});
 				}
 				// ── Google redirect return handler ──
-(async function handleRedirectReturn() {
-  try {
-    const wasPending = sessionStorage.getItem('reh_google_pending');
-    const result = await window.getRedirectResult(window.auth);
-    if (wasPending) sessionStorage.removeItem('reh_google_pending');
-    if (!result || !result.user) {
-      if (wasPending) showToast('Google sign-in was cancelled or blocked. Try again or use email.');
-      return;
+// ── Google redirect return handler (waits for firebase.js + showToast) ──
+(function handleRedirectReturn() {
+  let tries = 0;
+  const check = setInterval(async () => {
+    if (window.auth && window.getRedirectResult && window.showToast) {
+      clearInterval(check);
+      try {
+        const wasPending = sessionStorage.getItem('reh_google_pending');
+        const result = await window.getRedirectResult(window.auth);
+        if (wasPending) sessionStorage.removeItem('reh_google_pending');
+        if (!result || !result.user) {
+          if (wasPending) window.showToast('Google sign-in was cancelled or blocked. Try again or use email.');
+          return;
+        }
+        const normalizedEmail = result.user.email.trim().toLowerCase();
+        const userRef = window.doc(window.db, 'users', normalizedEmail);
+        const snap = await window.getDoc(userRef);
+        if (!snap.exists() || (snap.exists() && snap.data().profileComplete === false)) {
+          sessionStorage.setItem('reh_user', JSON.stringify({
+            email: normalizedEmail, uid: result.user.uid,
+            firstName: result.user.displayName?.split(' ')[0] || '',
+            lastName: result.user.displayName?.split(' ').slice(1).join(' ') || '',
+            avatar: result.user.photoURL || '', plan: 'trial',
+          }));
+          window.location.href = 'index.html?redirect=register.html';
+          return;
+        }
+        const profile = snap.data();
+        const session = {
+          email: normalizedEmail, uid: result.user.uid,
+          firstName: profile.firstName || '', lastName: profile.lastName || '',
+          avatar: profile.avatar || '', plan: profile.plan || 'trial',
+          phone: profile.phone || '', age: profile.age || '',
+          location: profile.location || '', blocked: profile.blocked || [],
+        };
+        localStorage.setItem('reh_user', JSON.stringify(session));
+        window.location.href = 'index.html?redirect=dashboard.html';
+      } catch (e) {
+        console.error('[google redirect] error:', e);
+      }
     }
-    const normalizedEmail = result.user.email.trim().toLowerCase();
-    const userRef = window.doc(window.db, 'users', normalizedEmail);
-    const snap = await window.getDoc(userRef);
-    if (!snap.exists() || (snap.exists() && snap.data().profileComplete === false)) {
-      sessionStorage.setItem('reh_user', JSON.stringify({
-        email: normalizedEmail, uid: result.user.uid,
-        firstName: result.user.displayName?.split(' ')[0] || '',
-        lastName: result.user.displayName?.split(' ').slice(1).join(' ') || '',
-        avatar: result.user.photoURL || '', plan: 'trial',
-      }));
-      window.location.href = 'index.html?redirect=register.html';
-      return;
+    if (++tries > 100) {
+      clearInterval(check);
+      console.error('[google redirect login] firebase.js or showToast never loaded');
     }
-    const profile = snap.data();
-    const session = {
-      email: normalizedEmail, uid: result.user.uid,
-      firstName: profile.firstName || '', lastName: profile.lastName || '',
-      avatar: profile.avatar || '', plan: profile.plan || 'trial',
-      phone: profile.phone || '', age: profile.age || '',
-      location: profile.location || '', blocked: profile.blocked || [],
-    };
-    localStorage.setItem('reh_user', JSON.stringify(session));
-    window.location.href = 'index.html?redirect=dashboard.html';
-  } catch (e) {
-    console.error('[google redirect] error:', e);
-  }
+  }, 100);
 })();
 
 				// Wait for Firebase, then run the app
