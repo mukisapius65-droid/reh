@@ -886,28 +886,37 @@
 const googleUpBtn = document.getElementById('googleSignUpBtn');
 if (googleUpBtn) {
   googleUpBtn.addEventListener('click', async () => {
-    const btn = googleUpBtn;
-    const origHTML = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Opening Google…';
-    try {
-      const cred = await window._rehGoogleSignIn();
-      if (!cred) return;
-      await window._rehCompleteGoogleSignUp(cred.user);
-    } catch (e) {
-      console.error('[google signup] error:', e);
-      let msg = 'Google sign-up failed. Please try again.';
-      if (e.code === 'auth/account-exists-with-different-credential') {
-        msg = 'You already have an account with this email. Please sign in instead.';
-      } else if (e.code === 'auth/popup-blocked') {
-        msg = 'Popup blocked. Please allow popups and try again.';
-      } else if (e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request') {
-        btn.disabled = false; btn.innerHTML = origHTML; return;
-      }
-      showToast('❌ ' + msg);
-      btn.disabled = false; btn.innerHTML = origHTML;
+  const btn = googleUpBtn;
+  const origHTML = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Opening Google…';
+  try {
+    const cred = await window._rehGoogleSignIn();
+    if (!cred) {
+      // Redirect flow in progress — page is about to unload.
+      // Keep the button disabled; the redirect return handler will take over.
+      console.log('[google signup] redirect flow started');
+      return;
     }
-  });
+    await window._rehCompleteGoogleSignUp(cred.user);
+  } catch (e) {
+    console.error('[google signup] error:', e);
+    const code = e?.code || 'unknown';
+    const message = e?.message || 'No message';
+    let msg = `Google sign-up failed (${code}): ${message}`;
+    if (e.code === 'auth/account-exists-with-different-credential') {
+      msg = 'You already have an account with this email. Please sign in instead.';
+    } else if (e.code === 'auth/popup-blocked') {
+      msg = 'Popup blocked. Please allow popups and try again.';
+    } else if (e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request') {
+      btn.disabled = false; btn.innerHTML = origHTML; return;
+    } else if (e.code === 'auth/unauthorized-domain') {
+      msg = 'This domain is not authorized for Google sign-in. Contact support.';
+    }
+    showToast('❌ ' + msg);
+    btn.disabled = false; btn.innerHTML = origHTML;
+  }
+});
 }
 
           // ── Floating hearts ──────────────────────────
@@ -1216,28 +1225,73 @@ document.getElementById('submitAll').addEventListener('click', async function ()
 
 				
 
-// ── Google redirect return handler (waits for firebase.js to load) ──
+// ── Google redirect return handler (with verbose diagnostics) ──
 (function handleGoogleRedirectReturn() {
   let tries = 0;
   const check = setInterval(async () => {
     if (window.auth && window.getRedirectResult && window._rehCompleteGoogleSignUp && window.updateStepUI) {
       clearInterval(check);
+
+      const wasPending = sessionStorage.getItem('reh_google_pending') === '1';
+      const pendingAt = sessionStorage.getItem('reh_google_pending_at');
+
+      console.log('[google redirect] handler fired', {
+        wasPending,
+        pendingAt,
+        url: window.location.href,
+        hasAuthUser: !!window.auth.currentUser,
+      });
+
+      // If there's no pending flag, this isn't a redirect return — skip.
+      if (!wasPending) {
+        console.log('[google redirect] no pending flag, skipping');
+        return;
+      }
+
       try {
-        const wasPending = sessionStorage.getItem('reh_google_pending');
         const result = await window.getRedirectResult(window.auth);
-        if (wasPending) sessionStorage.removeItem('reh_google_pending');
+
+        console.log('[google redirect] getRedirectResult returned', {
+          result,
+          user: result?.user || null,
+          hasCredential: !!result?.credential,
+          currentUser: window.auth.currentUser,
+        });
+
+        sessionStorage.removeItem('reh_google_pending');
+        sessionStorage.removeItem('reh_google_pending_at');
+
         if (!result || !result.user) {
-          if (wasPending) showToast('Google sign-up was cancelled or blocked. Try again.');
+          // No error thrown, but no user either.
+          // Two possibilities:
+          //  1) Firebase Auth has a currentUser from a prior session that
+          //     is still valid → treat as success.
+          //  2) Neither error nor user → redirect truly didn't complete.
+          if (window.auth.currentUser) {
+            console.log('[google redirect] no redirect result but currentUser exists — completing');
+            await window._rehCompleteGoogleSignUp(window.auth.currentUser);
+            return;
+          }
+          // Otherwise, show exactly what we know
+          console.warn('[google redirect] null result, no currentUser');
+          showToast('⚠️ Google redirect returned nothing. Check console for details.');
           return;
         }
+
         await window._rehCompleteGoogleSignUp(result.user);
+
       } catch (e) {
-        console.error('[google redirect register] error:', e);
+        sessionStorage.removeItem('reh_google_pending');
+        sessionStorage.removeItem('reh_google_pending_at');
+        console.error('[google redirect] thrown error:', e);
+        const code = e?.code || 'unknown';
+        const msg = e?.message || 'No message';
+        showToast(`❌ Google error: ${code} — ${msg}`);
       }
     }
     if (++tries > 100) {
       clearInterval(check);
-      console.error('[google redirect] firebase.js never loaded');
+      console.error('[google redirect] firebase.js never loaded after 10s');
     }
   }, 100);
 })();

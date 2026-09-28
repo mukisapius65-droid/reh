@@ -927,13 +927,35 @@ setTimeout(() => { window.location.href = 'index.html?redirect=dashboard.html'; 
     if (window.auth && window.getRedirectResult && window.showToast) {
       clearInterval(check);
       try {
-        const wasPending = sessionStorage.getItem('reh_google_pending');
-        const result = await window.getRedirectResult(window.auth);
-        if (wasPending) sessionStorage.removeItem('reh_google_pending');
-        if (!result || !result.user) {
-          if (wasPending) window.showToast('Google sign-in was cancelled or blocked. Try again or use email.');
-          return;
-        }
+        const wasPending = sessionStorage.getItem('reh_google_pending') === '1';
+console.log('[google redirect login] fired', { wasPending, hasUser: !!window.auth.currentUser });
+if (!wasPending) return;
+try {
+  const result = await window.getRedirectResult(window.auth);
+  console.log('[google redirect login] result:', result);
+  sessionStorage.removeItem('reh_google_pending');
+  sessionStorage.removeItem('reh_google_pending_at');
+  if (!result || !result.user) {
+    if (window.auth.currentUser) {
+      console.log('[google redirect login] using currentUser fallback');
+      // treat currentUser as success
+      const normalizedEmail = window.auth.currentUser.email.trim().toLowerCase();
+      const snap = await window.getDoc(window.doc(window.db, 'users', normalizedEmail));
+      const profile = snap.exists() ? snap.data() : {};
+      localStorage.setItem('reh_user', JSON.stringify({
+        email: normalizedEmail, uid: window.auth.currentUser.uid,
+        firstName: profile.firstName || '', lastName: profile.lastName || '',
+        avatar: profile.avatar || '', plan: profile.plan || 'trial',
+        phone: profile.phone || '', age: profile.age || '',
+        location: profile.location || '', blocked: profile.blocked || [],
+      }));
+      window.location.href = 'index.html?redirect=dashboard.html';
+      return;
+    }
+    window.showToast('⚠️ Google returned no user. Check console.');
+    return;
+  }
+  // ... rest unchanged
         const normalizedEmail = result.user.email.trim().toLowerCase();
         const userRef = window.doc(window.db, 'users', normalizedEmail);
         const snap = await window.getDoc(userRef);
