@@ -1227,6 +1227,13 @@ document.getElementById('submitAll').addEventListener('click', async function ()
 
 // ── Google redirect return handler (with verbose diagnostics) ──
 (function handleGoogleRedirectReturn() {
+	// Auto-expire stale Google-pending flags (5 minutes)
+const pendingAt = sessionStorage.getItem('reh_google_pending_at');
+if (pendingAt && Date.now() - parseInt(pendingAt, 10) > 5 * 60 * 1000) {
+  console.log('[google] stale pending flag, clearing');
+  sessionStorage.removeItem('reh_google_pending');
+  sessionStorage.removeItem('reh_google_pending_at');
+}
   let tries = 0;
   const check = setInterval(async () => {
     if (window.auth && window.getRedirectResult && window._rehCompleteGoogleSignUp && window.updateStepUI) {
@@ -1274,8 +1281,8 @@ document.getElementById('submitAll').addEventListener('click', async function ()
           }
           // Otherwise, show exactly what we know
           console.warn('[google redirect] null result, no currentUser');
-          showToast('⚠️ Google redirect returned nothing. Check console for details.');
-          return;
+showToast('⚠️ Google sign-in didn\'t complete. Please try again.');
+return;
         }
 
         await window._rehCompleteGoogleSignUp(result.user);

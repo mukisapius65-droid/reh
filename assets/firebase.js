@@ -132,19 +132,30 @@ window.getRedirectResult = getRedirectResult;
 // ── Google sign-in helper (popup on desktop, redirect on mobile) ──
 window._rehGoogleSignIn = async function () {
   const provider = new GoogleAuthProvider();
-  // Set persistence BEFORE the redirect — required so the Auth session
-  // survives the round-trip to Google and back. Without this, mobile
-  // browsers sometimes lose the session and the user lands "logged out".
+  // Set persistence BEFORE the popup/redirect — required so the Auth
+  // session survives on all platforms.
   await setPersistence(auth, browserLocalPersistence);
-  const ua = navigator.userAgent || '';
-  const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
-  if (isMobile) {
-  sessionStorage.setItem('reh_google_pending', '1');
-  sessionStorage.setItem('reh_google_pending_at', String(Date.now()));
-  await signInWithRedirect(auth, provider);
-  return null;
-}
-  return await signInWithPopup(auth, provider);
+
+  try {
+    // Popup is the recommended path on every platform since 2024.
+    // Redirect has known failures on browsers that block third-party
+    // cookies (Chrome, Safari, Edge, Samsung Internet).
+    return await signInWithPopup(auth, provider);
+  } catch (e) {
+    // Popup explicitly blocked → fall back to redirect.
+    // Rare. Only happens if the user has blocked popups entirely.
+    if (
+      e.code === 'auth/popup-blocked' ||
+      e.code === 'auth/operation-not-supported-in-this-environment'
+    ) {
+      console.log('[google] popup blocked, falling back to redirect');
+      sessionStorage.setItem('reh_google_pending', '1');
+      sessionStorage.setItem('reh_google_pending_at', String(Date.now()));
+      await signInWithRedirect(auth, provider);
+      return null;
+    }
+    throw e;
+  }
 };
 
 // Firestore

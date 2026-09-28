@@ -982,11 +982,12 @@ try {
       } catch (e) {
         console.error('[google redirect] error:', e);
       }
-    }
+    } catch {
     if (++tries > 100) {
       clearInterval(check);
       console.error('[google redirect login] firebase.js or showToast never loaded');
     }
+			}	
   }, 100);
 })();
 
