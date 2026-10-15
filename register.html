@@ -651,11 +651,26 @@
       <div class="step-panel" id="step2Panel">
         <h2 class="step-title">Your Radiant Self</h2>
         <p class="step-subtitle">A picture speaks a thousand love stories.</p>
-				<div class="form-group" id="phoneStep2Group" style="display:none;">
-    <label><i class="fa-solid fa-phone"></i> Phone Number</label>
-    <input type="tel" id="phoneStep2" placeholder="+256 7XX XXX XXX" />
-				</div>
-        <div class="photo-upload" id="photoUpload">
+				<div class="form-group">
+  <label><i class="fa-solid fa-venus-mars"></i> Gender</label>
+  <select id="gender" required style="width:100%; padding:11px 14px; background:rgba(255,255,255,0.04); border:1px solid var(--glass-border); border-radius:14px; color:white; font-family:'Inter',sans-serif; font-size:0.9rem; outline:none;">
+    <option value="">Select…</option>
+    <option value="female">Female</option>
+    <option value="male">Male</option>
+    <option value="other">Other</option>
+  </select>
+</div>
+<div class="form-group" style="display:flex; align-items:flex-start; gap:0.5rem;">
+  <input type="checkbox" id="adultConsent" style="width:auto; margin-top:0.2rem;" />
+  <label for="adultConsent" style="margin:0; font-size:0.78rem; color:var(--text-secondary); cursor:pointer; line-height:1.5;">
+    I confirm I am 18 or older and consent to Reh's content policy.
+  </label>
+</div>
+<div class="form-group" id="phoneStep2Group" style="display:none;">
+  <label><i class="fa-solid fa-phone"></i> Phone Number</label>
+  <input type="tel" id="phoneStep2" placeholder="+256 7XX XXX XXX" />
+</div>
+<div class="photo-upload" id="photoUpload">
           <!-- <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Profile picture" id="profileAvatarImg"> -->
           <img id="previewImg" style="display: none" />
           <div class="photo-placeholder" id="photoPlaceholder">
@@ -1051,11 +1066,34 @@ window.showToast = showToast;
             return true;
           }
 
+      function validateStep2() {
+  const gender = document.getElementById("gender").value;
+  const consent = document.getElementById("adultConsent").checked;
+  const age = parseInt(document.getElementById("age").value, 10);
+  const location = document.getElementById("location").value.trim();
+  const phone = window._rehGoogleFlowActive
+    ? document.getElementById("phoneStep2").value.trim()
+    : document.getElementById("phone").value.trim();
+
+  if (!gender) { showToast("⚧ Please select your gender."); return false; }
+  if (!consent) { showToast("🔞 Please confirm you are 18 or older to continue."); return false; }
+  if (!age || age < 18 || age > 99) { showToast("🎂 Please enter a valid age (18+)."); return false; }
+  if (!location) { showToast("📍 Please enter your location."); return false; }
+  if (!/^[+\d\s\-()]{7,}$/.test(phone)) { showToast("📱 Please enter a valid phone number."); return false; }
+  return true;
+}
+
           document.getElementById("nextStep1").addEventListener("click", () => {
             if (validateStep1()) updateStepUI(2);
           });
           document.getElementById('nextStep2').addEventListener('click', async () => {
-  if (!window._rehGoogleFlowActive) { updateStepUI(3); return; }
+  // Validate Step 2 fields for BOTH flows (email + Google)
+  if (!validateStep2()) return;
+
+  if (!window._rehGoogleFlowActive) {
+    updateStepUI(3);
+    return;
+  }
   await window._rehFinishGoogleProfile();
 });
           document
@@ -1163,13 +1201,15 @@ document.getElementById('submitAll').addEventListener('click', async function ()
       profession: document.getElementById('regProfession').value.trim(),
       income: document.getElementById('regIncome').value.trim(),
       netWorth: document.getElementById('regNetWorth').value.trim(),
-      joined: new Date().toISOString().split('T')[0],
-      lastActive: window.serverTimestamp(),
-      banned: false,
-      visibility: true,
-      incognito: false,
-      createdAt: window.serverTimestamp(),
-    };
+        joined: new Date().toISOString().split('T')[0],
+  lastActive: window.serverTimestamp(),
+  banned: false,
+  visibility: true,
+  incognito: false,
+  gender: document.getElementById('gender').value,
+  adultConfirmed: document.getElementById('adultConsent').checked === true,
+  profileComplete: true,
+};
 
     await window.setDoc(
       window.doc(window.db, 'users', normalizedEmail),
@@ -1375,11 +1415,11 @@ return;
     const banner = document.createElement('div');
     banner.className = 'google-welcome-banner';
     banner.style.cssText = 'background:rgba(200,160,60,0.15); border:1px solid var(--gold); border-radius:12px; padding:0.7rem 1rem; margin-bottom:1rem; font-size:0.85rem; color:var(--gold-light); text-align:center;';
-    banner.innerHTML = '✨ <strong>' + normalizedEmail + '</strong> — signed in with Google. Complete your profile to finish.';
+    banner.innerHTML = '<strong>' + normalizedEmail + '</strong> — signed in with Google. Complete your profile to finish.';
     step2Panel.insertBefore(banner, step2Panel.firstChild);
   }
 
-  showToast('✨ Signed in with Google. Complete your profile to continue.');
+  showToast('Signed in with Google. Complete your profile to continue.');
 };
 
 window._rehFinishGoogleProfile = async function() {
@@ -1403,15 +1443,18 @@ window._rehFinishGoogleProfile = async function() {
     const hasUpload = previewImg && previewImg.getAttribute('src');
     const avatar = hasUpload ? previewImg.src : (user.avatar || window.getRandomAvatar());
     await window.updateDoc(window.doc(window.db, 'users', user.email), {
-      age: document.getElementById('age').value,
-      location: document.getElementById('location').value.trim() || 'Milan, Italy',
-      phone: phone, bio: document.getElementById('bio').value,
-      interests: document.getElementById('interests').value,
-      profession: document.getElementById('regProfession').value.trim(),
-      income: document.getElementById('regIncome').value.trim(),
-      netWorth: document.getElementById('regNetWorth').value.trim(),
-      avatar: avatar, profileComplete: true,
-    });
+  gender: document.getElementById('gender').value,
+  age: document.getElementById('age').value,
+  location: document.getElementById('location').value.trim() || 'Milan, Italy',
+  phone: phone, bio: document.getElementById('bio').value,
+  interests: document.getElementById('interests').value,
+  profession: document.getElementById('regProfession').value.trim(),
+  income: document.getElementById('regIncome').value.trim(),
+  netWorth: document.getElementById('regNetWorth').value.trim(),
+  avatar: avatar,
+  profileComplete: true,
+  adultConfirmed: document.getElementById('adultConsent').checked === true,
+});
     const session = {
       email: user.email, uid: user.uid,
       firstName: user.firstName || '', lastName: user.lastName || '',
