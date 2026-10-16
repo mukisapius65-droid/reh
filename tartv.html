@@ -1044,12 +1044,13 @@
       <div class="tv-sheet">
         <h3><i class="fa-solid fa-magnifying-glass"></i> Search Tar TV</h3>
         <input
-          type="text"
-          class="tv-sheet-search-input"
-          id="tvSearchInput"
-          placeholder="Search by title or author…"
-          autocomplete="off"
-        />
+  type="text"
+  class="tv-sheet-search-input"
+  id="tvSearchInput"
+  placeholder="Search by title or author…"
+  autocomplete="off"
+  enterkeyhint="search"
+/>
         <div class="tv-search-results" id="tvSearchResults"></div>
         <button class="tv-sheet-cancel" data-close-sheet>Cancel</button>
       </div>
@@ -1626,6 +1627,9 @@
 
       const videos = orderSmartFeed(filtered);
 
+                  // Expose for search — reads from memory instead of walking the DOM
+window._tarTvAllVideos = videos;
+
       						// ─── Clear skeleton slides ───
       						tvContainer.innerHTML = "";
 
@@ -1935,21 +1939,21 @@
               const slides = tvContainer.querySelectorAll(".video-slide");
               let found = false;
               slides.forEach((slide) => {
-                  if (slide.dataset.videoId === targetVideoId) {
-                      slide.scrollIntoView({ behavior: "auto", block: "start" });
-                      found = true;
-                  }
-              });
-              if (!found) {
-                  if (typeof showError === "function") {
-                      const modeLabel = _IS_AI_MODE ? "AI video" : "video";
-                      showError(`${modeLabel} unavailable — showing latest.`);
-                  }
-                  const firstSlide = slides[0];
-                  if (firstSlide) {
-                      firstSlide.scrollIntoView({ behavior: "auto", block: "start" });
-                  }
-              }
+    if (slide.dataset.videoId === targetVideoId) {
+        slide.scrollIntoView({ behavior: "instant", block: "start" });
+        found = true;
+    }
+});
+if (!found) {
+    if (typeof showError === "function") {
+        const modeLabel = _IS_AI_MODE ? "AI video" : "video";
+        showError(`${modeLabel} unavailable — showing latest.`);
+    }
+    const firstSlide = slides[0];
+    if (firstSlide) {
+        firstSlide.scrollIntoView({ behavior: "instant", block: "start" });
+    }
+}
 
               setTimeout(() => { window._rehSuppressViewTracking = false; }, 800);
           }, 400);
@@ -2478,51 +2482,51 @@
       									.join("");
 
       								box.querySelectorAll(".tv-search-result").forEach((el) => {
-      									el.addEventListener("click", async () => {
-      										const email = el.dataset.sendEmail;
-      										const videoId = window._activeTvVideoId;
-      										if (!videoId) {
-      											window._tvShowToast("No active video to send.");
-      											return;
-      										}
-      										const title =
-      											document
-      												.querySelector(
-      													'.video-slide[data-video-id="' +
-      														videoId +
-      														'"] .video-title',
-      												)
-      												?.textContent?.trim() || "";
-      										const thumb =
-      											document.querySelector(
-      												'.video-slide[data-video-id="' +
-      													videoId +
-      													'"] .video-placeholder',
-      											)?.style?.backgroundImage || "";
-      										const thumbUrl = thumb
-      											.replace(/^url\(["']?/, "")
-      											.replace(/["']?\)$/, "");
+	el.addEventListener("click", async () => {
+		const email = el.dataset.sendEmail;
+		const videoId = window._activeTvVideoId;
+		if (!videoId) {
+			window._tvShowToast("No active video to send.");
+			return;
+		}
+		const title =
+			document
+				.querySelector(
+					'.video-slide[data-video-id="' +
+						videoId +
+						'"] .video-title',
+				)
+				?.textContent?.trim() || "";
+		const thumb =
+			document.querySelector(
+				'.video-slide[data-video-id="' +
+					videoId +
+					'"] .video-placeholder',
+			)?.style?.backgroundImage || "";
+		const thumbUrl = thumb
+			.replace(/^url\(["']?/, "")
+			.replace(/["']?\)$/, "");
 
-      										// Visual feedback while sending
-      										el.style.opacity = "0.5";
-      										el.style.pointerEvents = "none";
+		// Visual feedback while sending
+		el.style.opacity = "0.5";
+		el.style.pointerEvents = "none";
 
-      										const ok = await sendVideoTo(
-      											email,
-      											videoId,
-      											title,
-      											thumbUrl,
-      										);
+		const ok = await sendVideoTo(
+			email,
+			videoId,
+			title,
+			thumbUrl,
+		);
 
-      										if (ok) {
-      											window._tvShowToast("🎬 Sent!");
-      											window._tvCloseAllSheets();
-      										} else {
-      											el.style.opacity = "1";
-      											el.style.pointerEvents = "";
-      										}
-      									});
-      								});
+		if (ok) {
+			window._tvShowToast("🎬 Sent!");
+			window._tvCloseAllSheets();
+		} else {
+			el.style.opacity = "1";
+			el.style.pointerEvents = "";
+		}
+	});
+});
       							})
       							.catch((err) => {
       								console.error("[renderSendResults] error:", err);
@@ -2646,26 +2650,13 @@
       					const searchResults = document.getElementById("tvSearchResults");
 
       					function getVideoList() {
-      						return Array.from(document.querySelectorAll(".video-slide")).map(
-      							(slide) => {
-      								const t = slide.querySelector(".video-title");
-      								const a = slide.querySelector(".video-author");
-      								const ph = slide.querySelector(".video-placeholder");
-      								let thumb = "";
-      								if (ph && ph.style.backgroundImage) {
-      									thumb = ph.style.backgroundImage
-      										.replace(/^url\(["']?/, "")
-      										.replace(/["']?\)$/, "");
-      								}
-      								return {
-      									id: slide.dataset.videoId,
-      									title: t ? t.textContent.trim() : "",
-      									author: a ? a.textContent.replace(/^@/, "").trim() : "",
-      									thumbnail: thumb,
-      								};
-      							},
-      						);
-      					}
+  return (window._tarTvAllVideos || []).map(v => ({
+    id: v.id,
+    title: v.title || '',
+    author: (v.author || 'Reh').replace(/^@/, '').trim(),
+    thumbnail: v.thumbnail || '',
+  }));
+}
       					function escHtml(s) {
       						const d = document.createElement("div");
       						d.textContent = String(s);
@@ -2675,12 +2666,17 @@
       						const q = (query || "").toLowerCase().trim();
       						const all = getVideoList();
       						const list = q
-      							? all.filter(
-      									(v) =>
-      										v.title.toLowerCase().includes(q) ||
-      										v.author.toLowerCase().includes(q),
-      								)
-      							: all.slice(0, 20);
+  ? all
+      .filter(v =>
+        v.title.toLowerCase().includes(q) ||
+        v.author.toLowerCase().includes(q)
+      )
+      .sort((a, b) => {
+        const aTitle = a.title.toLowerCase().includes(q) ? 1 : 0;
+        const bTitle = b.title.toLowerCase().includes(q) ? 1 : 0;
+        return bTitle - aTitle;
+      })
+  : all.slice(0, 20);
 
       						if (!list.length) {
       							searchResults.innerHTML =
@@ -2704,32 +2700,82 @@
           `,
       							)
       							.join("");
+              
       						searchResults
-      							.querySelectorAll(".tv-search-result")
-      							.forEach((el) => {
-      								el.addEventListener("click", () => {
-      									const slide = document.querySelector(
-      										`.video-slide[data-video-id="${el.dataset.videoId}"]`,
-      									);
-      									if (slide)
-      										slide.scrollIntoView({
-      											behavior: "smooth",
-      											block: "start",
-      										});
-      									closeAllSheets();
-      								});
-      							});
+	.querySelectorAll(".tv-search-result")
+	.forEach((el) => {
+		el.addEventListener("click", () => {
+			const slide = document.querySelector(
+				`.video-slide[data-video-id="${el.dataset.videoId}"]`,
+			);
+			if (slide)
+				slide.scrollIntoView({
+					behavior: "instant",
+					block: "start",
+				});
+			closeAllSheets();
+		});
+	});
       					}
-      					document
-      						.getElementById("tvSearchBtn")
-      						.addEventListener("click", () => {
-      							openSheet("tvSearchSheet");
-      							renderSearchResults("");
-      							setTimeout(() => searchInput.focus(), 320);
-      						});
-      					searchInput.addEventListener("input", (e) =>
-      						renderSearchResults(e.target.value),
-      					);
+      					// ─── Auto-suggest search query from current video ───
+let _searchSuggestion = '';
+
+function buildSearchSuggestion() {
+  const activeId = window._activeTvVideoId;
+  if (!activeId) return '';
+
+  const video = (window._tarTvAllVideos || []).find(v => v.id === activeId);
+  if (!video) return '';
+
+  const title = (video.title || '').trim();
+  if (!title) return '';
+
+  if (title.length <= 40) return title;
+
+  const words = title.split(/\s+/);
+  let out = '';
+  for (const w of words) {
+    if ((out + ' ' + w).trim().length > 40) break;
+    out = (out + ' ' + w).trim();
+  }
+  return out || title.slice(0, 40);
+}
+
+document
+  .getElementById("tvSearchBtn")
+  .addEventListener("click", () => {
+    openSheet("tvSearchSheet");
+    renderSearchResults("");
+
+    // Build and set the suggestion as the placeholder
+    _searchSuggestion = buildSearchSuggestion();
+    searchInput.placeholder = _searchSuggestion || 'Search by title or author…';
+    searchInput.value = '';
+
+        setTimeout(() => searchInput.focus(), 320);
+  });
+
+// ─── Live filter on every keystroke ───
+searchInput.addEventListener("input", (e) =>
+  renderSearchResults(e.target.value),
+);
+
+searchInput.addEventListener("keydown", (e) => {
+  if (e.key !== 'Enter') return;
+  e.preventDefault();
+
+  const typed = searchInput.value.trim();
+  if (typed) {
+    // User typed something — run their query (already live-filtered)
+    return;
+  }
+
+  // Nothing typed — use the suggestion as the query
+  if (_searchSuggestion) {
+    searchInput.value = _searchSuggestion;
+    renderSearchResults(_searchSuggestion);
+  }
+});
 
       					// ─── Segment (visual only) ──────────────
       					document.querySelectorAll("#tvSegment button").forEach((btn) => {
