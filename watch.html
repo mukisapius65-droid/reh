@@ -25,6 +25,64 @@
     .mute-tap { position:absolute; top:0; left:30%; width:40%; height:100%; z-index:2; cursor:pointer; }
     .mute-indicator { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:3rem; color:white; opacity:0; transition:opacity 0.25s; pointer-events:none; z-index:3; text-shadow:0 0 20px rgba(0,0,0,0.8); }
     .mute-indicator.show { opacity:1; }
+    .part-transition {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  z-index: 10;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.seek-bar-container {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.9rem 1rem calc(0.9rem + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.85));
+}
+.seek-time {
+  font-size: 0.72rem;
+  color: #c5bfb3;
+  font-variant-numeric: tabular-nums;
+  min-width: 40px;
+  letter-spacing: 0.3px;
+}
+.seek-time.duration { text-align: right; }
+.seek-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.25);
+  outline: none;
+  cursor: pointer;
+}
+.seek-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--gold-light);
+  border: 2px solid rgba(0, 0, 0, 0.6);
+  box-shadow: 0 0 8px rgba(200, 160, 60, 0.4);
+  cursor: pointer;
+}
+.seek-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--gold-light);
+  border: 2px solid rgba(0, 0, 0, 0.6);
+  cursor: pointer;
+}
     .info-block { padding:1.25rem 0; }
     .video-title { font-family:'Playfair Display',serif; font-size:clamp(1.3rem,3vw,1.8rem); color:white; margin-bottom:0.5rem; line-height:1.25; }
     .meta-row { display:flex; gap:0.6rem; align-items:center; flex-wrap:wrap; font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem; }
@@ -61,10 +119,16 @@
     <aside class="sidebar invisible" id="sidebar"></aside>
     <div class="watch-container" id="watchContainer">
       <div class="player-wrap" id="playerWrap" style="display:none;">
-        <video id="videoEl" controls playsinline preload="metadata"></video>
-        <div class="mute-tap" id="muteTap"></div>
-        <div class="mute-indicator" id="muteIndicator"><i class="fa-solid fa-volume-xmark"></i></div>
-      </div>
+  <video id="videoEl" playsinline preload="metadata"></video>
+  <div class="mute-tap" id="muteTap"></div>
+  <div class="mute-indicator" id="muteIndicator"><i class="fa-solid fa-volume-xmark"></i></div>
+  <div id="partTransitionOverlay" class="part-transition"></div>
+  <div class="seek-bar-container">
+    <span class="seek-time current" id="currentTimeLabel">0:00</span>
+    <input type="range" class="seek-slider" id="seekSlider" min="0" max="1" step="0.001" value="0" />
+    <span class="seek-time duration" id="durationLabel">0:00</span>
+  </div>
+</div>
       <div id="contentSkeleton">
         <div class="sk-line tall"></div>
         <div class="sk-line short" style="margin-bottom:1.5rem;"></div>
@@ -99,193 +163,338 @@
   <script src="assets/general.js"></script>
   <script>
     (function () {
-      const params = new URLSearchParams(window.location.search);
-      const videoId = params.get('id');
+  const params = new URLSearchParams(window.location.search);
+  const videoId = params.get('id');
 
-      function escapeHtml(s) {
-        const d = document.createElement('div');
-        d.textContent = String(s == null ? '' : s);
-        return d.innerHTML;
-      }
-      function fmtDuration(sec) {
-        if (!sec || isNaN(sec)) return '';
-        const m = Math.floor(sec / 60);
-        const s = Math.floor(sec % 60);
-        return `${m}:${String(s).padStart(2,'0')}`;
-      }
-      function timeAgo(ts) {
-        if (!ts) return '';
-        const ms = ts.toMillis ? ts.toMillis() : (ts.seconds ? ts.seconds * 1000 : ts);
-        const d = Math.floor((Date.now() - ms) / 86400000);
-        if (d === 0) return 'Today';
-        if (d === 1) return 'Yesterday';
-        if (d < 7) return `${d} days ago`;
-        if (d < 30) return `${Math.floor(d/7)} weeks ago`;
-        if (d < 365) return `${Math.floor(d/30)} months ago`;
-        return `${Math.floor(d/365)} years ago`;
-      }
-      function showState(icon, msg) {
-        document.getElementById('watchContainer').innerHTML =
-          `<div class="state-block"><i class="fa-solid ${icon}"></i>${escapeHtml(msg)}<br><a href="/videos">← Back to videos</a></div>`;
+  function escapeHtml(s) {
+    const d = document.createElement('div');
+    d.textContent = String(s == null ? '' : s);
+    return d.innerHTML;
+  }
+  function formatTime(sec) {
+    if (!sec || isNaN(sec) || sec < 0 || !isFinite(sec)) return '0:00';
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = Math.floor(sec % 60);
+    if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    return `${m}:${String(s).padStart(2,'0')}`;
+  }
+  function timeAgo(ts) {
+    if (!ts) return '';
+    const ms = ts.toMillis ? ts.toMillis() : (ts.seconds ? ts.seconds * 1000 : ts);
+    const d = Math.floor((Date.now() - ms) / 86400000);
+    if (d === 0) return 'Today';
+    if (d === 1) return 'Yesterday';
+    if (d < 7) return `${d} days ago`;
+    if (d < 30) return `${Math.floor(d/7)} weeks ago`;
+    if (d < 365) return `${Math.floor(d/30)} months ago`;
+    return `${Math.floor(d/365)} years ago`;
+  }
+  function showState(icon, msg) {
+    document.getElementById('watchContainer').innerHTML =
+      `<div class="state-block"><i class="fa-solid ${icon}"></i>${escapeHtml(msg)}<br><a href="/videos">← Back to videos</a></div>`;
+  }
+
+  function waitForFirebase(cb) {
+    if (window.db && window.doc && window.getDoc) cb();
+    else {
+      let n = 0;
+      const t = setInterval(() => {
+        if (window.db && window.doc && window.getDoc) { clearInterval(t); cb(); }
+        if (++n > 100) { clearInterval(t); console.error('[watch] Firebase not ready'); }
+      }, 100);
+    }
+  }
+
+  if (!videoId) { showState('fa-triangle-exclamation', 'No video specified.'); return; }
+
+  waitForFirebase(load);
+
+  // ─── Multi-part player state ─────────────────────
+  let playerParts = [];
+  let currentPartIndex = 0;
+  let globalCurrentTime = 0;
+  let partDurations = [];
+  let totalDuration = 0;
+
+  const videoEl = document.getElementById('videoEl');
+  const overlay = document.getElementById('partTransitionOverlay');
+  const seekSlider = document.getElementById('seekSlider');
+  const currentTimeLabel = document.getElementById('currentTimeLabel');
+  const durationLabel = document.getElementById('durationLabel');
+
+  async function load() {
+    try {
+      const snap = await window.getDoc(window.doc(window.db, 'full_videos', videoId));
+      if (!snap.exists()) { showState('fa-video-slash', 'Video not found.'); return; }
+      const v = snap.data();
+      if (v.status === 'removed') { showState('fa-video-slash', 'Video not available.'); return; }
+
+      playerParts = v.videoUrls || (v.videoUrl ? [v.videoUrl] : []);
+      partDurations = new Array(playerParts.length).fill(0);
+      totalDuration = 0;
+
+      if (playerParts.length === 0) {
+        showState('fa-triangle-exclamation', 'No video source found.');
+        return;
       }
 
-      function waitForFirebase(cb) {
-        if (window.db && window.doc && window.getDoc) cb();
+      render(v);
+      initPlayer();
+
+      const guardKey = 'viewed_fullvideo_' + videoId;
+      if (!sessionStorage.getItem(guardKey)) {
+        sessionStorage.setItem(guardKey, '1');
+        try {
+          await window.updateDoc(window.doc(window.db, 'full_videos', videoId), {
+            views: window.increment ? window.increment(1) : (v.views || 0) + 1
+          });
+        } catch (e) { console.warn('[watch] view increment failed:', e); }
+      }
+      loadRail(v.category, v.id);
+    } catch (err) {
+      console.error('[watch] error:', err);
+      showState('fa-triangle-exclamation', "Couldn't load video.");
+    }
+  }
+
+  function render(v) {
+    document.getElementById('contentSkeleton').style.display = 'none';
+    document.getElementById('playerWrap').style.display = 'block';
+    document.getElementById('infoBlock').style.display = 'block';
+
+    videoEl.muted = true;
+
+    document.getElementById('muteTap').addEventListener('click', () => {
+      videoEl.muted = !videoEl.muted;
+      const ind = document.getElementById('muteIndicator');
+      const icon = ind.querySelector('i');
+      icon.className = videoEl.muted ? 'fa-solid fa-volume-xmark' : 'fa-solid fa-volume-up';
+      ind.classList.add('show');
+      setTimeout(() => ind.classList.remove('show'), 600);
+    });
+
+    document.getElementById('videoTitle').textContent = v.title || 'Untitled';
+    document.getElementById('videoAuthor').textContent = v.author || 'Reh';
+    document.getElementById('videoViews').textContent = `${(v.views || 0) + 1} views`;
+    document.getElementById('videoDate').textContent = timeAgo(v.createdAt);
+    document.getElementById('likeCount').textContent = v.likes || 0;
+
+    const desc = v.description || '';
+    document.getElementById('descText').textContent = desc;
+    if (desc.length < 120) {
+      document.getElementById('descToggle').style.display = 'none';
+    } else {
+      document.getElementById('descToggle').addEventListener('click', function () {
+        const block = document.getElementById('descBlock');
+        block.classList.toggle('expanded');
+        this.textContent = block.classList.contains('expanded') ? 'Show less' : 'Show more';
+      });
+    }
+
+    document.getElementById('likeBtn').addEventListener('click', async function () {
+      const btn = this;
+      try {
+        await window.updateDoc(window.doc(window.db, 'full_videos', videoId), {
+          likes: window.increment ? window.increment(1) : (v.likes || 0) + 1
+        });
+        const count = parseInt(document.getElementById('likeCount').textContent, 10) + 1;
+        document.getElementById('likeCount').textContent = count;
+        btn.classList.add('active');
+        btn.querySelector('i').className = 'fa-solid fa-heart';
+        btn.disabled = true;
+      } catch (e) { console.error(e); }
+    });
+
+    document.getElementById('shareBtn').addEventListener('click', async function () {
+      const url = `https://reh-crown.vercel.app/watch?id=${encodeURIComponent(videoId)}`;
+      try {
+        if (navigator.clipboard) await navigator.clipboard.writeText(url);
         else {
-          let n = 0;
-          const t = setInterval(() => {
-            if (window.db && window.doc && window.getDoc) { clearInterval(t); cb(); }
-            if (++n > 100) { clearInterval(t); console.error('[watch] Firebase not ready'); }
-          }, 100);
+          const i = document.createElement('input');
+          i.value = url; document.body.appendChild(i); i.select();
+          document.execCommand('copy'); document.body.removeChild(i);
         }
+        this.querySelector('i').className = 'fa-solid fa-check';
+        setTimeout(() => this.querySelector('i').className = 'fa-solid fa-share', 1500);
+      } catch (e) { console.error(e); }
+    });
+
+    document.getElementById('bookmarkBtn').addEventListener('click', async function () {
+      const user = window.getCurrentUser ? window.getCurrentUser() : null;
+      if (!user || !user.email) {
+        window.location.href = 'index.html?redirect=login.html';
+        return;
       }
+      try {
+        await window.setDoc(
+          window.doc(window.db, 'users', user.email.trim().toLowerCase(), 'savedVideos', videoId),
+          { savedAt: window.serverTimestamp ? window.serverTimestamp() : new Date() }
+        );
+        this.classList.add('active');
+        this.querySelector('i').className = 'fa-solid fa-bookmark';
+        this.disabled = true;
+      } catch (e) { console.error(e); }
+    });
+  }
 
-      if (!videoId) { showState('fa-triangle-exclamation', 'No video specified.'); return; }
+  function initPlayer() {
+    switchToPart(0, 0);
 
-      waitForFirebase(load);
-
-      async function load() {
-        try {
-          const snap = await window.getDoc(window.doc(window.db, 'full_videos', videoId));
-          if (!snap.exists()) { showState('fa-video-slash', 'Video not found.'); return; }
-          const v = snap.data();
-          if (v.status === 'removed') { showState('fa-video-slash', 'Video not available.'); return; }
-          render(v);
-          // Increment views once per session
-          const guardKey = 'viewed_fullvideo_' + videoId;
-          if (!sessionStorage.getItem(guardKey)) {
-            sessionStorage.setItem(guardKey, '1');
-            try {
-              await window.updateDoc(window.doc(window.db, 'full_videos', videoId), {
-                views: window.increment ? window.increment(1) : (v.views || 0) + 1
-              });
-            } catch (e) { console.warn('[watch] view increment failed:', e); }
+    for (let i = 1; i < playerParts.length; i++) {
+      const tempVid = document.createElement('video');
+      tempVid.preload = 'metadata';
+      tempVid.src = playerParts[i];
+      tempVid.onloadedmetadata = () => {
+        // Guard: only record once — prevents double-counting if the main player
+        // already switched to this part and captured its duration
+        if (partDurations[i] === 0) {
+          const raw = tempVid.duration;
+          const dur = isFinite(raw) && raw > 0 ? raw : 0;
+          if (dur > 0) {
+            partDurations[i] = dur;
+            totalDuration += dur;
+            updateDurationLabel();
           }
-          loadRail(v.category, v.id);
-        } catch (err) {
-          console.error('[watch] error:', err);
-          showState('fa-triangle-exclamation', "Couldn't load video.");
         }
+      };
+    }
+  }
+
+  function switchToPart(index, seekToSeconds = 0) {
+    if (index >= playerParts.length) return;
+    currentPartIndex = index;
+
+    if (seekToSeconds === 0 && index > 0 && overlay) {
+      overlay.style.opacity = '1';
+    }
+
+    const onMetadataLoaded = () => {
+      // Guard: isFinite prevents Infinity (corrupt source) from poisoning totalDuration
+      const raw = videoEl.duration;
+      const dur = isFinite(raw) && raw > 0 ? raw : 0;
+      if (partDurations[index] === 0 && dur > 0) {
+        partDurations[index] = dur;
+        totalDuration += dur;
+        updateDurationLabel();
       }
 
-      function render(v) {
-        document.getElementById('contentSkeleton').style.display = 'none';
-        document.getElementById('playerWrap').style.display = 'block';
-        document.getElementById('infoBlock').style.display = 'block';
+      videoEl.currentTime = seekToSeconds;
+      videoEl.play().catch(() => {});
 
-        const videoEl = document.getElementById('videoEl');
-        videoEl.src = v.videoUrl;
-        videoEl.muted = true;
-        videoEl.addEventListener('loadedmetadata', () => {
-          videoEl.play().catch(() => {});
-        }, { once: true });
+      if (overlay) setTimeout(() => overlay.style.opacity = '0', 300);
 
-        // Tap center to toggle mute
-        document.getElementById('muteTap').addEventListener('click', () => {
-          videoEl.muted = !videoEl.muted;
-          const ind = document.getElementById('muteIndicator');
-          const icon = ind.querySelector('i');
-          icon.className = videoEl.muted ? 'fa-solid fa-volume-xmark' : 'fa-solid fa-volume-up';
-          ind.classList.add('show');
-          setTimeout(() => ind.classList.remove('show'), 600);
-        });
+      videoEl.removeEventListener('loadedmetadata', onMetadataLoaded);
+    };
 
-        document.getElementById('videoTitle').textContent = v.title || 'Untitled';
-        document.getElementById('videoAuthor').textContent = v.author || 'Reh';
-        document.getElementById('videoViews').textContent = `${(v.views || 0) + 1} views`;
-        document.getElementById('videoDate').textContent = timeAgo(v.createdAt);
-        document.getElementById('likeCount').textContent = v.likes || 0;
+    videoEl.addEventListener('loadedmetadata', onMetadataLoaded);
+    videoEl.src = playerParts[index];
+    videoEl.load();
 
-        const desc = v.description || '';
-        document.getElementById('descText').textContent = desc;
-        if (desc.length < 120) {
-          document.getElementById('descToggle').style.display = 'none';
-        } else {
-          document.getElementById('descToggle').addEventListener('click', function () {
-            const block = document.getElementById('descBlock');
-            block.classList.toggle('expanded');
-            this.textContent = block.classList.contains('expanded') ? 'Show less' : 'Show more';
-          });
-        }
+    preloadNextPart(index + 1);
+  }
 
-        // Actions
-        document.getElementById('likeBtn').addEventListener('click', async function () {
-          const btn = this;
-          try {
-            await window.updateDoc(window.doc(window.db, 'full_videos', videoId), {
-              likes: window.increment ? window.increment(1) : (v.likes || 0) + 1
-            });
-            const count = parseInt(document.getElementById('likeCount').textContent, 10) + 1;
-            document.getElementById('likeCount').textContent = count;
-            btn.classList.add('active');
-            btn.querySelector('i').className = 'fa-solid fa-heart';
-            btn.disabled = true;
-          } catch (e) { console.error(e); }
-        });
+  function preloadNextPart(index) {
+    if (index >= playerParts.length) return;
+    let nextVid = document.getElementById('hiddenPreloader');
+    if (!nextVid) {
+      nextVid = document.createElement('video');
+      nextVid.id = 'hiddenPreloader';
+      nextVid.style.display = 'none';
+      document.body.appendChild(nextVid);
+    }
+    nextVid.preload = 'auto';
+    nextVid.src = playerParts[index];
+  }
 
-        document.getElementById('shareBtn').addEventListener('click', async () => {
-          const url = `https://reh-crown.vercel.app/watch?id=${encodeURIComponent(videoId)}`;
-          try {
-            if (navigator.clipboard) {
-              await navigator.clipboard.writeText(url);
-            } else {
-              const i = document.createElement('input');
-              i.value = url; document.body.appendChild(i); i.select();
-              document.execCommand('copy'); document.body.removeChild(i);
-            }
-            this.querySelector('i').className = 'fa-solid fa-check';
-            setTimeout(() => this.querySelector('i').className = 'fa-solid fa-share', 1500);
-          } catch (e) { console.error(e); }
-        });
+  function updateDurationLabel() {
+    if (totalDuration > 0) durationLabel.textContent = formatTime(totalDuration);
+  }
 
-        document.getElementById('bookmarkBtn').addEventListener('click', async function () {
-          const user = window.getCurrentUser ? window.getCurrentUser() : null;
-          if (!user || !user.email) {
-            window.location.href = 'index.html?redirect=login.html';
-            return;
-          }
-          try {
-            await window.setDoc(
-              window.doc(window.db, 'users', user.email.trim().toLowerCase(), 'savedVideos', videoId),
-              { savedAt: window.serverTimestamp ? window.serverTimestamp() : new Date() }
-            );
-            this.classList.add('active');
-            this.querySelector('i').className = 'fa-solid fa-bookmark';
-            this.disabled = true;
-          } catch (e) { console.error(e); }
-        });
+  videoEl.addEventListener('ended', () => {
+    if (currentPartIndex < playerParts.length - 1) {
+      switchToPart(currentPartIndex + 1, 0);
+    }
+  });
+
+  seekSlider.addEventListener('input', (e) => {
+    if (!totalDuration) return;
+    const targetGlobalTime = parseFloat(e.target.value) * totalDuration;
+    currentTimeLabel.textContent = formatTime(targetGlobalTime);
+  });
+
+  seekSlider.addEventListener('change', (e) => {
+    if (!totalDuration) return;
+    const targetGlobalTime = parseFloat(e.target.value) * totalDuration;
+
+    let accumulated = 0;
+    let targetPart = 0;
+    let targetPartTime = targetGlobalTime;
+
+    for (let i = 0; i < partDurations.length; i++) {
+      if (targetGlobalTime < accumulated + partDurations[i]) {
+        targetPart = i;
+        targetPartTime = targetGlobalTime - accumulated;
+        break;
       }
+      accumulated += partDurations[i];
+      targetPart = i;
+      targetPartTime = partDurations[i];
+    }
 
-      async function loadRail(category, excludeId) {
-        try {
-          const snap = await window.getDocs(window.query(
-            window.collection(window.db, 'full_videos'),
-            window.limit(12)
-          ));
-          const all = [];
-          snap.forEach(doc => {
-            const v = doc.data();
-            if (v.status === 'removed') return;
-            if (doc.id === excludeId) return;
-            all.push({ id: doc.id, ...v });
-          });
-          const sameCat = all.filter(v => v.category === category).slice(0, 4);
-          const filler = all.filter(v => !sameCat.includes(v)).slice(0, 4 - sameCat.length);
-          const rail = [...sameCat, ...filler].slice(0, 4);
-          if (!rail.length) return;
-          document.getElementById('railBlock').style.display = 'block';
-          document.getElementById('railRow').innerHTML = rail.map(v => `
-            <a class="rail-card" href="/watch?id=${encodeURIComponent(v.id)}">
-              <div class="rail-thumb">
-                <img src="${escapeHtml(v.thumbnail || '')}" alt="${escapeHtml(v.title)}" loading="lazy" onerror="this.style.opacity=0.3">
-              </div>
-              <div class="rail-title">${escapeHtml(v.title || 'Untitled')}</div>
-              <div class="rail-author">${escapeHtml(v.author || 'Reh')}</div>
-            </a>
-          `).join('');
-        } catch (e) { console.warn('[watch] rail failed:', e); }
-      }
-    })();
+    if (targetPart !== currentPartIndex) {
+      switchToPart(targetPart, targetPartTime);
+    } else {
+      videoEl.currentTime = targetPartTime;
+    }
+  });
+
+  videoEl.addEventListener('timeupdate', () => {
+    let pastDuration = 0;
+    for (let i = 0; i < currentPartIndex; i++) {
+      pastDuration += partDurations[i] || 0;
+    }
+    globalCurrentTime = pastDuration + videoEl.currentTime;
+
+    if (totalDuration > 0) {
+      const progress = globalCurrentTime / totalDuration;
+      const percent = progress * 100;
+      seekSlider.value = progress;
+      currentTimeLabel.textContent = formatTime(globalCurrentTime);
+      seekSlider.style.background = `linear-gradient(to right, var(--gold-light) ${percent}%, rgba(255,255,255,0.25) ${percent}%)`;
+    }
+  });
+
+  async function loadRail(category, excludeId) {
+    try {
+      const snap = await window.getDocs(window.query(
+        window.collection(window.db, 'full_videos'),
+        window.limit(12)
+      ));
+      const all = [];
+      snap.forEach(doc => {
+        const v = doc.data();
+        if (v.status === 'removed') return;
+        if (doc.id === excludeId) return;
+        all.push({ id: doc.id, ...v });
+      });
+      const sameCat = all.filter(v => v.category === category).slice(0, 4);
+      const filler = all.filter(v => !sameCat.includes(v)).slice(0, 4 - sameCat.length);
+      const rail = [...sameCat, ...filler].slice(0, 4);
+      if (!rail.length) return;
+      document.getElementById('railBlock').style.display = 'block';
+      document.getElementById('railRow').innerHTML = rail.map(v => `
+        <a class="rail-card" href="/watch?id=${encodeURIComponent(v.id)}">
+          <div class="rail-thumb">
+            <img src="${escapeHtml(v.thumbnail || '')}" alt="${escapeHtml(v.title)}" loading="lazy" onerror="this.style.opacity=0.3">
+          </div>
+          <div class="rail-title">${escapeHtml(v.title || 'Untitled')}</div>
+          <div class="rail-author">${escapeHtml(v.author || 'Reh')}</div>
+        </a>
+      `).join('');
+    } catch (e) { console.warn('[watch] rail failed:', e); }
+  }
+})();
   </script>
 </body>
 </html>

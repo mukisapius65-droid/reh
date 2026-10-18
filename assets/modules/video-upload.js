@@ -62,13 +62,18 @@ export function initFullVideoUpload() {
     if (!user || !user.email) { setStatus('Please log in.', 'error'); return; }
 
     const title = (document.getElementById('fvTitle') || {}).value?.trim() || '';
-    const description = (document.getElementById('fvDescription') || {}).value?.trim() || '';
-    const category = (document.getElementById('fvCategory') || {}).value || 'events';
-    const videoUrl = (document.getElementById('fvVideoUrl') || {}).value?.trim() || '';
-    const thumbnail = (document.getElementById('fvThumbUrl') || {}).value?.trim() || '';
+const description = (document.getElementById('fvDescription') || {}).value?.trim() || '';
+const category = (document.getElementById('fvCategory') || {}).value || 'events';
+const thumbnail = (document.getElementById('fvThumbUrl') || {}).value?.trim() || '';
 
-    if (!title) { setStatus('Title is required.', 'error'); return; }
-    if (!videoUrl) { setStatus('Video URL is required.', 'error'); return; }
+const urlsRaw = (document.getElementById('fvVideoUrls') || {}).value || '';
+const urls = urlsRaw
+  .split('\n')
+  .map(u => u.trim())
+  .filter(u => u.startsWith('http'));
+
+if (!title) { setStatus('Title is required.', 'error'); return; }
+if (urls.length === 0) { setStatus('At least one video URL is required.', 'error'); return; }
 
     uploading = true;
     const origText = submitBtn.innerHTML;
@@ -77,19 +82,20 @@ export function initFullVideoUpload() {
 
     try {
       await window.addDoc(window.collection(window.db, 'full_videos'), {
-        title,
-        description,
-        category,
-        videoUrl,
-        thumbnail,
-        duration: 0,
-        views: 0,
-        likes: 0,
-        author: 'Reh',
-        uploadedBy: user.email,
-        createdAt: window.serverTimestamp ? window.serverTimestamp() : new Date(),
-        status: 'published',
-      });
+  title,
+  description,
+  category,
+  videoUrls: urls,      // multi-part array
+  videoUrl: urls[0],    // legacy backward-compat: first URL
+  thumbnail,
+  duration: 0,
+  views: 0,
+  likes: 0,
+  author: 'Reh',
+  uploadedBy: user.email,
+  createdAt: window.serverTimestamp ? window.serverTimestamp() : new Date(),
+  status: 'published',
+});
 
       setStatus('✓ Published.', 'success');
       if (window.showToast) window.showToast('Video published.');
@@ -97,7 +103,7 @@ export function initFullVideoUpload() {
       // Reset form
       if (document.getElementById('fvTitle')) document.getElementById('fvTitle').value = '';
       if (document.getElementById('fvDescription')) document.getElementById('fvDescription').value = '';
-      if (document.getElementById('fvVideoUrl')) document.getElementById('fvVideoUrl').value = '';
+      if (document.getElementById('fvVideoUrls')) document.getElementById('fvVideoUrls').value = '';
       if (document.getElementById('fvThumbUrl')) document.getElementById('fvThumbUrl').value = '';
 
       if (typeof window.loadFullVideosList === 'function') window.loadFullVideosList();

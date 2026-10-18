@@ -1131,21 +1131,15 @@
 								</select>
 							</div>
 							<div class="form-group">
-								<label>Video URL (Catbox MP4)</label>
-								<input
-									id="fvVideoUrl"
-									placeholder="https://files.catbox.moe/xxxxx.mp4"
-								/>
-								<small style="color: var(--text-muted); font-size: 0.7rem"
-									>Upload to
-									<a
-										href="https://catbox.moe"
-										target="_blank"
-										style="color: var(--gold-light)"
-										>catbox.moe</a
-									>, paste the URL here.</small
-								>
-							</div>
+  <label>Video URLs (One per line)</label>
+  <textarea id="fvVideoUrls" rows="3" placeholder="https://files.catbox.moe/part1.mp4&#10;https://files.catbox.moe/part2.mp4" style="width:100%; padding:10px 14px; background:rgba(255,255,255,0.05); border:1px solid var(--glass-border); border-radius:10px; color:white; outline:none; font-family:inherit; font-size:0.85rem; resize:vertical;"></textarea>
+  <small style="color: var(--text-muted); font-size: 0.7rem"
+    >Split large videos into parts of ≤200 MB each (FFmpeg), upload to
+    <a href="https://catbox.moe" target="_blank" style="color: var(--gold-light)">catbox.moe</a>,
+    paste the URLs one per line.</small
+  >
+</div>
+              
 							<div class="form-group">
 								<label>Thumbnail URL (Catbox JPG/PNG)</label>
 								<input
