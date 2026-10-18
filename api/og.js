@@ -1,24 +1,26 @@
-// api/og.js — dynamic Open Graph endpoint for Tar TV shares
-// Fetches the video doc from Firestore REST, returns HTML with dynamic OG tags.
-
+// api/og.js — dynamic Open Graph endpoint for Reh shares
 const FIREBASE_PROJECT = 'rehp-c82b8';
 const FIREBASE_API_KEY = 'AIzaSyClJ9Mlln04N_7XFSvy1zGHaE6w5E2DQ8I';
-const FALLBACK_IMAGE = 'https://reh-crown.vercel.app/assets/og/tar-tv-default.png';
+const FALLBACK_IMAGE = 'https://rehcrown.com/assets/og/tar-tv-default.png';
 
 export default async function handler(req, res) {
   const videoId = (req.query.video || '').toString().trim();
-  const baseUrl = 'https://reh-crown.vercel.app';
+  const baseUrl = 'https://rehcrown.com';
+  
+  // Determine which collection to fetch from based on the query param
+  const isFullVideo = req.query.type === 'full';
+  const collection = isFullVideo ? 'full_videos' : 'tar_tv_videos';
 
-  let title = 'Tar TV — Reh';
-  let description = "Watch exclusive short videos from Reh's most extraordinary members.";
+  let title = 'Reh — Where Extraordinary Hearts Find Home';
+  let description = isFullVideo 
+    ? 'Watch exclusive long-form content on Reh.' 
+    : "Watch exclusive short videos from Reh's most extraordinary members.";
   let image = FALLBACK_IMAGE;
-  let isAIVideo = false;
 
   if (videoId) {
     try {
-      const docUrl = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT}/databases/(default)/documents/tar_tv_videos/${encodeURIComponent(videoId)}?key=${FIREBASE_API_KEY}`;
+      const docUrl = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT}/databases/(default)/documents/${collection}/${encodeURIComponent(videoId)}?key=${FIREBASE_API_KEY}`;
 
-      // Hard 4s timeout — WhatsApp's scraper gives up at ~5s.
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 4000);
       const r = await fetch(docUrl, { signal: controller.signal });
@@ -32,19 +34,21 @@ export default async function handler(req, res) {
         const author = f.author?.stringValue || 'Reh';
         const thumb = f.thumbnail?.stringValue || '';
 
-        isAIVideo = f.isAI?.booleanValue === true;
-
         if (videoTitle) {
-          title = `${videoTitle} — Tar TV`;
-          description = `@${author} on Reh's Tar TV. Tap to watch.`;
+          if (isFullVideo) {
+            title = `${videoTitle} — Reh`;
+            const dur = f.duration?.integerValue || f.duration?.doubleValue || 0;
+            const durStr = dur > 0 ? ` (${Math.floor(dur / 60)}:${String(Math.floor(dur % 60)).padStart(2, '0')})` : '';
+            description = `Watch "${videoTitle}"${durStr} on Reh — Full Videos.`;
+          } else {
+            title = `${videoTitle} — Tar TV`;
+            description = `@${author} on Reh's Tar TV. Tap to watch.`;
+          }
         }
         if (thumb) image = thumb;
-      } else {
-        console.error('[api/og] Firestore HTTP', r.status, 'for video', videoId);
       }
     } catch (e) {
-      console.error('[api/og] Firestore fetch failed for video=' + videoId + ':', e.message);
-      // fall back to defaults
+      console.error('[api/og] Firestore fetch failed:', e.message);
     }
   }
 
@@ -54,9 +58,10 @@ export default async function handler(req, res) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
 
+  // Fix the target URL based on type
   const targetUrl = videoId
-    ? `${baseUrl}/tartv.html?video=${encodeURIComponent(videoId)}${isAIVideo ? '&mode=ai' : ''}`
-    : `${baseUrl}/tartv.html`;
+    ? `${baseUrl}/${isFullVideo ? 'watch' : 'tartv.html'}?${isFullVideo ? 'id' : 'video'}=${encodeURIComponent(videoId)}`
+    : `${baseUrl}/${isFullVideo ? 'videos' : 'tartv.html'}`;
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.setHeader('Cache-Control', 'public, max-age=300, s-maxage=600');
@@ -80,7 +85,7 @@ export default async function handler(req, res) {
 <meta http-equiv="refresh" content="0;url=${escape(targetUrl)}">
 </head>
 <body style="background:#080c24;color:#f0ece6;font-family:sans-serif;text-align:center;padding:3rem;">
-  <p>Opening Tar TV…</p>
+  <p>Opening Reh…</p>
   <p><a style="color:#c9a84c" href="${escape(targetUrl)}">Tap here if you are not redirected.</a></p>
 </body>
 </html>`);

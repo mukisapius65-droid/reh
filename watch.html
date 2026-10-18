@@ -148,10 +148,13 @@
           <button class="desc-toggle" id="descToggle">Show more</button>
         </div>
         <div class="actions-row">
-          <button class="action-btn" id="likeBtn"><i class="fa-regular fa-heart"></i> <span id="likeCount">0</span></button>
-          <button class="action-btn" id="shareBtn"><i class="fa-solid fa-share"></i> Share</button>
-          <button class="action-btn" id="bookmarkBtn"><i class="fa-regular fa-bookmark"></i> Save</button>
-        </div>
+  <button class="action-btn" id="likeBtn"><i class="fa-regular fa-heart"></i> <span id="likeCount">0</span></button>
+  <button class="action-btn" id="shareBtn"><i class="fa-solid fa-share"></i> Share</button>
+  <button class="action-btn" id="whatsappBtn" title="Share on WhatsApp">
+    <i class="fa-brands fa-whatsapp" style="color:#25D366;"></i> WhatsApp
+  </button>
+  <button class="action-btn" id="bookmarkBtn"><i class="fa-regular fa-bookmark"></i> Save</button>
+</div>
       </div>
       <div id="railBlock" style="display:none;">
         <h2 class="rail-heading">More from Reh</h2>
@@ -307,18 +310,27 @@
     });
 
     document.getElementById('shareBtn').addEventListener('click', async function () {
-      const url = `https://reh-crown.vercel.app/watch?id=${encodeURIComponent(videoId)}`;
-      try {
-        if (navigator.clipboard) await navigator.clipboard.writeText(url);
-        else {
-          const i = document.createElement('input');
-          i.value = url; document.body.appendChild(i); i.select();
-          document.execCommand('copy'); document.body.removeChild(i);
-        }
-        this.querySelector('i').className = 'fa-solid fa-check';
-        setTimeout(() => this.querySelector('i').className = 'fa-solid fa-share', 1500);
-      } catch (e) { console.error(e); }
-    });
+  // Use the OG endpoint so WhatsApp renders the actual video thumbnail + title
+  const url = `https://rehcrown.com/api/og?video=${encodeURIComponent(videoId)}&type=full`;
+  try {
+    if (navigator.clipboard) await navigator.clipboard.writeText(url);
+    else {
+      const i = document.createElement('input');
+      i.value = url; document.body.appendChild(i); i.select();
+      document.execCommand('copy'); document.body.removeChild(i);
+    }
+    this.querySelector('i').className = 'fa-solid fa-check';
+    setTimeout(() => this.querySelector('i').className = 'fa-solid fa-share', 1500);
+  } catch (e) { console.error(e); }
+});
+
+document.getElementById('whatsappBtn').addEventListener('click', () => {
+  const ogUrl = `https://rehcrown.com/api/og?video=${encodeURIComponent(videoId)}&type=full`;
+  const title = v.title || 'this video';
+  const message = `Watch "${title}" on Reh\n${ogUrl}`;
+  const shareUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+  window.open(shareUrl, '_blank', 'noopener,noreferrer');
+});
 
     document.getElementById('bookmarkBtn').addEventListener('click', async function () {
       const user = window.getCurrentUser ? window.getCurrentUser() : null;
