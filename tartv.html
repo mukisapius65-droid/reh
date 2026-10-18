@@ -13,11 +13,11 @@
     />
     <meta
       property="og:image"
-      content="https://reh-crown.vercel.app/assets/og/tar-tv-default.png"
+      content="https://rehcrown.com/assets/og/tar-tv-default.png"
     />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:url" content="https://reh-crown.vercel.app/tartv.html" />
+    <meta property="og:url" content="https://rehcrown.com/tartv.html" />
     <meta property="og:site_name" content="Reh" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Tar TV — Reh" />
@@ -27,7 +27,7 @@
     />
     <meta
       name="twitter:image"
-      content="https://reh-crown.vercel.app/assets/og/tar-tv-default.png"
+      content="https://rehcrown.com/assets/og/tar-tv-default.png"
     />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -2195,8 +2195,8 @@ if (!found) {
       					// Build Reh deeplink from active video ID
       					const videoId = window._activeTvVideoId;
       					const deeplink = videoId
-      						? `https://reh-crown.vercel.app/api/og?video=${encodeURIComponent(videoId)}`
-      						: window.location.href;
+	? `https://rehcrown.com/api/og?video=${encodeURIComponent(videoId)}`
+	: window.location.href;
 
       					if (navigator.clipboard && navigator.clipboard.writeText) {
       						navigator.clipboard
@@ -2263,7 +2263,7 @@ if (!found) {
         const title = slide?.querySelector(".video-title")?.textContent?.trim() || "this video";
 
         // Use the OG endpoint so WhatsApp renders a preview card
-        const url = `https://reh-crown.vercel.app/api/og?video=${encodeURIComponent(videoId)}`;
+        const url = `https://rehcrown.com/api/og?video=${encodeURIComponent(videoId)}`;
         const message = `🎬 Check out "${title}" on Tar TV\n${url}`;
 
        // Best-effort share counter
@@ -2324,7 +2324,7 @@ if (!found) {
 
       					// ── Build the message body: a friendly line + the deeplink ──
       					function buildMessageBody(videoTitle, videoId) {
-      						const url = `https://reh-crown.vercel.app/tartv.html?video=${encodeURIComponent(videoId)}`;
+	const url = `https://rehcrown.com/tartv.html?video=${encodeURIComponent(videoId)}`;
       						const title = videoTitle || "this video";
       						return `🎬 Check out "${title}" on Tar TV\n${url}`;
       					}

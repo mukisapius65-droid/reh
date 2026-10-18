@@ -3,11 +3,11 @@
 
 const FIREBASE_PROJECT = 'rehp-c82b8';
 const FIREBASE_API_KEY = 'AIzaSyClJ9Mlln04N_7XFSvy1zGHaE6w5E2DQ8I';
-const FALLBACK_IMAGE = 'https://reh-crown.vercel.app/assets/og/tar-tv-default.png';
+const FALLBACK_IMAGE = 'https://rehcrown.com/assets/og/tar-tv-default.png';
 
 export default async function handler(req, res) {
   const videoId = (req.query.video || '').toString().trim();
-  const baseUrl = 'https://reh-crown.vercel.app';
+  const baseUrl = 'https://rehcrown.com';
 
   let title = 'Tar TV — Reh';
   let description = "Watch exclusive short videos from Reh's most extraordinary members.";

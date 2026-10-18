@@ -307,7 +307,7 @@
     });
 
     document.getElementById('shareBtn').addEventListener('click', async function () {
-      const url = `https://reh-crown.vercel.app/watch?id=${encodeURIComponent(videoId)}`;
+  const url = `https://rehcrown.com/watch?id=${encodeURIComponent(videoId)}`;
       try {
         if (navigator.clipboard) await navigator.clipboard.writeText(url);
         else {
