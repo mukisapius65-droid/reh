@@ -1194,71 +1194,80 @@ async function fastSplit(){
 function remuxSegment(srcMp4, tracks, samplesPerTrack, startTime, endTime){
   const out = MP4Box.createFile();
   const included = [];
+  let minStartSec = Infinity;   // earliest dts across tracks, in SECONDS
 
+  // ── Pass 1: filter samples, gather per-track start/end in seconds ──
   for(const track of tracks){
     const all = samplesPerTrack[track.id];
     if(!all || !all.length) continue;
 
+    const ts = track.timescale;
     const filtered = all.filter(s => {
       const tStart = s.cts / s.timescale;
-      const tEnd = (s.cts + s.duration) / s.timescale;
+      const tEnd   = (s.cts + s.duration) / s.timescale;
       return tEnd > startTime && tStart < endTime;
     });
     if(!filtered.length) continue;
 
-    // Get codec description box from source
+    // Grab codec config box (avcC / esds / hvcC…) from source
     let descBox = null;
     try {
       const trak = srcMp4.getTrackById(track.id);
-      if(trak && trak.mdia && trak.mdia.minf && trak.mdia.minf.stbl && trak.mdia.minf.stbl.stsd){
+      if(trak?.mdia?.minf?.stbl?.stsd){
         descBox = trak.mdia.minf.stbl.stsd.entries[0];
       }
-    } catch(e){ /* fall through */ }
+    } catch(e){ /* ignore */ }
 
-    included.push({ track, samples: filtered, descBox });
+    const firstDtsSec = filtered[0].dts / ts;
+    const lastSample  = filtered[filtered.length - 1];
+    const lastEndSec  = (lastSample.dts + lastSample.duration) / ts;
+
+    if(firstDtsSec < minStartSec) minStartSec = firstDtsSec;
+
+    included.push({ track, samples: filtered, descBox, firstDtsSec, lastEndSec });
   }
 
   if(!included.length) throw new Error('No samples in range');
 
-  // Global DTS offset — preserves A/V sync
-  let minDts = Infinity;
+  // ── Pass 2: add tracks with CORRECT durations ──
   for(const inc of included){
-    minDts = Math.min(minDts, inc.samples[0].dts);
-  }
+    const t  = inc.track;
+    const ts = t.timescale;
+    const segSec = inc.lastEndSec - minStartSec;  // ← the real clip length
 
-  // Add tracks
-  for(const inc of included){
-    const t = inc.track;
     const opts = {
-      timescale: t.timescale,
-      media_duration: t.media_duration,
-      language: t.language || 'und',
-      type: t.type,
+      timescale:      ts,
+      media_duration: Math.round(segSec * ts),     // ← mdhd.duration (fixed!)
+      duration:       Math.round(segSec * 1000),   // ← tkhd.duration, movie TS = 1000 (fixed!)
+      language:       t.language || 'und',
+      type:           t.type,
     };
     if(t.video){ opts.width = t.video.width; opts.height = t.video.height; }
     if(t.audio){
       opts.channel_count = t.audio.channel_count;
-      opts.samplerate = t.audio.sample_rate;
-      opts.samplesize = t.audio.sample_size;
+      opts.samplerate    = t.audio.sample_rate;
+      opts.samplesize    = t.audio.sample_size;
     }
     if(inc.descBox) opts.description_boxes = [inc.descBox];
 
-    const newId = out.addTrack(opts);
-    inc.newTrackId = newId;
+    inc.newTrackId = out.addTrack(opts);
   }
 
-  // Add samples with adjusted DTS
+  // ── Pass 3: add samples, with PER-TRACK offset (no cross-timescale math) ──
   for(const inc of included){
+    const ts = inc.track.timescale;
+    // Convert the shared "start in seconds" into THIS track's timescale
+    const offsetUnits = Math.round(minStartSec * ts);
+
     for(const s of inc.samples){
-      const newSample = {
-        duration: s.duration,
-        dts: s.dts - minDts,
-        cts: s.cts - minDts,
-        is_sync: s.is_sync,
+      out.addSample(inc.newTrackId, s.data, {
+        duration:  s.duration,
+        dts:       s.dts - offsetUnits,
+        cts:       s.cts - offsetUnits,
+        is_sync:   s.is_sync,
         timescale: s.timescale,
         description_index: s.description_index,
-      };
-      out.addSample(inc.newTrackId, s.data, newSample);
+      });
     }
   }
 
