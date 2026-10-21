@@ -34,6 +34,68 @@
 
     <link rel="stylesheet" href="assets/main.css">
 
+      <!-- ─── Lite Mode: CSS Overrides ──────────────────────── -->
+    <style>
+/* ─── LITE MODE OVERRIDES ────────────────────────── */
+.lite-mode .bg-orbit,
+.lite-mode .particles-container,
+.lite-mode .particle,
+.lite-mode .floating-heart {
+    display: none !important;
+}
+
+.lite-mode .glass-card,
+.lite-mode .nav,
+.lite-mode .sidebar {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(15, 20, 50, 0.98) !important;
+}
+
+.lite-mode .profile-card {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5) !important;
+    transform: none !important;
+    transition: none !important;
+}
+
+.lite-mode .profile-card:hover {
+    transform: none !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5) !important;
+}
+
+.lite-mode .status-dot {
+    animation: none !important;
+    box-shadow: none !important;
+}
+
+.lite-mode .profile-card::before,
+.lite-mode .profile-card::after {
+    display: none !important;
+}
+
+.lite-mode .hero-title,
+.lite-mode .card-name {
+    text-shadow: none !important;
+}
+    </style>
+
+    <!-- ─── Lite Mode: Detection ─────────────────────────── -->
+    <script>
+      // ─── Lite Mode Detection ───────────────────────────
+      (function detectLiteMode() {
+        const isLowRAM = navigator.deviceMemory && navigator.deviceMemory <= 4;
+        const isLowCPU = navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4;
+        const isSlowNetwork = navigator.connection && (navigator.connection.saveData || /2g|3g/.test(navigator.connection.effectiveType));
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        if (isLowRAM || isLowCPU || isSlowNetwork || prefersReducedMotion) {
+          document.documentElement.classList.add('lite-mode');
+          console.log('[performance] Lite Mode enabled for smoother experience.');
+        }
+      })();
+    </script>
+
+
     <script type="module" src="assets/firebase.js"></script>
 
     <!-- <link rel ="stylesheet" href="styles.css"> -->
@@ -325,6 +387,13 @@
   let admiredEmails = new Set();   // cache of emails the current user has admired
   let admirersCountMap = {};   // key: targetEmail, value: number of admirers
 
+// ─── Pagination & Delegation State ─────────────
+let currentFilteredUsers = [];
+let currentDisplayUsers = [];
+let currentSessionUser = {};
+let renderedCount = 0;
+const BATCH_SIZE = 15;
+let scrollObserver = null;
   function formatCount(num) {
   if (num === undefined || num === null || isNaN(num)) return '0';
   if (num < 1000) return num.toString();
@@ -442,10 +511,15 @@ function hasViewed(targetEmail) {
     });
   });
 
-  document.getElementById("searchInput").addEventListener("input", function () {
-    searchTerm = this.value.trim();
+ let searchDebounce = null;
+document.getElementById('searchInput').addEventListener('input', function () {
+  clearTimeout(searchDebounce);
+  const val = this.value.trim();
+  searchDebounce = setTimeout(() => {
+    searchTerm = val;
     renderCards(activeFilter, searchTerm);
-  });
+  }, 300);
+});
 
   // ──────────────────────────────────────
   // TOAST FUNCTION
@@ -769,63 +843,58 @@ async function admireUser(targetEmail, buttonElement) {
 }
 
 
-function attachInteractionHandlers() {
-  // Admire button
-  document.querySelectorAll('.admire-btn').forEach(btn => {
-    btn.addEventListener('click', function(e) {
-      e.stopPropagation();
-      const targetEmail = this.getAttribute('data-target-email');
-      admireUser(targetEmail, this);   // ← pass the button
-    });
-  });
-    //phone card
-    document.querySelectorAll('.card-phone-wrapper').forEach(wrapper => {
-  const phoneDiv = wrapper.querySelector('.card-phone');
-  const dropdown = wrapper.querySelector('.phone-dropdown');
+function initGridDelegation() {
+  const grid = document.getElementById('cardGrid');
+  if (grid.dataset.delegated) return;
+  grid.dataset.delegated = 'true';
 
-  phoneDiv.addEventListener('click', function(e) {
-    e.stopPropagation();
-    // Close all other dropdowns
-    document.querySelectorAll('.phone-dropdown').forEach(d => {
-      if (d !== dropdown) d.style.display = 'none';
-    });
-    // Toggle this one
-    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-  });
+  grid.addEventListener('click', (e) => {
+    const admireBtn = e.target.closest('.admire-btn');
+    if (admireBtn) { e.stopPropagation(); admireUser(admireBtn.getAttribute('data-target-email'), admireBtn); return; }
 
-  // Dropdown buttons
-  dropdown.querySelectorAll('.phone-option').forEach(btn => {
-    btn.addEventListener('click', function(e) {
+    const bookmarkBtn = e.target.closest('.bookmark-btn');
+    if (bookmarkBtn) { e.stopPropagation(); toggleBookmark(bookmarkBtn.getAttribute('data-target-email'), bookmarkBtn); return; }
+
+    const phoneDiv = e.target.closest('.card-phone');
+    if (phoneDiv) {
       e.stopPropagation();
-      const phone = phoneDiv.getAttribute('data-phone');
-      const action = this.getAttribute('data-action');
+      const wrapper = phoneDiv.closest('.card-phone-wrapper');
+      const dropdown = wrapper.querySelector('.phone-dropdown');
+      document.querySelectorAll('.phone-dropdown').forEach(d => {
+        if (d !== dropdown) d.style.display = 'none';
+      });
+      dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+      return;
+    }
+
+    const phoneOption = e.target.closest('.phone-option');
+    if (phoneOption) {
+      e.stopPropagation();
+      const wrapper = phoneOption.closest('.card-phone-wrapper');
+      const phone = wrapper.querySelector('.card-phone').getAttribute('data-phone');
+      const action = phoneOption.getAttribute('data-action');
       if (action === 'copy') {
         navigator.clipboard?.writeText(phone).then(() => showToast('📋 Phone number copied: ' + phone))
           .catch(() => showToast('Copy failed'));
       } else if (action === 'call') {
         window.location.href = 'tel:' + phone.replace(/[^+\d]/g, '');
       }
-      dropdown.style.display = 'none';
-    });
-  });
-});
+      wrapper.querySelector('.phone-dropdown').style.display = 'none';
+      return;
+    }
 
-// Close dropdown when clicking anywhere else
-document.addEventListener('click', function() {
-  document.querySelectorAll('.phone-dropdown').forEach(d => d.style.display = 'none');
-});
-    
-
-
-  // Bookmark button
-  document.querySelectorAll('.bookmark-btn').forEach(btn => {
-    btn.addEventListener('click', function(e) {
-      e.stopPropagation();
-      const targetEmail = this.getAttribute('data-target-email');
-      toggleBookmark(targetEmail, this);   // ← pass the button
-    });
+    const card = e.target.closest('.profile-card');
+    if (card && !e.target.closest('.interaction-btn')) {
+      const email = card.querySelector('.admire-btn')?.getAttribute('data-target-email');
+      if (email) window.location.href = `view-profile.html?email=${email}`;
+    }
   });
 }
+
+// Close any open phone dropdown when clicking anywhere outside a card control
+document.addEventListener('click', function () {
+  document.querySelectorAll('.phone-dropdown').forEach(d => d.style.display = 'none');
+});
 
 // ── SMART MATCHING HELPERS ──────────────────────
 
@@ -1133,51 +1202,22 @@ async function renderCards(filter = "all", searchTerm = "") {
     return;
   }
 
-let html = '';
+  let html = '';
 
-// ── 1. Daily Matches (only if no filter active) ──
-if (filter === "all" && !searchTerm) {
-  const dailyMatches = getSmartMatches(displayUsers, sessionUser).slice(0, 6);
-  if (dailyMatches.length > 0) {
-    html += `
-      <div style="grid-column: 1 / -1; margin-bottom: 2.5rem;">
-        <h2 style="font-family:'Playfair Display',serif; color:var(--gold-light); margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem;">
-          <i class="fa-solid fa-star"></i> Daily Matches
-        </h2>
-        <div class="people-row" style="margin:0 0 1rem 0; display:flex; gap:1rem; overflow-x:auto; padding-bottom:1rem; scroll-snap-type:x mandatory; max-width:100%;">
-          ${dailyMatches.map(p => {
-            const online = (Date.now() - (p.lastActive?.seconds ? p.lastActive.seconds*1000 : p.lastActive || 0)) < 20000;
-            return `
-              <div class="people-circle" onclick="location.href='view-profile?email=${p.email}'" style="flex:0 0 80px; text-align:center; scroll-snap-align:start; position:relative; cursor:pointer;">
-                <div style="position:relative; display:inline-block;">
-                  <img src="${p.avatar || 'https://res.cloudinary.com/dxd5hibh7/image/upload/v1787307404/99332214_009_33eb_e3tdwu_2_gxfosm.jpg'}" style="width:70px; height:70px; border-radius:50%; object-fit:cover; border:2px solid var(--gold-light);">
-                  ${online ? '<span style="position:absolute; bottom:8px; right:2px; width:14px; height:14px; background:#4cfa7c; border-radius:50%; border:2px solid #080c24;"></span>' : ''}
-                </div>
-                <div class="people-name" style="font-size:0.7rem; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:0.3rem;">${p.firstName}</div>
-                <div class="people-age" style="font-size:0.65rem; color:var(--text-muted);">${p.age || ''}</div>
-              </div>`;
-          }).join('')}
-        </div>
-      </div>`;
-  }
-}
-
-// ── 2. Regular cards + People You May Know every 12 cards ──
-const insertEveryN = 12;
-let cardIndex = 0;
-
-for (let i = 0; i < filtered.length; i++) {
-  // Insert a horizontal carousel every 12 cards (except at the very beginning)
-  if (i > 0 && i % insertEveryN === 0) {
-    const randomPeople = getRandomPeople(displayUsers, sessionUser, 8);
-    if (randomPeople.length > 0) {
+  // ── 1. Daily Matches (only if no filter active) ──
+  if (filter === "all" && !searchTerm) {
+    const dailyMatches = getSmartMatches(displayUsers, sessionUser).slice(0, 6);
+    if (dailyMatches.length > 0) {
       html += `
-        <div style="grid-column: 1 / -1; margin: 2rem 0;">
-          <div class="people-row" style="display:flex; gap:1rem; overflow-x:auto; padding-bottom:1rem; scroll-snap-type:x mandatory; max-width:100%;">
-            ${randomPeople.map(p => {
+        <div style="grid-column: 1 / -1; margin-bottom: 2.5rem;">
+          <h2 style="font-family:'Playfair Display',serif; color:var(--gold-light); margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem;">
+            <i class="fa-solid fa-star"></i> Daily Matches
+          </h2>
+          <div class="people-row" style="margin:0 0 1rem 0; display:flex; gap:1rem; overflow-x:auto; padding-bottom:1rem; scroll-snap-type:x mandatory; max-width:100%;">
+            ${dailyMatches.map(p => {
               const online = (Date.now() - (p.lastActive?.seconds ? p.lastActive.seconds*1000 : p.lastActive || 0)) < 20000;
               return `
-                <div class="people-circle" onclick="location.href='view-profile?email=${p.email}'" style="flex:0 0 80px; text-align:center; scroll-snap-align:start; position:relative; cursor:pointer;">
+                <div class="people-circle" onclick="location.href='view-profile.html?email=${p.email}'" style="flex:0 0 80px; text-align:center; scroll-snap-align:start; position:relative; cursor:pointer;">
                   <div style="position:relative; display:inline-block;">
                     <img src="${p.avatar || 'https://res.cloudinary.com/dxd5hibh7/image/upload/v1787307404/99332214_009_33eb_e3tdwu_2_gxfosm.jpg'}" style="width:70px; height:70px; border-radius:50%; object-fit:cover; border:2px solid var(--gold-light);">
                     ${online ? '<span style="position:absolute; bottom:8px; right:2px; width:14px; height:14px; background:#4cfa7c; border-radius:50%; border:2px solid #080c24;"></span>' : ''}
@@ -1190,63 +1230,98 @@ for (let i = 0; i < filtered.length; i++) {
         </div>`;
     }
   }
-  html += renderSingleCard(filtered[i], cardIndex++);
-}
 
-grid.innerHTML = html;
+  currentFilteredUsers = filtered;
+  currentDisplayUsers = displayUsers;
+  currentSessionUser  = sessionUser;  // capture for renderMoreCards
+  renderedCount = 0;
+  grid.innerHTML = html;
 
-  // Attach interaction handlers (admire, bookmark, phone copy)
-  attachInteractionHandlers();
+  // Sentinel lives inside the grid at the tail
+  let sentinel = document.getElementById('scroll-sentinel');
+  if (!sentinel) {
+    sentinel = document.createElement('div');
+    sentinel.id = 'scroll-sentinel';
+    sentinel.style.cssText = 'height: 10px; grid-column: 1 / -1; width: 100%;';
+    grid.appendChild(sentinel);
+  } else {
+    grid.appendChild(sentinel);
+  }
 
-  // Intersection observer for animation
-  const cards = document.querySelectorAll(".profile-card");
-  const observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("card-visible");
-          observer.unobserve(entry.target);
-        }
-      });
-    },
-    { threshold: 0.1 },
-  );
-  cards.forEach((card) => observer.observe(card));
-    
+  // Disconnect the previous observer to prevent leaks
+  if (scrollObserver) scrollObserver.disconnect();
 
-/*
-  // Phone copy functionality
-  document.querySelectorAll(".card-phone").forEach((el) => {
-    el.addEventListener("click", function (e) {
-      e.stopPropagation();
-      const phone = this.getAttribute("data-phone");
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(phone).then(() => showToast("📋 Phone number copied: " + phone));
-      } else {
-        const tempInput = document.createElement("input");
-        tempInput.value = phone;
-        document.body.appendChild(tempInput);
-        tempInput.select();
-        document.execCommand("copy");
-        document.body.removeChild(tempInput);
-        showToast("📋 Phone number copied: " + phone);
+  scrollObserver = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting && renderedCount < currentFilteredUsers.length) {
+      renderMoreCards();
+    }
+  }, { rootMargin: '400px' });
+
+  scrollObserver.observe(sentinel);
+
+  renderMoreCards();
+  initGridDelegation();
+  }
+
+
+  function renderMoreCards() {
+  if (renderedCount >= currentFilteredUsers.length) return;
+
+  const nextBatch = currentFilteredUsers.slice(renderedCount, renderedCount + BATCH_SIZE);
+  if (nextBatch.length === 0) return;
+
+  const insertEveryN = 12;
+  let batchHtml = '';
+
+  nextBatch.forEach((u, i) => {
+    const globalIndex = renderedCount + i;
+
+    if (globalIndex > 0 && globalIndex % insertEveryN === 0) {
+      const randomPeople = getRandomPeople(currentDisplayUsers, currentSessionUser, 8);
+      if (randomPeople.length > 0) {
+        batchHtml += `
+          <div style="grid-column: 1 / -1; margin: 2rem 0;">
+            <div class="people-row" style="display:flex; gap:1rem; overflow-x:auto; padding-bottom:1rem; scroll-snap-type:x mandatory; max-width:100%;">
+              ${randomPeople.map(p => {
+                const online = (Date.now() - (p.lastActive?.seconds ? p.lastActive.seconds*1000 : p.lastActive || 0)) < 20000;
+                return `
+                  <div class="people-circle" onclick="location.href='view-profile.html?email=${p.email}'" style="flex:0 0 80px; text-align:center; scroll-snap-align:start; position:relative; cursor:pointer;">
+                    <div style="position:relative; display:inline-block;">
+                      <img src="${p.avatar || 'https://res.cloudinary.com/dxd5hibh7/image/upload/v1787307404/99332214_009_33eb_e3tdwu_2_gxfosm.jpg'}" style="width:70px; height:70px; border-radius:50%; object-fit:cover; border:2px solid var(--gold-light);">
+                      ${online ? '<span style="position:absolute; bottom:8px; right:2px; width:14px; height:14px; background:#4cfa7c; border-radius:50%; border:2px solid #080c24;"></span>' : ''}
+                    </div>
+                    <div class="people-name" style="font-size:0.7rem; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:0.3rem;">${p.firstName}</div>
+                    <div class="people-age" style="font-size:0.65rem; color:var(--text-muted);">${p.age || ''}</div>
+                  </div>`;
+              }).join('')}
+            </div>
+          </div>`;
       }
-      this.style.backgroundColor = "rgba(200,155,60,0.25)";
-      setTimeout(() => { this.style.backgroundColor = ""; }, 300);
-    });
-  });
-*/
-
-  // Card click navigation
-  document.querySelectorAll('.profile-card').forEach(card => {
-    card.addEventListener('click', function(e) {
-      if (e.target.closest('.interaction-btn') || e.target.closest('.card-phone')) return;
-      const email = this.querySelector('.admire-btn')?.getAttribute('data-target-email');
-      if (email) window.location.href = `view-profile?email=${email}`;
-    });
+    }
+    batchHtml += renderSingleCard(u, globalIndex);
   });
 
-  updateDistances();
+  const sentinel = document.getElementById('scroll-sentinel');
+  if (sentinel) sentinel.insertAdjacentHTML('beforebegin', batchHtml);
+
+  renderedCount += nextBatch.length;
+
+  // Animate only the newly appended cards
+  const newCards = Array.from(document.querySelectorAll('.profile-card:not(.observed)'));
+  const cardObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('card-visible', 'observed');
+        cardObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  newCards.forEach(card => cardObserver.observe(card));
+
+  // Defer distance calc so rapid scrolls only trigger one pass
+  clearTimeout(window._distanceTimer);
+  window._distanceTimer = setTimeout(() => updateDistances(), 1500);
 }
 
   function getUserPosition() {
