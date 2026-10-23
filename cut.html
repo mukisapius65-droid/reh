@@ -553,6 +553,9 @@ i{color:var(--gold-light);margin-right:4px;font-size:0.7rem}
   <button class="btn small" id="splitEvenBtn">
     <i class="fa-solid fa-table-cells-large"></i> Split into…
   </button>
+           <button class="btn small" id="splitBySizeBtn">
+  <i class="fa-solid fa-hard-drive"></i> Split by size…
+           </button>
          </div>
           <div class="n-dialog-inline" id="nDialog" hidden>
             <label>Number of parts</label>
@@ -641,6 +644,13 @@ i{color:var(--gold-light);margin-right:4px;font-size:0.7rem}
             <input type="number" id="nParts" value="3" min="2" max="50">
             <button class="btn small primary" id="nConfirmBtn">Go</button>
           </div>
+
+  <div class="n-dialog-inline" id="sizeDialog" hidden>
+  <label>Target size (MB)</label>
+  <input type="number" id="targetMb" value="190" min="50" max="199">
+  <button class="btn small primary" id="sizeConfirmBtn">Go</button>
+  </div>
+  
         </section>
 
         <section class="sidebar-section">
@@ -1007,6 +1017,41 @@ $('nConfirmBtn').addEventListener('click', () => {
   toast(`Split into ${n} parts`);
 });
 
+
+// ─── Split by size (Catbox 200 MB limit workflow) ────────────
+$('splitBySizeBtn').addEventListener('click', () => {
+  const d = $('sizeDialog');
+  d.hidden = !d.hidden;
+  if(!d.hidden) setTimeout(() => $('targetMb').select(), 50);
+});
+
+$('sizeConfirmBtn').addEventListener('click', () => {
+  if(!S.file){ toast('No file loaded', true); return; }
+  const targetMb = parseInt($('targetMb').value, 10);
+  if(!isFinite(targetMb) || targetMb < 50 || targetMb > 199){
+    toast('Enter 50–199 MB', true); return;
+  }
+  if(S.file.size <= targetMb * 1024 * 1024){
+    toast(`This file (${fmtBytes(S.file.size)}) already fits in ${targetMb} MB`, true);
+    return;
+  }
+  // Estimate parts: divide total file size by target.
+  // Add a small safety margin (2%) because remux adds headers.
+  const parts = Math.ceil(S.file.size / (targetMb * 1024 * 1024 * 0.98));
+  if(parts < 2 || parts > 50){
+    toast('Computed parts out of range — set target manually', true);
+    return;
+  }
+  const range = S.outPoint - S.inPoint;
+  S.splits = [];
+  for(let i = 1; i < parts; i++){
+    S.splits.push(S.inPoint + (range * i / parts));
+  }
+  $('sizeDialog').hidden = true;
+  updateTrimUI(); renderClips();
+  toast(`Split into ${parts} parts for ~${targetMb} MB each`);
+});
+
 // ─── Compute clips from trim + splits ────────────────────────
 function computeClips(){
   const points = [S.inPoint, ...S.splits, S.outPoint].sort((a,b)=>a-b);
@@ -1085,6 +1130,58 @@ function renderClips(){
   });
 }
 
+  function renderPostExportList(){
+  const ready = S.clips.filter(c => c.blob);
+  if(!ready.length) return;
+  const list = $('clipsList');
+  const existing = document.getElementById('postExportBlock');
+  if(existing) existing.remove();
+
+  const block = document.createElement('div');
+  block.id = 'postExportBlock';
+  block.style.cssText = 'margin-top:10px; padding:10px 12px; background:rgba(200,160,60,0.06); border:1px solid rgba(200,160,60,0.3); border-radius:10px;';
+  block.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <span style="font-size:0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;font-weight:600">
+        ${ready.length} file${ready.length === 1 ? '' : 's'} ready
+      </span>
+      <button id="copyAllNamesBtn" style="background:transparent;border:1px solid var(--border);color:var(--gold-light);font-size:0.68rem;padding:3px 8px;border-radius:6px;cursor:pointer;font-family:inherit">
+        Copy all
+      </button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:4px">
+      ${ready.map((c, i) => `
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="flex:1;font-size:0.72rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:monospace">${escapeHtml(c.name)}</span>
+          <button data-copy-idx="${i}" style="background:transparent;border:1px solid var(--border);color:var(--muted);font-size:0.65rem;padding:2px 6px;border-radius:5px;cursor:pointer;font-family:inherit">
+            <i class="fa-solid fa-copy"></i>
+          </button>
+        </div>
+      `).join('')}
+    </div>
+  `;
+  list.appendChild(block);
+
+  block.querySelectorAll('[data-copy-idx]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const idx = parseInt(btn.dataset.copyIdx, 10);
+      const name = ready[idx].name;
+      navigator.clipboard?.writeText(name).then(() => {
+        toast('Filename copied');
+        btn.innerHTML = '<i class="fa-solid fa-check" style="color:var(--success)"></i>';
+        setTimeout(() => { btn.innerHTML = '<i class="fa-solid fa-copy"></i>'; }, 900);
+      }).catch(() => toast('Copy failed', true));
+    });
+  });
+
+  block.querySelector('#copyAllNamesBtn')?.addEventListener('click', () => {
+    const text = ready.map(c => c.name).join('\n');
+    navigator.clipboard?.writeText(text).then(() => toast('All filenames copied'))
+      .catch(() => toast('Copy failed', true));
+  });
+}
+
 function escapeHtml(s){
   const d = document.createElement('div');
   d.textContent = String(s);
@@ -1103,13 +1200,12 @@ function guessExt(){
 // ─── Prepare fast path (parse MP4 in background) ─────────────
 async function prepareFastPath(){
   S.parsedMp4 = null;
-  if(typeof MP4Box === 'undefined') return; // CDN not loaded
+  if(typeof MP4Box === 'undefined') return;
   if(!S.file) return;
   const n = S.file.name.toLowerCase();
   const isIsoBmff = /\.(mp4|mov|m4v|m4a)$/i.test(n) || /mp4|quicktime/.test(S.file.type);
   if(!isIsoBmff) return;
 
-  // Size guard — very large files can OOM during ArrayBuffer parse
   if(S.file.size > 800 * 1024 * 1024){
     console.warn('[fast-path] skipping for huge file');
     return;
@@ -1122,9 +1218,14 @@ async function prepareFastPath(){
 
     const parsed = await new Promise((resolve, reject) => {
       let done = false;
+      let checkTimer = null;
+      let timeoutTimer = null;
+
       const finish = (val, err) => {
         if(done) return;
         done = true;
+        if(checkTimer) clearInterval(checkTimer);
+        if(timeoutTimer) clearTimeout(timeoutTimer);
         if(err) reject(err); else resolve(val);
       };
 
@@ -1136,32 +1237,68 @@ async function prepareFastPath(){
 
           const samples = {};
           tracks.forEach(t => { samples[t.id] = []; });
+
           mp4.onSamples = (id, u, s) => { samples[id].push(...s); };
+
           tracks.forEach(t => mp4.setExtractionOptions(t.id, null, { nbSamples: 1e9 }));
           mp4.start();
+          // flush may emit more synchronously — that's fine, accumulator handles it
+          mp4.flush();
 
-          // Give extraction a tick to finish (samples are delivered via callback)
-          setTimeout(() => finish({ mp4, info, tracks, samples }), 200);
+          // ── Wait until samples.length matches getTrackSamplesInfo length for every track ──
+          const isComplete = () => {
+            for(const t of tracks){
+              let expected = 0;
+              try { expected = mp4.getTrackSamplesInfo(t.id).length; }
+              catch(e){ return false; }
+              if(expected === 0) return false;
+              if(samples[t.id].length < expected) return false;
+            }
+            return true;
+          };
+
+          if(isComplete()){
+            return finish({ mp4, info, tracks, samples });
+          }
+
+          checkTimer = setInterval(() => {
+            if(isComplete()){
+              finish({ mp4, info, tracks, samples });
+            }
+          }, 40);
+
+          timeoutTimer = setTimeout(() => {
+            finish(null, new Error('Sample extraction timeout (30s)'));
+          }, 30000);
+
         } catch (err) { finish(null, err); }
       };
 
       mp4.appendBuffer(buf);
       mp4.flush();
-      setTimeout(() => finish(null, new Error('Parse timeout')), 30000);
     });
 
-    // Sanity check
+    // ── Verify we actually got a video track with sync samples ──
     const vt = parsed.tracks.find(t => t.type === 'video');
     if(!vt || !parsed.samples[vt.id] || parsed.samples[vt.id].length === 0){
-      throw new Error('No samples extracted');
+      throw new Error('No video samples extracted');
     }
+    const hasSyncSample = parsed.samples[vt.id].some(s => s.is_sync);
+    if(!hasSyncSample){
+      throw new Error('Video track has no keyframes — cannot remux');
+    }
+
     S.parsedMp4 = parsed;
     $('exportHint').innerHTML = '<i class="fa-solid fa-bolt" style="color:var(--gold-light)"></i> Fast mode ready — lossless split';
+
+    console.log('[fast-path] ready',
+      parsed.tracks.map(t => `${t.type}(${parsed.samples[t.id].length} samples)`).join(' + '));
   } catch (err) {
     console.warn('[fast-path] unavailable:', err.message);
     S.parsedMp4 = null;
+    $('exportHint').innerHTML = '<i class="fa-solid fa-rotate"></i> Re-encode mode — this will take a while';
   }
-}
+  }
 
 
 // ─── FAST SPLIT: MP4Box remux ─────────────────────────────────
@@ -1193,23 +1330,46 @@ async function fastSplit(){
 
 function remuxSegment(srcMp4, tracks, samplesPerTrack, startTime, endTime){
   const out = MP4Box.createFile();
-  const included = [];
-  let minStartSec = Infinity;   // earliest dts across tracks, in SECONDS
 
-  // ── Pass 1: filter samples, gather per-track start/end in seconds ──
+  // ── Pass 0: per track, find last keyframe at or before startTime ──
+  // This is the fix for the "frozen / slow video" symptom: B-frames at the
+  // clip head previously had no reference frames to decode against.
+  const plans = [];
+
   for(const track of tracks){
     const all = samplesPerTrack[track.id];
     if(!all || !all.length) continue;
 
-    const ts = track.timescale;
-    const filtered = all.filter(s => {
-      const tStart = s.cts / s.timescale;
-      const tEnd   = (s.cts + s.duration) / s.timescale;
-      return tEnd > startTime && tStart < endTime;
-    });
+    // Find last sync (keyframe) with presentation time <= startTime.
+    // Fall back to first sync sample in the whole track if none qualifies.
+    let headIdx = -1;
+    for(let i = 0; i < all.length; i++){
+      const s = all[i];
+      const tSec = (s.cts != null ? s.cts : s.dts) / s.timescale;
+      if(s.is_sync && tSec <= startTime){ headIdx = i; }
+      // Samples are in decode order, so once we pass startTime we can stop
+      if(tSec > startTime) break;
+    }
+    if(headIdx < 0){
+      // No keyframe before startTime — use first keyframe in track
+      headIdx = all.findIndex(s => s.is_sync);
+      if(headIdx < 0){
+        if(track.type === 'video') throw new Error('No keyframe in video track');
+        headIdx = 0; // audio has no keyframes — start from beginning
+      }
+    }
+
+    // Collect from headIdx until endTime
+    const filtered = [];
+    for(let i = headIdx; i < all.length; i++){
+      const s = all[i];
+      const tStart = (s.cts != null ? s.cts : s.dts) / s.timescale;
+      if(tStart >= endTime) break;
+      filtered.push(s);
+    }
     if(!filtered.length) continue;
 
-    // Grab codec config box (avcC / esds / hvcC…) from source
+    // Grab codec config box
     let descBox = null;
     try {
       const trak = srcMp4.getTrackById(track.id);
@@ -1218,27 +1378,47 @@ function remuxSegment(srcMp4, tracks, samplesPerTrack, startTime, endTime){
       }
     } catch(e){ /* ignore */ }
 
-    const firstDtsSec = filtered[0].dts / ts;
-    const lastSample  = filtered[filtered.length - 1];
-    const lastEndSec  = (lastSample.dts + lastSample.duration) / ts;
+    // Compute the true start of this clip: earliest presentation time
+    // across ALL samples we're including for this track.
+    let minPresSec = Infinity;
+    for(const s of filtered){
+      const tPres = (s.cts != null ? s.cts : s.dts) / s.timescale;
+      if(tPres < minPresSec) minPresSec = tPres;
+    }
 
-    if(firstDtsSec < minStartSec) minStartSec = firstDtsSec;
+    // Compute true end: max over (cts + duration) across filtered samples,
+    // NOT last sample's dts — B-frames break that assumption.
+    let maxEndSec = 0;
+    for(const s of filtered){
+      const tEnd = ((s.cts != null ? s.cts : s.dts) + s.duration) / s.timescale;
+      if(tEnd > maxEndSec) maxEndSec = tEnd;
+    }
 
-    included.push({ track, samples: filtered, descBox, firstDtsSec, lastEndSec });
+    plans.push({ track, samples: filtered, descBox, minPresSec, maxEndSec });
   }
 
-  if(!included.length) throw new Error('No samples in range');
+  if(!plans.length) throw new Error('No samples in range');
 
-  // ── Pass 2: add tracks with CORRECT durations ──
-  for(const inc of included){
-    const t  = inc.track;
+  // Align every track to a single shared presentation start.
+  // This preserves the original A/V offset — if audio was 20ms behind video
+  // in the source, it stays 20ms behind in the output.
+  let sharedStartSec = Infinity;
+  for(const p of plans){
+    if(p.minPresSec < sharedStartSec) sharedStartSec = p.minPresSec;
+  }
+
+  // ── Pass 1: add tracks, with duration from actual sample extents ──
+  for(const p of plans){
+    const t  = p.track;
     const ts = t.timescale;
-    const segSec = inc.lastEndSec - minStartSec;  // ← the real clip length
+    // Track duration: from shared start to this track's actual last cts+dur.
+    // Some tracks extend past others — that's normal, editors handle it.
+    const durSec = p.maxEndSec - sharedStartSec;
 
     const opts = {
       timescale:      ts,
-      media_duration: Math.round(segSec * ts),     // ← mdhd.duration (fixed!)
-      duration:       Math.round(segSec * 1000),   // ← tkhd.duration, movie TS = 1000 (fixed!)
+      media_duration: Math.round(durSec * ts),
+      duration:       Math.round(durSec * 1000),
       language:       t.language || 'und',
       type:           t.type,
     };
@@ -1248,30 +1428,44 @@ function remuxSegment(srcMp4, tracks, samplesPerTrack, startTime, endTime){
       opts.samplerate    = t.audio.sample_rate;
       opts.samplesize    = t.audio.sample_size;
     }
-    if(inc.descBox) opts.description_boxes = [inc.descBox];
+    if(p.descBox) opts.description_boxes = [p.descBox];
 
-    inc.newTrackId = out.addTrack(opts);
+    p.newTrackId = out.addTrack(opts);
   }
 
-  // ── Pass 3: add samples, with PER-TRACK offset (no cross-timescale math) ──
-  for(const inc of included){
-    const ts = inc.track.timescale;
-    // Convert the shared "start in seconds" into THIS track's timescale
-    const offsetUnits = Math.round(minStartSec * ts);
+  // ── Pass 2: add samples, aligned to sharedStartSec in this track's TS ──
+  for(const p of plans){
+    const ts = p.track.timescale;
+    const offsetUnits = Math.round(sharedStartSec * ts);
 
-    for(const s of inc.samples){
-      out.addSample(inc.newTrackId, s.data, {
+    for(const s of p.samples){
+      const dts = s.dts - offsetUnits;
+      const cts = (s.cts != null ? s.cts : s.dts) - offsetUnits;
+      // Guard: if any sample lands at dts < 0 (rounding artifacts), clamp to 0.
+      // Players interpret negative dts as preroll — not supported reliably.
+      out.addSample(p.newTrackId, s.data, {
         duration:  s.duration,
-        dts:       s.dts - offsetUnits,
-        cts:       s.cts - offsetUnits,
+        dts:       dts < 0 ? 0 : dts,
+        cts:       cts < 0 ? 0 : cts,
         is_sync:   s.is_sync,
-        timescale: s.timescale,
-        description_index: s.description_index,
+        timescale: ts,
+        description_index: s.description_index || 0,
       });
     }
   }
 
-  return out.getBlob();
+  const blob = out.getBlob();
+  if(!blob || blob.size < 100) throw new Error('Empty output');
+
+  // ── Verify: report size and expected duration for diagnostics ──
+  const expectedDurSec = Math.max(...plans.map(p => p.maxEndSec)) - sharedStartSec;
+  console.log('[remux]',
+    `range=[${startTime.toFixed(2)}, ${endTime.toFixed(2)}]`,
+    `aligned_start=${sharedStartSec.toFixed(3)}s`,
+    `expected_dur=${expectedDurSec.toFixed(3)}s`,
+    `size=${blob.size}B`);
+
+  return blob;
 }
 
 // ─── SLOW SPLIT: MediaRecorder re-encode ─────────────────────
@@ -1353,7 +1547,8 @@ function recordSegment(videoEl, start, end, mime, onProgress){
           rec.onerror = (e) => reject(e.error || new Error('Recorder error'));
           rec.onstop = () => {
             videoEl.pause();
-            resolve(new Blob(chunks, { type: mime }));
+            // Small delay to let the final ondataavailable flush.
+            setTimeout(() => resolve(new Blob(chunks, { type: mime })), 150);
           };
 
           rec.start(100);
@@ -1363,10 +1558,18 @@ function recordSegment(videoEl, start, end, mime, onProgress){
           const t0 = performance.now();
           const tickLoop = () => {
             if(S.cancelRequested){ try { rec.stop(); } catch(_){} return; }
+
             const elapsed = performance.now() - t0;
-            const p = Math.min(1, elapsed / totalMs);
+            const currentT = videoEl.currentTime;
+            const p = clamp((currentT - start) / (end - start), 0, 1);
             onProgress(p);
-            if(elapsed >= totalMs || videoEl.currentTime >= end - 0.02){
+
+            // PRIMARY stop condition: video reached the end point.
+            // SECONDARY: video ended or stalled past wall-clock budget.
+            if(currentT >= end - 0.05 || videoEl.ended){
+              try { rec.stop(); } catch(_){}
+            } else if(elapsed >= totalMs + 5000){
+              // video playback is dramatically lagging wall clock; force stop
               try { rec.stop(); } catch(_){}
             } else {
               requestAnimationFrame(tickLoop);
@@ -1377,7 +1580,6 @@ function recordSegment(videoEl, start, end, mime, onProgress){
       };
 
       if(Math.abs(videoEl.currentTime - start) < 0.05){
-        // Already near start — proceed
         begin();
       } else {
         videoEl.onseeked = () => { videoEl.onseeked = null; begin(); };
@@ -1485,6 +1687,7 @@ async function exportClips(){
     S.exporting = false;
     $('exportBtn').disabled = false;
     $('exportZipBtn').hidden = !S.clips.some(c => c.blob && S.clips.length > 1);
+    if(S.clips.some(c => c.blob)) renderPostExportList();
   }
 }
 
