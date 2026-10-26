@@ -14,6 +14,11 @@ import {
   signInWithPopup,
   signInWithRedirect,
   getRedirectResult,
+  // ─── New Auth functions for Settings ───
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  updateEmail,
+  updatePassword,
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 import {
@@ -81,6 +86,10 @@ export {
 signInWithPopup,
 signInWithRedirect,
 getRedirectResult,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  updateEmail,
+  updatePassword,
   // Firestore
   writeBatch,
   doc,
@@ -128,6 +137,10 @@ window.GoogleAuthProvider = GoogleAuthProvider;
 window.signInWithPopup = signInWithPopup;
 window.signInWithRedirect = signInWithRedirect;
 window.getRedirectResult = getRedirectResult;
+window.EmailAuthProvider = EmailAuthProvider;
+window.reauthenticateWithCredential = reauthenticateWithCredential;
+window.updateEmail = updateEmail;
+window.updatePassword = updatePassword;
 
 // ── Google sign-in helper (popup on desktop, redirect on mobile) ──
 window._rehGoogleSignIn = async function () {

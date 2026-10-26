@@ -745,9 +745,12 @@
 
       // ── Helpers ────────────────────────────
       function getCurrentUser() {
-        const stored = localStorage.getItem(AUTH_KEY);
-        return stored ? JSON.parse(stored) : null;
-      }
+  const local = localStorage.getItem(AUTH_KEY);
+  if (local) { try { return JSON.parse(local); } catch(e){} }
+  const session = sessionStorage.getItem(AUTH_KEY);
+  if (session) { try { return JSON.parse(session); } catch(e){} }
+  return null;
+}
 
       function saveSession(updatedUser) {
         localStorage.setItem(AUTH_KEY, JSON.stringify(updatedUser));
@@ -845,87 +848,85 @@
 
       init();
 
-      // ── Change Email ───────────────────────
-      document.getElementById('changeEmailBtn').addEventListener('click', async () => {
-        const currentUser = getCurrentUser();
-        const newEmail = document.getElementById('newEmail').value.trim();
-        const password = document.getElementById('emailPassword').value.trim();
-        if (!newEmail || !password) return showToast('🌸 Please enter both new email and password.');
-        if (currentUser.password !== password) return showToast('❌ Current password is incorrect.');
+      // ── Change Email (DISABLED) ────────────
+// Email migration is temporarily disabled to prevent data loss.
+// Firestore subcollections (bookmarks, admirations, savedVideos) and
+// 8 foreign-key collections (chats, gifts, notifications, profileViews,
+// stories, event_invitations, concierge_requests, referrals) are keyed
+// to the email. Changing the doc ID without migrating all of these
+// silently orphans the user's data. See backlog: comprehensive email
+// migration (or UID migration). Contact concierge@reh.com for help.
+(function setupDisabledEmailState() {
+  const emailBtn = document.getElementById('changeEmailBtn');
+  if (!emailBtn) return;
 
-        const btn = document.getElementById('changeEmailBtn');
-        const origHTML = btn.innerHTML;
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Updating…';
+  // Visually disabled, but NOT `disabled = true` — that attribute
+  // silently swallows clicks in all browsers, which would make the
+  // explanatory toast below dead code.
+  emailBtn.setAttribute('aria-disabled', 'true');
+  emailBtn.style.opacity = '0.5';
+  emailBtn.style.cursor = 'not-allowed';
+  emailBtn.innerHTML = '<i class="fa-solid fa-lock"></i> Email Change Disabled';
 
-        try {
-          // Create new document with new email as ID
-          const oldRef = window.doc(window.db, 'users', currentUser.email);
-          const oldSnap = await window.getDoc(oldRef);
-          if (!oldSnap.exists()) throw new Error('Old user not found');
+  emailBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    showToast('🔒 Email change is temporarily unavailable. Please contact concierge@reh.com for assistance.');
+  });
+})();
 
-          const userData = oldSnap.data();
-          // Remove old document
-          await window.deleteDoc(oldRef);
+    // ── Change Password (Firebase Auth) ───
+document.getElementById('changePasswordBtn').addEventListener('click', async () => {
+  const currentPassword = document.getElementById('currentPassword').value;
+  const newPass = document.getElementById('newPassword').value;
+  const confirmPass = document.getElementById('confirmNewPassword').value;
 
-          // Write new document with new email
-          userData.email = newEmail;
-          await window.setDoc(window.doc(window.db, 'users', newEmail), userData);
+  if (!currentPassword || !newPass || !confirmPass) return showToast('🌸 Please fill all password fields.');
+  if (newPass.length < 8) return showToast('🔐 New password must be at least 8 characters.');
+  if (newPass !== confirmPass) return showToast('❌ Passwords do not match.');
 
-          // Update session
-          const updated = { ...currentUser, email: newEmail };
-          saveSession(updated);
-          document.getElementById('currentEmail').value = newEmail;
-          document.getElementById('newEmail').value = '';
-          document.getElementById('emailPassword').value = '';
-          showToast('✨ Email updated successfully. You may need to log in again with your new email.');
-          // Optional: force re-login after email change
-          setTimeout(() => {
-            localStorage.removeItem(AUTH_KEY);
-            window.location.href = 'index.html?redirect=login.html';
-          }, 3000);
-        } catch (err) {
-          console.error(err);
-          showToast('❌ Failed to update email. Please try again.');
-        } finally {
-          btn.disabled = false;
-          btn.innerHTML = origHTML;
-        }
-      });
+  const btn = document.getElementById('changePasswordBtn');
+  const origHTML = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Updating…';
 
-      // ── Change Password ───────────────────
-      document.getElementById('changePasswordBtn').addEventListener('click', async () => {
-        const currentUser = getCurrentUser();
-        const currentPassword = document.getElementById('currentPassword').value;
-        const newPass = document.getElementById('newPassword').value;
-        const confirmPass = document.getElementById('confirmNewPassword').value;
-        if (!currentPassword || !newPass || !confirmPass) return showToast('🌸 Please fill all password fields.');
-        if (currentUser.password !== currentPassword) return showToast('❌ Current password is incorrect.');
-        if (newPass.length < 8) return showToast('🔐 New password must be at least 8 characters.');
-        if (newPass !== confirmPass) return showToast('❌ Passwords do not match.');
+  try {
+    const authUser = window.auth.currentUser;
+    if (!authUser) throw new Error("Not logged in to Auth");
 
-        const btn = document.getElementById('changePasswordBtn');
-        const origHTML = btn.innerHTML;
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Updating…';
+    // Check if user has a password provider
+    const hasPassword = authUser.providerData.some(p => p.providerId === 'password');
+    if (!hasPassword) {
+      throw { code: 'auth/no-password' };
+    }
 
-        try {
-          await window.updateDoc(window.doc(window.db, 'users', currentUser.email), { password: newPass });
-          // Update session
-          const updated = { ...currentUser, password: newPass };
-          saveSession(updated);
-          document.getElementById('currentPassword').value = '';
-          document.getElementById('newPassword').value = '';
-          document.getElementById('confirmNewPassword').value = '';
-          showToast('🔑 Password changed successfully.');
-        } catch (err) {
-          console.error(err);
-          showToast('❌ Failed to update password.');
-        } finally {
-          btn.disabled = false;
-          btn.innerHTML = origHTML;
-        }
-      });
+    // 1. Re-authenticate
+    const credential = window.EmailAuthProvider.credential(authUser.email, currentPassword);
+    await window.reauthenticateWithCredential(authUser, credential);
+
+    // 2. Update Firebase Auth Password
+    await window.updatePassword(authUser, newPass);
+
+    // 3. NO Firestore update needed for passwords anymore!
+
+    showToast('🔑 Password changed successfully.');
+    document.getElementById('currentPassword').value = '';
+    document.getElementById('newPassword').value = '';
+    document.getElementById('confirmNewPassword').value = '';
+  } catch (err) {
+    console.error(err);
+    if (err.code === 'auth/wrong-password') {
+      showToast('❌ Current password is incorrect.');
+    } else if (err.code === 'auth/no-password') {
+      showToast('❌ You signed up with Google. You do not have a password to change here.');
+    } else {
+      showToast('❌ Failed to update password. Please try again.');
+    }
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = origHTML;
+  }
+});
 
       // ── Save Notification Preferences ──────
       document.getElementById('saveNotificationsBtn').addEventListener('click', async () => {
