@@ -1,0 +1,331 @@
+<!DOCTYPE html> <html> <head> 
+    <title>Migrate User</title> <script 
+    type="module" 
+    src="assets/firebase.js"></script>
+</head> <body style="background:#080c24; 
+color:white; padding:2rem; 
+font-family:sans-serif;">
+    <h2>Email Migration Script</h2> 
+    <p>Open the console (DevTools) to 
+    watch the progress.</p> <button 
+    id="runBtn" style="padding:10px 
+    20px; font-size:1.2rem; 
+    cursor:pointer;">Run 
+    Migration</button> <pre id="output" 
+    style="background:#111; 
+    padding:1rem; margin-top:1rem; 
+    border-radius:8px; max-height:400px; 
+    overflow-y:auto;"></pre> <script>
+        const OLD_EMAIL = 
+        'eddypalawa666@gmail.com'; const 
+        NEW_EMAIL = 
+        'eddypalawa@gmail.com'; function 
+        log(msg) {
+            console.log(msg); const out 
+            = 
+            document.getElementById('output'); 
+            out.textContent += msg + 
+            '\n'; out.scrollTop = 
+            out.scrollHeight;
+        }
+        document.getElementById('runBtn').addEventListener('click', 
+        async () => {
+            log('Starting 
+            migration...'); const db = 
+            window.db; try {
+                // 1. Migrate the main 
+                // user document
+                const oldUserRef = 
+                window.doc(db, 'users', 
+                OLD_EMAIL); const 
+                oldUserSnap = await 
+                window.getDoc(oldUserRef); 
+                if 
+                (!oldUserSnap.exists()) 
+                {
+                    log('❌ Old user 
+                    document not found. 
+                    Aborting.'); return;
+                }
+                const userData = 
+                oldUserSnap.data(); 
+                userData.email = 
+                NEW_EMAIL;
+                
+                // Write new user doc
+                await 
+                window.setDoc(window.doc(db, 
+                'users', NEW_EMAIL), 
+                userData); log('✅ Main 
+                user doc migrated.');
+                // 2. Migrate 
+                // Subcollections 
+                // (bookmarks, 
+                // admirations, 
+                // savedVideos)
+                const subcollections = 
+                ['bookmarks', 
+                'admirations', 
+                'savedVideos']; for 
+                (const sub of 
+                subcollections) {
+                    const subSnap = 
+                    await 
+                    window.getDocs(window.collection(db, 
+                    'users', OLD_EMAIL, 
+                    sub)); for (const d 
+                    of subSnap.docs) {
+                        await 
+                        window.setDoc(window.doc(db, 
+                        'users', 
+                        NEW_EMAIL, sub, 
+                        d.id), 
+                        d.data());
+                    }
+                    log(`✅ Migrated 
+                    subcollection: 
+                    ${sub} 
+                    (${subSnap.size} 
+                    docs)`);
+                }
+                // 3. Delete old user 
+                // doc (this orphaned 
+                // subcollections, but 
+                // we copied them)
+                await 
+                window.deleteDoc(oldUserRef); 
+                log('✅ Deleted old user 
+                doc.');
+                // 4. Update Foreign 
+                // Keys (Top-level 
+                // collections)
+                
+                // --- Chats --- (Since 
+                // chat IDs are sorted 
+                // combinations, we need 
+                // to find chats where 
+                // participants array 
+                // contains old email)
+                const chatsSnap = await 
+                window.getDocs(window.query(window.collection(db, 
+                'chats'), 
+                window.where('participants', 
+                'array-contains', 
+                OLD_EMAIL))); for (const 
+                chatDoc of 
+                chatsSnap.docs) {
+                    const chatData = 
+                    chatDoc.data();
+                    // Update 
+                    // participants 
+                    // array
+                    const 
+                    newParticipants = 
+                    chatData.participants.map(p 
+                    => p === OLD_EMAIL ? 
+                    NEW_EMAIL : 
+                    p).sort();
+                    
+                    // We can't rename 
+                    // the chat doc ID 
+                    // easily, so we 
+                    // create a new one 
+                    // and copy messages
+                    const oldChatId = 
+                    chatDoc.id; const 
+                    newChatId = 
+                    newParticipants.join('_');
+                    
+                    const newChatData = 
+                    { ...chatData, 
+                    participants: 
+                    newParticipants };
+                    // Handle unread 
+                    // counters
+                    if 
+                    (chatData[`unread_${OLD_EMAIL}`] 
+                    !== undefined) {
+                        newChatData[`unread_${NEW_EMAIL}`] 
+                        = 
+                        chatData[`unread_${OLD_EMAIL}`]; 
+                        delete 
+                        newChatData[`unread_${OLD_EMAIL}`];
+                    }
+                    await 
+                    window.setDoc(window.doc(db, 
+                    'chats', newChatId), 
+                    newChatData);
+                    
+                    // Copy messages
+                    const msgsSnap = 
+                    await 
+                    window.getDocs(window.collection(db, 
+                    'chats', oldChatId, 
+                    'messages')); for 
+                    (const m of 
+                    msgsSnap.docs) {
+                        const msgData = 
+                        m.data(); if 
+                        (msgData.from 
+                        === OLD_EMAIL) 
+                        msgData.from = 
+                        NEW_EMAIL; if 
+                        (msgData.to === 
+                        OLD_EMAIL) 
+                        msgData.to = 
+                        NEW_EMAIL; await 
+                        window.setDoc(window.doc(db, 
+                        'chats', 
+                        newChatId, 
+                        'messages', 
+                        m.id), msgData);
+                    }
+                    
+                    await 
+                    window.deleteDoc(chatDoc.ref); 
+                    log(`✅ Migrated 
+                    chat: ${oldChatId} 
+                    -> ${newChatId}`);
+                }
+                // --- Gifts ---
+                const giftsFrom = await 
+                window.getDocs(window.query(window.collection(db, 
+                'gifts'), 
+                window.where('from', 
+                '==', OLD_EMAIL))); for 
+                (const g of 
+                giftsFrom.docs) await 
+                window.updateDoc(g.ref, 
+                { from: NEW_EMAIL });
+                
+                const giftsTo = await 
+                window.getDocs(window.query(window.collection(db, 
+                'gifts'), 
+                window.where('to', '==', 
+                OLD_EMAIL))); for (const 
+                g of giftsTo.docs) await 
+                window.updateDoc(g.ref, 
+                { to: NEW_EMAIL }); 
+                log('✅ Migrated 
+                gifts.');
+                // --- Notifications ---
+                const notifTarget = 
+                await 
+                window.getDocs(window.query(window.collection(db, 
+                'notifications'), 
+                window.where('targetEmail', 
+                '==', OLD_EMAIL))); for 
+                (const n of 
+                notifTarget.docs) await 
+                window.updateDoc(n.ref, 
+                { targetEmail: NEW_EMAIL 
+                });
+                const notifSender = 
+                await 
+                window.getDocs(window.query(window.collection(db, 
+                'notifications'), 
+                window.where('senderEmail', 
+                '==', OLD_EMAIL))); for 
+                (const n of 
+                notifSender.docs) await 
+                window.updateDoc(n.ref, 
+                { senderEmail: NEW_EMAIL 
+                });
+                log('✅ Migrated 
+                notifications.');
+                // --- Profile Views ---
+                const viewsViewed = 
+                await 
+                window.getDocs(window.query(window.collection(db, 
+                'profileViews'), 
+                window.where('viewed', 
+                '==', OLD_EMAIL))); for 
+                (const v of 
+                viewsViewed.docs) await 
+                window.updateDoc(v.ref, 
+                { viewed: NEW_EMAIL }); 
+                const viewsViewer = 
+                await 
+                window.getDocs(window.query(window.collection(db, 
+                'profileViews'), 
+                window.where('viewer', 
+                '==', OLD_EMAIL))); for 
+                (const v of 
+                viewsViewer.docs) await 
+                window.updateDoc(v.ref, 
+                { viewer: NEW_EMAIL }); 
+                log('✅ Migrated profile 
+                views.');
+                // --- Stories ---
+                const stories = await 
+                window.getDocs(window.query(window.collection(db, 
+                'stories'), 
+                window.where('userId', 
+                '==', OLD_EMAIL))); for 
+                (const s of 
+                stories.docs) await 
+                window.updateDoc(s.ref, 
+                { userId: NEW_EMAIL }); 
+                log('✅ Migrated 
+                stories.');
+                // --- Event Invitations 
+                // ---
+                const invites = await 
+                window.getDocs(window.query(window.collection(db, 
+                'event_invitations'), 
+                window.where('userEmail', 
+                '==', OLD_EMAIL))); for 
+                (const i of 
+                invites.docs) await 
+                window.updateDoc(i.ref, 
+                { userEmail: NEW_EMAIL 
+                });
+                log('✅ Migrated event 
+                invitations.');
+                // --- Concierge 
+                // Requests ---
+                const conc = await 
+                window.getDocs(window.query(window.collection(db, 
+                'concierge_requests'), 
+                window.where('fromEmail', 
+                '==', OLD_EMAIL))); for 
+                (const c of conc.docs) 
+                await 
+                window.updateDoc(c.ref, 
+                { fromEmail: NEW_EMAIL 
+                });
+                log('✅ Migrated 
+                concierge requests.');
+                // --- Referrals ---
+                const refs1 = await 
+                window.getDocs(window.query(window.collection(db, 
+                'referrals'), 
+                window.where('referrer', 
+                '==', OLD_EMAIL))); for 
+                (const r of refs1.docs) 
+                await 
+                window.updateDoc(r.ref, 
+                { referrer: NEW_EMAIL 
+                });
+                const refs2 = await 
+                window.getDocs(window.query(window.collection(db, 
+                'referrals'), 
+                window.where('referred', 
+                '==', OLD_EMAIL))); for 
+                (const r of refs2.docs) 
+                await 
+                window.updateDoc(r.ref, 
+                { referred: NEW_EMAIL 
+                });
+                log('✅ Migrated 
+                referrals.'); log('🎉 
+                Migration completely 
+                finished!');
+            } catch (err) {
+                console.error(err); 
+                log('❌ ERROR: ' + 
+                err.message);
+            }
+        });
+    </script> </body>
+</html>
