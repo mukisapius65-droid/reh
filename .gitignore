@@ -10,3 +10,4 @@ users.json
 *.jsonl
 logs/
 sa-key.json
+test.txt
