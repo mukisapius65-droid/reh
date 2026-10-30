@@ -911,18 +911,49 @@
         window.location.href = 'index.html?redirect=dashboard.html';
         return;
       }
-      // Otherwise populate Step 2 and jump there
-      window._rehGoogleFlowActive = true;
-      document.getElementById('firstName').value = parsed.firstName || '';
-      document.getElementById('lastName').value = parsed.lastName || '';
-      document.getElementById('email').value = parsed.email;
-      document.getElementById('phoneStep2Group').style.display = 'block';
-      document.getElementById('step1Dot').classList.add('done');
-      document.getElementById('step1Dot').classList.remove('active');
-      document.getElementById('line1').classList.add('active');
-      document.getElementById('step2Dot').classList.add('active');
-      window.updateStepUI(2);
-      showToast('✨ Signed in with Google. Complete your profile to continue.');
+      // Otherwise populate Step 2 and jump there.
+// Firestore wins over the session handoff — session may only contain
+// Google fallback data for brand-new users.
+const existing = snap.exists() ? snap.data() : {};
+window._rehGoogleFlowActive = true;
+
+document.getElementById('firstName').value = existing.firstName || parsed.firstName || '';
+document.getElementById('lastName').value = existing.lastName || parsed.lastName || '';
+document.getElementById('email').value = parsed.email;
+document.getElementById('phoneStep2').value = existing.phone || parsed.phone || '';
+document.getElementById('phoneStep2Group').style.display = 'block';
+document.getElementById('gender').value = existing.gender || '';
+document.getElementById('age').value = existing.age || '';
+document.getElementById('location').value = existing.location || parsed.location || '';
+document.getElementById('bio').value = existing.bio || '';
+document.getElementById('interests').value = existing.interests || '';
+document.getElementById('regProfession').value = existing.profession || '';
+document.getElementById('regIncome').value = existing.income || '';
+document.getElementById('regNetWorth').value = existing.netWorth || '';
+document.getElementById('adultConsent').checked = existing.adultConfirmed === true;
+
+// Preserve the user's custom uploaded avatar in the preview.
+if (existing.avatar) {
+  const previewImg = document.getElementById('previewImg');
+  if (previewImg) {
+    previewImg.src = existing.avatar;
+    previewImg.style.display = 'block';
+    const placeholder = document.getElementById('photoPlaceholder');
+    if (placeholder) placeholder.style.display = 'none';
+  }
+}
+
+document.getElementById('step1Dot').classList.add('done');
+document.getElementById('step1Dot').classList.remove('active');
+document.getElementById('line1').classList.add('active');
+document.getElementById('step2Dot').classList.add('active');
+window.updateStepUI(2);
+
+showToast(
+  (existing.bio || existing.avatar)
+    ? '✨ Welcome back. Confirm your profile to continue.'
+    : '✨ Signed in with Google. Complete your profile to continue.'
+);
     })
     .catch(err => console.warn('[google resume] failed:', err));
 })();
@@ -1384,25 +1415,71 @@ return;
     return;
   }
   const nameParts = (user.displayName || '').split(' ');
-  const firstName = nameParts[0] || '';
-  const lastName = nameParts.slice(1).join(' ') || '';
-  await window.setDoc(window.doc(window.db, 'users', normalizedEmail), {
-    email: normalizedEmail, uid: user.uid, firstName, lastName,
-    name: user.displayName || '', avatar: user.photoURL || window.getRandomAvatar(),
-    plan: 'trial', joined: new Date().toISOString().split('T')[0],
-    lastActive: window.serverTimestamp(), createdAt: window.serverTimestamp(),
-    banned: false, visibility: true, profileComplete: false,
-  }, { merge: true });
-  sessionStorage.setItem('reh_user', JSON.stringify({
-    email: normalizedEmail, uid: user.uid, firstName, lastName,
-    avatar: user.photoURL || '', plan: 'trial',
-  }));
-  document.getElementById('firstName').value = firstName;
-  document.getElementById('lastName').value = lastName;
-  document.getElementById('email').value = normalizedEmail;
-    document.getElementById('phoneStep2Group').style.display = 'block';
-		window._rehGoogleFlowActive = true;			
-  document.getElementById('step1Dot').classList.add('done');
+const firstName = nameParts[0] || '';
+const lastName = nameParts.slice(1).join(' ') || '';
+const existingData = existing.exists() ? existing.data() : {};
+
+// Preserve the user's existing custom avatar. Google photoURL is a
+// fallback for brand-new users only — otherwise the profile pic gets
+// clobbered every time someone uses "Continue with Google."
+const avatar = existingData.avatar || user.photoURL || window.getRandomAvatar();
+
+await window.setDoc(window.doc(window.db, 'users', normalizedEmail), {
+  email: normalizedEmail,
+  uid: user.uid,
+  firstName: existingData.firstName || firstName,
+  lastName: existingData.lastName || lastName,
+  name: existingData.name || user.displayName || '',
+  avatar: avatar,
+  plan: existingData.plan || 'trial',
+  joined: existingData.joined || new Date().toISOString().split('T')[0],
+  lastActive: window.serverTimestamp(),
+  createdAt: existingData.createdAt || window.serverTimestamp(),
+  banned: existingData.banned || false,
+  visibility: existingData.visibility !== false,
+  profileComplete: existingData.profileComplete || false,
+}, { merge: true });
+
+sessionStorage.setItem('reh_user', JSON.stringify({
+  email: normalizedEmail,
+  uid: user.uid,
+  firstName: existingData.firstName || firstName,
+  lastName: existingData.lastName || lastName,
+  avatar: avatar,
+  plan: existingData.plan || 'trial',
+  phone: existingData.phone || '',
+  age: existingData.age || '',
+  location: existingData.location || '',
+}));
+
+document.getElementById('firstName').value = existingData.firstName || firstName;
+document.getElementById('lastName').value = existingData.lastName || lastName;
+document.getElementById('email').value = normalizedEmail;
+document.getElementById('phoneStep2').value = existingData.phone || '';
+document.getElementById('phoneStep2Group').style.display = 'block';
+document.getElementById('gender').value = existingData.gender || '';
+document.getElementById('age').value = existingData.age || '';
+document.getElementById('location').value = existingData.location || '';
+document.getElementById('bio').value = existingData.bio || '';
+document.getElementById('interests').value = existingData.interests || '';
+document.getElementById('regProfession').value = existingData.profession || '';
+document.getElementById('regIncome').value = existingData.income || '';
+document.getElementById('regNetWorth').value = existingData.netWorth || '';
+document.getElementById('adultConsent').checked = existingData.adultConfirmed === true;
+
+// Preserve the avatar in the preview if the user already had one.
+if (existingData.avatar) {
+  const previewImg = document.getElementById('previewImg');
+  if (previewImg) {
+    previewImg.src = existingData.avatar;
+    previewImg.style.display = 'block';
+    const placeholder = document.getElementById('photoPlaceholder');
+    if (placeholder) placeholder.style.display = 'none';
+  }
+}
+
+window._rehGoogleFlowActive = true;
+document.getElementById('step1Dot').classList.add('done');
   document.getElementById('step1Dot').classList.remove('active');
   document.getElementById('line1').classList.add('active');
   document.getElementById('step2Dot').classList.add('active');
@@ -1440,21 +1517,53 @@ window._rehFinishGoogleProfile = async function() {
   btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving…';
   try {
     const previewImg = document.getElementById('previewImg');
-    const hasUpload = previewImg && previewImg.getAttribute('src');
-    const avatar = hasUpload ? previewImg.src : (user.avatar || window.getRandomAvatar());
-    await window.updateDoc(window.doc(window.db, 'users', user.email), {
+const hasUpload = previewImg && previewImg.getAttribute('src');
+
+// Read existing Firestore data so we can preserve any field the user
+// hasn't re-entered. This is the critical fix: without it, clicking
+// Continue on Step 2 wipes every field the user typed on a previous
+// session — the exact data-loss Boss observed.
+const existingSnap = await window.getDoc(window.doc(window.db, 'users', user.email));
+const existingData = existingSnap.exists() ? existingSnap.data() : {};
+
+const formValues = {
   gender: document.getElementById('gender').value,
   age: document.getElementById('age').value,
-  location: document.getElementById('location').value.trim() || 'Milan, Italy',
-  phone: phone, bio: document.getElementById('bio').value,
+  location: document.getElementById('location').value.trim(),
+  phone: phone,
+  bio: document.getElementById('bio').value,
   interests: document.getElementById('interests').value,
   profession: document.getElementById('regProfession').value.trim(),
   income: document.getElementById('regIncome').value.trim(),
   netWorth: document.getElementById('regNetWorth').value.trim(),
-  avatar: avatar,
-  profileComplete: true,
-  adultConfirmed: document.getElementById('adultConsent').checked === true,
-});
+};
+
+const update = {};
+for (const key of Object.keys(formValues)) {
+  const formVal = formValues[key];
+  const existingVal = existingData[key];
+  const formHasValue = formVal !== '' && formVal != null;
+  const existingHasValue = existingVal !== '' && existingVal != null;
+
+  // Overwrite only if the form has a value, OR Firestore is empty
+  if (formHasValue || !existingHasValue) {
+    update[key] = formVal;
+  }
+}
+
+// Milan default only for genuinely empty locations — never clobber a
+// user's saved city.
+if (!update.location && !existingData.location) {
+  update.location = 'Milan, Italy';
+}
+
+update.avatar = hasUpload
+  ? previewImg.src
+  : (existingData.avatar || user.avatar || window.getRandomAvatar());
+update.profileComplete = true;
+update.adultConfirmed = document.getElementById('adultConsent').checked === true;
+
+await window.updateDoc(window.doc(window.db, 'users', user.email), update);
     const session = {
       email: user.email, uid: user.uid,
       firstName: user.firstName || '', lastName: user.lastName || '',

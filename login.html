@@ -667,26 +667,37 @@ if (googleBtn) {
       const normalizedEmail = cred.user.email.trim().toLowerCase();
       const userRef = window.doc(window.db, 'users', normalizedEmail);
       const snap = await window.getDoc(userRef);
-      if (!snap.exists() || (snap.exists() && snap.data().profileComplete === false)) {
-        sessionStorage.setItem('reh_user', JSON.stringify({
-          email: normalizedEmail, uid: cred.user.uid,
-          firstName: cred.user.displayName?.split(' ')[0] || '',
-          lastName: cred.user.displayName?.split(' ').slice(1).join(' ') || '',
-          avatar: cred.user.photoURL || '', plan: 'trial',
-        }));
-        window.location.href = 'index.html?redirect=register.html';
-        return;
-      }
-      const profile = snap.data();
-      await window.setPersistence(window.auth, window.browserLocalPersistence);
-      const session = {
-        email: normalizedEmail, uid: cred.user.uid,
-        firstName: profile.firstName || '', lastName: profile.lastName || '',
-        avatar: profile.avatar || '', plan: profile.plan || 'trial',
-        phone: profile.phone || '', age: profile.age || '',
-        location: profile.location || '', blocked: profile.blocked || [],
-      };
-      localStorage.setItem('reh_user', JSON.stringify(session));
+      const existing = snap.exists() ? snap.data() : {};
+
+// Build the session from Firestore first, Google second.
+// Existing user data ALWAYS wins; Google is a fallback for brand-new
+// users only. This preserves a user's custom avatar, name, plan, etc.
+// if they're re-signing in with Google on an existing account.
+const session = {
+  email: normalizedEmail,
+  uid: cred.user.uid,
+  firstName: existing.firstName || cred.user.displayName?.split(' ')[0] || '',
+  lastName: existing.lastName || cred.user.displayName?.split(' ').slice(1).join(' ') || '',
+  avatar: existing.avatar || cred.user.photoURL || '',
+  plan: existing.plan || 'trial',
+  phone: existing.phone || '',
+  age: existing.age || '',
+  location: existing.location || '',
+  blocked: existing.blocked || [],
+};
+
+if (!snap.exists() || !existing.profileComplete) {
+  // Profile incomplete → hand off to register Step 2 with the session
+  // already populated. The register page will prefill the form from
+  // Firestore so the user only fills the gaps they left.
+  sessionStorage.setItem('reh_user', JSON.stringify(session));
+  window.location.href = 'index.html?redirect=register.html';
+  return;
+}
+
+// Complete profile → dashboard
+await window.setPersistence(window.auth, window.browserLocalPersistence);
+localStorage.setItem('reh_user', JSON.stringify(session));
 
 // Verify the write took before redirecting
 const verify = localStorage.getItem('reh_user');
